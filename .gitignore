@@ -1,0 +1,18 @@
+# Ignore project folders
+insurance-frontend/
+InsurancePlatform/
+
+
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (if frontend uses Node)
+node_modules/
+dist/
+build/
+
+# Env files
+.env
+.env.*

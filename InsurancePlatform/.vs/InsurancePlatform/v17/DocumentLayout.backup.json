@@ -1,7 +1,19 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\hartford-assignments\\Sanjay\\InsurancePlatform\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\Sanjay\\InsurancePlatform\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\Migrations\\20260224103253_InitialCreate1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:InsurancePlatform\\Migrations\\20260224103253_InitialCreate1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_localdb__MSSQLLocalDB/accidentInsurancedb/True/SqlTable/dbo.Users.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8DBA39FB-90FF-4005-AA1E-B89794EB517B}|InsurancePlatform\\InsurancePlatform.csproj|c:\\sanjay\\insuranceplatform\\insuranceplatform\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8DBA39FB-90FF-4005-AA1E-B89794EB517B}|InsurancePlatform\\InsurancePlatform.csproj|solutionrelative:insuranceplatform\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +21,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -22,6 +34,42 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{e506b91c-c606-466a-90a9-123d1d1e12b3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "20260224103253_InitialCreate1.cs",
+              "DocumentMoniker": "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\Migrations\\20260224103253_InitialCreate1.cs",
+              "RelativeDocumentMoniker": "InsurancePlatform\\Migrations\\20260224103253_InitialCreate1.cs",
+              "ToolTip": "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\Migrations\\20260224103253_InitialCreate1.cs",
+              "RelativeToolTip": "InsurancePlatform\\Migrations\\20260224103253_InitialCreate1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T10:32:54.008Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "dbo.Users [Data]",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_localdb__MSSQLLocalDB/accidentInsurancedb/True/SqlTable/dbo.Users.sql",
+              "ToolTip": "dbo.Users [Data]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2026-02-24T10:29:25.799Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\Program.cs",
+              "RelativeDocumentMoniker": "InsurancePlatform\\Program.cs",
+              "ToolTip": "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\Program.cs",
+              "RelativeToolTip": "InsurancePlatform\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T10:27:53.716Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Bookmark",

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\hartford-assignments\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj": {}
+    "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj": {}
   },
   "projects": {
-    "C:\\hartford-assignments\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj": {
+    "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\hartford-assignments\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj",
+        "projectUniqueName": "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj",
         "projectName": "InsurancePlatform",
-        "projectPath": "C:\\hartford-assignments\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj",
+        "projectPath": "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\InsurancePlatform.csproj",
         "packagesPath": "C:\\Users\\ATTELLI SANJAY KUMAR\\.nuget\\packages\\",
-        "outputPath": "C:\\hartford-assignments\\Sanjay\\InsurancePlatform\\InsurancePlatform\\obj\\",
+        "outputPath": "C:\\Sanjay\\InsurancePlatform\\InsurancePlatform\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -50,9 +50,47 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.1.0, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.24, )"
+            },
+            "Microsoft.Azure.Management.ResourceManager.Fluent": {
+              "target": "Package",
+              "version": "[1.38.1, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.24, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.24, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.24, )"
+            },
+            "Microsoft.Extensions.Http": {
+              "target": "Package",
+              "version": "[8.0.1, )"
+            },
+            "Microsoft.IdentityModel.JsonWebTokens": {
+              "target": "Package",
+              "version": "[8.16.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.16.0, )"
             }
           },
           "imports": [
