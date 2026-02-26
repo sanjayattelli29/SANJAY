@@ -1,0 +1,119 @@
+using Application.Interfaces;
+using Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+namespace API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class ClaimController : ControllerBase
+    {
+        private readonly IClaimService _claimService;
+
+        public ClaimController(IClaimService claimService)
+        {
+            _claimService = claimService;
+        }
+
+        // --- Customer Endpoints ---
+
+        [HttpPost("raise")]
+        [Authorize(Roles = UserRoles.Customer)]
+        public async Task<IActionResult> RaiseClaim([FromForm] RaiseClaimRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            try
+            {
+                var result = await _claimService.RaiseClaimAsync(userId, request);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpGet("my-claims")]
+        [Authorize(Roles = UserRoles.Customer)]
+        public async Task<IActionResult> GetMyClaims()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var claims = await _claimService.GetCustomerClaimsAsync(userId);
+            return Ok(claims);
+        }
+
+        // --- Admin Endpoints ---
+
+        [HttpGet("admin/pending")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public async Task<IActionResult> GetPendingClaims()
+        {
+            var claims = await _claimService.GetPendingClaimsAsync();
+            return Ok(claims);
+        }
+
+        [HttpGet("admin/officers")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public async Task<IActionResult> GetClaimOfficers()
+        {
+            var officers = await _claimService.GetClaimOfficersWithWorkloadAsync();
+            return Ok(officers);
+        }
+
+        [HttpPost("admin/assign")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public async Task<IActionResult> AssignOfficer([FromBody] AssignOfficerRequest request)
+        {
+            var result = await _claimService.AssignClaimOfficerAsync(request.ClaimId, request.OfficerId);
+            if (!result) return BadRequest(new { Message = "Assignment failed." });
+            return Ok(new { Message = "Officer assigned successfully." });
+        }
+
+        // --- Claim Officer Endpoints ---
+
+        [HttpGet("officer/my-requests")]
+        [Authorize(Roles = UserRoles.ClaimOfficer)]
+        public async Task<IActionResult> GetOfficerRequests()
+        {
+            var officerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (officerId == null) return Unauthorized();
+
+            var requests = await _claimService.GetOfficerClaimsAsync(officerId);
+            return Ok(requests);
+        }
+
+        [HttpPost("officer/review")]
+        [Authorize(Roles = UserRoles.ClaimOfficer)]
+        public async Task<IActionResult> ReviewClaim([FromBody] ReviewClaimRequest request)
+        {
+            var officerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (officerId == null) return Unauthorized();
+
+            var result = await _claimService.ReviewClaimAsync(request.ClaimId, request.Status, officerId, request.Remarks, request.ApprovedAmount);
+            if (!result) return BadRequest(new { Message = "Review failed." });
+            return Ok(new { Message = $"Claim {request.Status} successfully." });
+        }
+    }
+
+    public class AssignOfficerRequest
+    {
+        public string ClaimId { get; set; } = string.Empty;
+        public string OfficerId { get; set; } = string.Empty;
+    }
+
+    public class ReviewClaimRequest
+    {
+        public string ClaimId { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty; // Approved or Rejected
+        public string Remarks { get; set; } = string.Empty;
+        public decimal ApprovedAmount { get; set; }
+    }
+}

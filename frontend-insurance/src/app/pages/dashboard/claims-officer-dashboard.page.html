@@ -48,7 +48,7 @@
                                 <th class="px-6 py-5">Claim Details</th>
                                 <th class="px-6 py-5">Customer info</th>
                                 <th class="px-6 py-5">Incident Info</th>
-                                <th class="px-6 py-5">Estimated amount</th>
+                                <th class="px-6 py-5">Requested amount</th>
                                 <th class="px-6 py-5">Status</th>
                                 <th class="px-6 py-5 text-right">Actions</th>
                             </tr>
@@ -71,7 +71,7 @@
                                         {{ claim.incidentType }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-5 font-black text-brand-navy">₹{{ claim.estimatedClaimAmount |
+                                <td class="px-6 py-5 font-black text-brand-navy">₹{{ claim.requestedAmount |
                                     number:'1.0-0' }}</td>
                                 <td class="px-6 py-5">
                                     <span
@@ -242,9 +242,22 @@
                                 </div>
                                 <hr class="border-slate-100">
                                 <div>
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Amount Claimed</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Requested Amount</p>
                                     <p class="text-xl font-black text-brand-orange italic">₹{{
-                                        selectedClaim()?.estimatedClaimAmount | number:'1.0-0' }}</p>
+                                        selectedClaim()?.requestedAmount | number:'1.0-0' }}</p>
+                                </div>
+                                <hr class="border-slate-100">
+                                <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                                    <p class="text-[9px] font-black text-brand-orange uppercase mb-2">Decision: Approved
+                                        Amount</p>
+                                    <div class="relative">
+                                        <span
+                                            class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-brand-navy">₹</span>
+                                        <input type="number" [(ngModel)]="reviewForm.approvedAmount"
+                                            class="w-full pl-8 pr-3 py-2 bg-white border border-orange-200 rounded-lg font-black text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-orange/20">
+                                    </div>
+                                    <p class="text-[8px] text-slate-400 mt-2 font-medium">Policy Balance: ₹{{
+                                        selectedClaim()?.policy?.remainingCoverageAmount | number }}</p>
                                 </div>
                                 <hr class="border-slate-100">
                                 <div>

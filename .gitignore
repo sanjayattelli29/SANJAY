@@ -1,8 +1,8 @@
 # Ignore project folders
-insurance-frontend/
-InsurancePlatform/
-CompleteAccidentInsurance/
-frontend-insurance/
+# insurance-frontend/
+# InsurancePlatform/
+# CompleteAccidentInsurance/
+# frontend-insurance/
 
 
 # OS files
@@ -17,3 +17,9 @@ build/
 # Env files
 .env
 .env.*
+
+.vs/
+bin/
+obj/
+*.user
+*.suo

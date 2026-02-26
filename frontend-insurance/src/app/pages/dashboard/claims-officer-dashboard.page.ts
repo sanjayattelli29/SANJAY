@@ -26,7 +26,8 @@ export class ClaimsOfficerDashboardPage implements OnInit {
     showReviewModal = signal(false);
     reviewForm = {
         status: 'Approved',
-        remarks: ''
+        remarks: '',
+        approvedAmount: 0
     };
 
     ngOnInit() {
@@ -94,6 +95,7 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         this.showReviewModal.set(true);
         this.reviewForm.status = 'Approved';
         this.reviewForm.remarks = '';
+        this.reviewForm.approvedAmount = claim.requestedAmount || 0;
     }
 
     submitReview() {
@@ -101,7 +103,7 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         if (!claimId) return;
 
         this.isLoading.set(true);
-        this.claimService.reviewClaim(claimId, this.reviewForm.status, this.reviewForm.remarks).subscribe({
+        this.claimService.reviewClaim(claimId, this.reviewForm.status, this.reviewForm.remarks, this.reviewForm.approvedAmount).subscribe({
             next: () => {
                 this.isLoading.set(false);
                 this.showReviewModal.set(false);

@@ -94,19 +94,19 @@
             <div class="space-y-10 py-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="card bg-brand-navy text-white border-none shadow-xl shadow-slate-200">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Active Policies
-                        </p>
-                        <h3 class="text-4xl font-black">{{ myPolicies.length }}</h3>
-                    </div>
-                    <div class="card">
                         <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Coverage
                         </p>
-                        <h3 class="text-4xl font-black text-brand-navy italic">₹ {{ myPolicies.length * 10 }}+ Lakhs
-                        </h3>
+                        <h3 class="text-4xl font-black italic">₹ {{ totalCoverage() | number }}</h3>
                     </div>
                     <div class="card">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Status</p>
-                        <h3 class="text-4xl font-black text-emerald-500">Fully Protected</h3>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Remaining
+                            Balance</p>
+                        <h3 class="text-4xl font-black text-brand-orange">₹ {{ remainingBalance() | number }}</h3>
+                    </div>
+                    <div class="card">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Claims Approved
+                        </p>
+                        <h3 class="text-4xl font-black text-emerald-500">₹ {{ totalClaimsPaid() | number }}</h3>
                     </div>
                 </div>
 
@@ -190,16 +190,10 @@
                                         [class]="'badge ' + (pol.status === 'Active' ? 'badge-success' : (pol.status === 'AwaitingPayment' ? 'badge-warning' : 'badge-pending'))">
                                         ● {{ pol.status === 'AwaitingPayment' ? 'Awaiting Payment' : pol.status }}
                                     </span>
-                                    @if (pol.status === 'AwaitingPayment' || pol.status === 'Active') {
-                                    <button (click)="viewPolicyDetails(pol)"
-                                        class="text-[10px] font-black uppercase text-brand-orange hover:underline">View
-                                        Details</button>
-                                    }
-                                    @if (pol.status === 'Active') {
-                                    <button (click)="initiateClaim(pol)"
-                                        class="px-3 py-1 bg-brand-orange text-white rounded-lg text-[10px] font-black uppercase shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all">Raise
-                                        Claim</button>
-                                    }
+                                    <button (click)="openPolicyDetails(pol.id)"
+                                        class="px-4 py-1.5 bg-brand-gray text-brand-navy rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-100">
+                                        Open
+                                    </button>
                                 </td>
                             </tr>
                             }
@@ -448,14 +442,18 @@
                                     }}...</td>
                                 <td class="px-8 py-6 font-bold text-brand-navy">{{ claim.policy?.tierId }}</td>
                                 <td class="px-8 py-6 font-bold text-slate-500">{{ claim.incidentType }}</td>
-                                <td class="px-8 py-6 font-black text-brand-navy">₹{{ claim.estimatedClaimAmount |
+                                <td class="px-8 py-6 font-black text-brand-navy">₹{{ claim.requestedAmount |
                                     number:'1.0-0' }}</td>
                                 <td class="px-8 py-6 text-slate-400">{{ claim.submissionDate | date:'mediumDate' }}</td>
-                                <td class="px-8 py-6 text-right">
+                                <td class="px-8 py-6 text-right flex items-center justify-end gap-3">
                                     <span
                                         [class]="'badge ' + (claim.status === 'Approved' ? 'badge-success' : (claim.status === 'Rejected' ? 'badge-pending' : 'badge-warning'))">
                                         ● {{ claim.status === 'Assigned' ? 'Pending Review' : claim.status }}
                                     </span>
+                                    <button (click)="openClaimDetails(claim.id)"
+                                        class="px-4 py-1.5 bg-brand-gray text-brand-navy rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-100">
+                                        Open
+                                    </button>
                                 </td>
                             </tr>
                             }
@@ -777,120 +775,260 @@
                 }
             </div>
             }
-            <!-- Policy Detail & Payment Modal -->
-            @if (showPolicyDetailModal() && selectedPolicy()) {
-            <div class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div
-                    class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                        <div>
-                            <h3 class="font-black text-brand-navy uppercase tracking-tight">Policy Details</h3>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">ID: {{
-                                selectedPolicy().id }}</p>
-                        </div>
-                        <button (click)="showPolicyDetailModal.set(false)"
-                            class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
+            <!-- POLICY DETAILS VIEW -->
+            @if (activeView() === 'policy-details' && detailedPolicy()) {
+            <div class="py-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <button (click)="switchView('my-policies')"
+                            class="text-xs font-bold text-slate-400 hover:text-brand-navy flex items-center gap-1 mb-2 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor font-black">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                    d="M15 19l-7-7 7-7" />
                             </svg>
+                            Back to Portfolio
                         </button>
+                        <h2 class="text-3xl font-black text-brand-navy tracking-tight italic">Policy #{{
+                            detailedPolicy()?.id.substring(0, 8) }}</h2>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{
+                            detailedPolicy()?.policyCategory }} Protection • {{ detailedPolicy()?.tierId }}</p>
                     </div>
+                    <div class="flex gap-4">
+                        @if (detailedPolicy()?.status === 'AwaitingPayment') {
+                        <button (click)="payPremiumFromDetails()" [disabled]="isPaying()"
+                            class="btn-primary px-8 py-3 bg-brand-orange shadow-xl shadow-orange-100 flex items-center gap-2">
+                            @if (isPaying()) { <div
+                                class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            }
+                            Pay Premium ₹{{ detailedPolicy()?.calculatedPremium | number }}
+                        </button>
+                        } @else if (detailedPolicy()?.status === 'Active') {
+                        <button (click)="initiateClaim(detailedPolicy())"
+                            class="btn-primary px-8 py-3 bg-brand-navy shadow-xl shadow-slate-200">
+                            Raise New Claim
+                        </button>
+                        }
+                    </div>
+                </div>
 
-                    <div class="p-8 max-h-[70vh] overflow-y-auto">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <!-- Basic Info -->
-                            <div class="space-y-4">
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
-                                    Plan Information</h4>
-                                <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <span class="text-slate-500 font-bold">Category</span>
-                                    <span class="font-bold text-brand-navy">{{ selectedPolicy().policyCategory }}</span>
-                                    <span class="text-slate-500 font-bold">Tier</span>
-                                    <span class="font-bold text-brand-navy">{{ selectedPolicy().tierId }}</span>
-                                    <span class="text-slate-500 font-bold">Coverage</span>
-                                    <span class="font-bold text-emerald-500">₹{{ selectedPolicy().coverageAmount /
-                                        100000 }} Lakhs</span>
-                                    <span class="text-slate-500 font-bold">Status</span>
-                                    <span class="font-black uppercase text-brand-orange">{{ selectedPolicy().status
-                                        }}</span>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Stats -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="card bg-white border-2 border-slate-50 relative overflow-hidden">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Coverage
+                                    Status</p>
+                                <div class="flex items-end justify-between">
+                                    <h3 class="text-3xl font-black text-brand-navy italic">₹{{
+                                        detailedPolicy()?.totalCoverageAmount | number }}</h3>
+                                    <span
+                                        [class]="'badge ' + (detailedPolicy()?.status === 'Active' ? 'badge-success' : 'badge-warning')">
+                                        ● {{ detailedPolicy()?.status }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="mt-4 pt-4 border-t border-slate-50 flex justify-between text-[10px] font-bold">
+                                    <span class="text-slate-400 uppercase">Remaining Cover</span>
+                                    <span class="text-brand-orange italic">₹{{ detailedPolicy()?.remainingCoverageAmount
+                                        | number }}</span>
                                 </div>
                             </div>
 
-                            <!-- Applicant Details -->
-                            <div class="space-y-4">
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
-                                    Applicant Details</h4>
-                                <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <span class="text-slate-500 font-bold">Name</span>
-                                    <span class="font-bold text-brand-navy">{{
-                                        selectedPolicy().fullDetails?.applicant?.fullName }}</span>
-                                    <span class="text-slate-500 font-bold">Age</span>
-                                    <span class="font-bold text-brand-navy">{{
-                                        selectedPolicy().fullDetails?.applicant?.age }} Years</span>
-                                    <span class="text-slate-500 font-bold">Profession</span>
-                                    <span class="font-bold text-brand-navy">{{
-                                        selectedPolicy().fullDetails?.applicant?.profession }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Benefits -->
-                            <div class="md:col-span-2 space-y-4 pt-4">
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
-                                    Policy Benefits</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs">
-                                    @for (benefit of selectedPolicy().benefits; track benefit) {
-                                    <div class="flex items-start gap-2 italic text-slate-600 font-medium">
-                                        <span class="text-emerald-500">✓</span> {{ benefit }}
+                            <div class="card bg-white border-2 border-slate-50">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Payment
+                                    Schedule</p>
+                                <div class="space-y-3">
+                                    <div
+                                        class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                        <span class="text-xs font-bold text-brand-navy uppercase italic">Valid
+                                            Till</span>
+                                        <span class="text-xs font-black text-slate-500">{{ detailedPolicy()?.expiryDate
+                                            | date:'mediumDate' }}</span>
+                                    </div>
+                                    @if (detailedPolicy()?.paymentMode !== 'yearly') {
+                                    <div
+                                        class="flex justify-between items-center bg-brand-orange/5 p-3 rounded-xl border border-brand-orange/10">
+                                        <span class="text-xs font-black text-brand-orange uppercase italic">Next
+                                            Due</span>
+                                        <span class="text-xs font-black text-brand-orange">{{
+                                            detailedPolicy()?.nextPaymentDate | date:'mediumDate' }}</span>
                                     </div>
                                     }
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Nominee Info -->
-                            <div class="md:col-span-2 space-y-4 pt-4">
-                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
-                                    Nominee Details</h4>
-                                <div class="grid grid-cols-2 gap-4 text-xs">
-                                    <div class="flex flex-col">
-                                        <span class="text-slate-500 font-bold">Nominee</span>
-                                        <span class="font-bold text-brand-navy">{{
-                                            selectedPolicy().fullDetails?.nominee?.nomineeName }}</span>
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <span class="text-slate-500 font-bold">Contact</span>
-                                        <span class="font-bold text-brand-navy">{{
-                                            selectedPolicy().fullDetails?.nominee?.nomineeEmail }}</span>
-                                    </div>
-                                </div>
+                        <!-- Claim History for this Policy -->
+                        <div class="card p-0 overflow-hidden border-2 border-slate-50">
+                            <div class="p-6 border-b border-slate-50 bg-slate-50/30">
+                                <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest">Policy Claim
+                                    History</h3>
                             </div>
+                            <table class="w-full text-left text-sm">
+                                <thead
+                                    class="bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                    <tr>
+                                        <th class="px-6 py-4">ID</th>
+                                        <th class="px-6 py-4">Type</th>
+                                        <th class="px-6 py-4">Requested</th>
+                                        <th class="px-6 py-4 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    @for (c of detailedClaimsForPolicy(); track c.id) {
+                                    <tr class="hover:bg-slate-50/30 transition-colors cursor-pointer"
+                                        (click)="openClaimDetails(c.id)">
+                                        <td class="px-6 py-4 font-mono font-bold text-slate-400 text-xs">{{
+                                            c.id.substring(0,8) }}</td>
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ c.incidentType }}</td>
+                                        <td class="px-6 py-4 font-black">₹{{ c.requestedAmount | number }}</td>
+                                        <td class="px-6 py-4 text-right">
+                                            <span
+                                                [class]="'badge ' + (c.status === 'Approved' ? 'badge-success' : 'badge-warning')">
+                                                {{ c.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-12 text-center text-xs text-slate-400 italic">No
+                                            claims processed for this policy yet.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total
-                                Premium</span>
-                            <span class="text-2xl font-black text-brand-orange">₹{{ selectedPolicy().calculatedPremium |
-                                number:'1.0-0' }}</span>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <button (click)="showPolicyDetailModal.set(false)"
-                                class="px-6 py-3 text-xs font-bold text-slate-400 uppercase hover:text-slate-600">Close</button>
-                            @if (selectedPolicy().status === 'AwaitingPayment') {
-                            <button (click)="payPremium()" [disabled]="isPaying()"
-                                class="btn-primary py-3 px-10 shadow-xl shadow-orange-200 flex items-center gap-3">
-                                @if (isPaying()) {
-                                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                    <!-- Side Info -->
+                    <div class="space-y-8">
+                        <section class="card border-2 border-slate-100 shadow-xl shadow-slate-100">
+                            <h3 class="text-xs font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Insured Details</h3>
+                            <div class="space-y-6">
+                                <div
+                                    class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div
+                                        class="w-12 h-12 bg-white rounded-full flex items-center justify-center font-black text-brand-navy shadow-sm">
+                                        {{ detailedPolicy()?.fullDetails?.applicant?.fullName?.charAt(0) }}</div>
+                                    <div>
+                                        <p class="text-xs font-black text-brand-navy italic">{{
+                                            detailedPolicy()?.fullDetails?.applicant?.fullName }}</p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{
+                                            detailedPolicy()?.fullDetails?.applicant?.profession }}</p>
+                                    </div>
                                 </div>
-                                Processing...
-                                } @else {
-                                Pay Premium ₹{{ selectedPolicy().calculatedPremium | number:'1.0-0' }}
-                                }
-                            </button>
-                            }
-                        </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-4 bg-slate-50 rounded-2xl text-center">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Age</p>
+                                        <p class="text-sm font-black text-brand-navy">{{
+                                            detailedPolicy()?.fullDetails?.applicant?.age }}</p>
+                                    </div>
+                                    <div class="p-4 bg-slate-50 rounded-2xl text-center">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Relation</p>
+                                        <p class="text-sm font-black text-brand-navy italic">Primary</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="card border-2 border-slate-50">
+                            <h3 class="text-xs font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Nominee</h3>
+                            <div class="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                                <p class="text-xs font-black text-brand-navy mb-1 italic">{{
+                                    detailedPolicy()?.fullDetails?.nominee?.nomineeName }}</p>
+                                <p class="text-[10px] font-bold text-emerald-600">{{
+                                    detailedPolicy()?.fullDetails?.nominee?.nomineeEmail }}</p>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- CLAIM DETAILS VIEW -->
+            @if (activeView() === 'claim-details' && detailedClaim()) {
+            <div class="py-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <button (click)="switchView('my-claims')"
+                            class="text-xs font-bold text-slate-400 hover:text-brand-navy flex items-center gap-1 mb-2 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor font-black">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Back to Claims
+                        </button>
+                        <h2 class="text-3xl font-black text-brand-navy tracking-tight italic">Claim #{{
+                            detailedClaim()?.id.substring(0, 8) }}</h2>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Incident: {{
+                            detailedClaim()?.incidentType }}</p>
+                    </div>
+                    <span
+                        [class]="'badge text-sm py-2 px-6 ' + (detailedClaim()?.status === 'Approved' ? 'badge-success' : 'badge-warning')">
+                        ● {{ detailedClaim()?.status }}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-8">
+                        <section class="card">
+                            <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Settlement Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Requested Amount</p>
+                                    <h4 class="text-2xl font-black text-brand-navy">₹{{ detailedClaim()?.requestedAmount
+                                        | number }}</h4>
+                                </div>
+                                <div class="bg-brand-orange/5 p-6 rounded-3xl border border-brand-orange/10">
+                                    <p class="text-[10px] font-black text-brand-orange uppercase mb-2">Approved Amount
+                                    </p>
+                                    <h4 class="text-2xl font-black text-brand-orange">
+                                        {{ detailedClaim()?.approvedAmount ? '₹' + (detailedClaim()?.approvedAmount |
+                                        number) : 'Under Review' }}
+                                    </h4>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="card">
+                            <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Incident Details</h3>
+                            <div class="grid grid-cols-2 gap-8">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Occurred On</p>
+                                    <p class="text-sm font-bold text-brand-navy">{{ detailedClaim()?.incidentDate |
+                                        date:'fullDate' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Location / Hospital
+                                    </p>
+                                    <p class="text-sm font-bold text-brand-navy italic">{{ detailedClaim()?.hospitalName
+                                        || detailedClaim()?.incidentLocation }}</p>
+                                </div>
+                                <div class="col-span-2">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Description</p>
+                                    <p
+                                        class="text-xs text-slate-600 leading-relaxed italic bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                        {{ detailedClaim()?.description }}</p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="space-y-8">
+                        <section class="card border-2 border-slate-100">
+                            <h3 class="text-xs font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Officer Remarks</h3>
+                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 min-h-[120px]">
+                                <p class="text-xs text-slate-500 italic">"{{ detailedClaim()?.remarks || 'No remarks
+                                    provided by the reviewer yet.' }}"</p>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </div>

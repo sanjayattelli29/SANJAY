@@ -16,6 +16,8 @@ export const routes: Routes = [
 
   // Dashboard routes (to be implemented)
   { path: 'customer/dashboard', loadComponent: () => import('./pages/dashboard/customer-dashboard.page').then(m => m.CustomerDashboardPage) },
+  { path: 'customer/policy/:id', loadComponent: () => import('./pages/details/policy-details.page').then(m => m.PolicyDetailsPage) },
+  { path: 'customer/claim/:id', loadComponent: () => import('./pages/details/claim-details.page').then(m => m.ClaimDetailsPage) },
   { path: 'admin/dashboard', loadComponent: () => import('./pages/dashboard/admin-dashboard.page').then(m => m.AdminDashboardPage) },
   { path: 'agent/dashboard', loadComponent: () => import('./pages/dashboard/agent-dashboard.page').then(m => m.AgentDashboardPage) },
   { path: 'claims-officer/dashboard', loadComponent: () => import('./pages/dashboard/claims-officer-dashboard.page').then(m => m.ClaimsOfficerDashboardPage) },

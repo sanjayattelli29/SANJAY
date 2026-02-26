@@ -1,0 +1,181 @@
+using Application.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Infrastructure.Services
+{
+    public class ClaimService : IClaimService
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IFileStorageService _fileStorage;
+
+        public ClaimService(
+            ApplicationDbContext context, 
+            UserManager<ApplicationUser> userManager,
+            IFileStorageService fileStorage)
+        {
+            _context = context;
+            _userManager = userManager;
+            _fileStorage = fileStorage;
+        }
+
+        public async Task<object> RaiseClaimAsync(string userId, RaiseClaimRequest request)
+        {
+            // 1. Validate Policy
+            var policy = await _context.PolicyApplications
+                .FirstOrDefaultAsync(pa => pa.Id == request.PolicyApplicationId && pa.UserId == userId);
+
+            if (policy == null) throw new Exception("Policy not found.");
+            if (policy.Status != "Active") throw new Exception("Claims can only be raised for Active policies.");
+            if (policy.ExpiryDate < DateTime.UtcNow) throw new Exception("Policy has expired.");
+
+            // 2. Create Claim
+            var claim = new InsuranceClaim
+            {
+                PolicyApplicationId = request.PolicyApplicationId,
+                UserId = userId,
+                IncidentType = request.IncidentType,
+                IncidentLocation = request.IncidentLocation,
+                IncidentDate = request.IncidentDate,
+                Description = request.Description,
+                HospitalName = request.HospitalName,
+                HospitalizationRequired = request.HospitalizationRequired,
+                RequestedAmount = request.RequestedAmount,
+                AffectedMemberName = request.AffectedMemberName,
+                AffectedMemberRelation = request.AffectedMemberRelation,
+                Status = "Pending"
+            };
+
+            _context.InsuranceClaims.Add(claim);
+            await _context.SaveChangesAsync(); // Save to get ClaimId
+
+            // 3. Upload Documents
+            if (request.Documents != null && request.Documents.Any())
+            {
+                foreach (var file in request.Documents)
+                {
+                    using (var stream = file.OpenReadStream())
+                    {
+                        var uploadResult = await _fileStorage.UploadFileAsync(stream, file.FileName, $"/claims/{claim.Id}");
+                        
+                        var doc = new ClaimDocument
+                        {
+                            ClaimId = claim.Id,
+                            FileId = uploadResult.FileId,
+                            FileName = uploadResult.FileName,
+                            FileUrl = uploadResult.FileUrl,
+                            FileSize = uploadResult.FileSize
+                        };
+                        _context.ClaimDocuments.Add(doc);
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return new { Status = "Success", ClaimId = claim.Id };
+        }
+
+        public async Task<IEnumerable<InsuranceClaim>> GetCustomerClaimsAsync(string userId)
+        {
+            return await _context.InsuranceClaims
+                .Include(c => c.Policy)
+                .Include(c => c.Documents)
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.SubmissionDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<InsuranceClaim>> GetPendingClaimsAsync()
+        {
+            return await _context.InsuranceClaims
+                .Include(c => c.User)
+                .Include(c => c.Policy)
+                .Where(c => c.Status == "Pending")
+                .OrderByDescending(c => c.SubmissionDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<object>> GetClaimOfficersWithWorkloadAsync()
+        {
+            var officers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer);
+            var result = new List<object>();
+
+            foreach (var officer in officers)
+            {
+                var count = await _context.InsuranceClaims.CountAsync(c => c.AssignedClaimOfficerId == officer.Id);
+                result.Add(new
+                {
+                    ClaimOfficerId = officer.Id,
+                    Email = officer.Email,
+                    AssignedClaimsCount = count
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<bool> AssignClaimOfficerAsync(string claimId, string officerId)
+        {
+            var claim = await _context.InsuranceClaims.FindAsync(claimId);
+            if (claim == null) return false;
+
+            claim.AssignedClaimOfficerId = officerId;
+            claim.Status = "Assigned";
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<IEnumerable<InsuranceClaim>> GetOfficerClaimsAsync(string officerId)
+        {
+            return await _context.InsuranceClaims
+                .Include(c => c.User)
+                .Include(c => c.Policy)
+                .Include(c => c.Documents)
+                .Where(c => c.AssignedClaimOfficerId == officerId)
+                .OrderByDescending(c => c.SubmissionDate)
+                .ToListAsync();
+        }
+
+        public async Task<bool> ReviewClaimAsync(string claimId, string status, string officerId, string remarks, decimal approvedAmount = 0)
+        {
+            var claim = await _context.InsuranceClaims
+                .Include(c => c.Policy)
+                .FirstOrDefaultAsync(c => c.Id == claimId);
+
+            if (claim == null || claim.AssignedClaimOfficerId != officerId) return false;
+
+            if (status == "Approved")
+            {
+                if (claim.Policy == null) throw new Exception("Associated policy not found.");
+                
+                // Validate against remaining coverage
+                if (approvedAmount > claim.Policy.RemainingCoverageAmount)
+                {
+                    throw new Exception($"Approved amount (₹{approvedAmount}) exceeds remaining coverage (₹{claim.Policy.RemainingCoverageAmount}).");
+                }
+
+                claim.ApprovedAmount = approvedAmount;
+                
+                // Update Policy Financials
+                claim.Policy.TotalApprovedClaimsAmount += approvedAmount;
+                claim.Policy.RemainingCoverageAmount -= approvedAmount;
+            }
+
+            claim.Status = status; // Approved or Rejected
+            claim.Remarks = remarks;
+            claim.ApprovedByOfficerId = officerId;
+            claim.ProcessedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
+}

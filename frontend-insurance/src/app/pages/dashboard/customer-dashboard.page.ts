@@ -5,10 +5,12 @@ import { AuthService } from '../../services/auth.service';
 import { PolicyService } from '../../services/policy.service';
 import { ClaimService } from '../../services/claim.service';
 
+import { RouterModule } from '@angular/router';
+
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RouterModule],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })
@@ -18,12 +20,25 @@ export class CustomerDashboardPage implements OnInit {
     private claimService = inject(ClaimService);
 
     user = this.authService.getUser();
-    activeView = signal<'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims'>('dashboard');
+    activeView = signal<'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'policy-details' | 'claim-details'>('dashboard');
+
+    // Sub-view State
+    selectedPolicyId = signal<string | null>(null);
+    selectedClaimId = signal<string | null>(null);
+    detailedPolicy = signal<any | null>(null);
+    detailedClaim = signal<any | null>(null);
+    detailedClaimsForPolicy = signal<any[]>([]);
+    isSubmittingClaim = signal<boolean>(false);
+    isPaying = signal<boolean>(false);
 
     // Configuration and Data
     config: any = null;
     myPolicies: any[] = [];
     myClaims: any[] = [];
+
+    totalCoverage = signal<number>(0);
+    totalClaimsPaid = signal<number>(0);
+    remainingBalance = signal<number>(0);
 
     // Selection for Buy Policy
     selectedCategory: any = null;
@@ -52,10 +67,9 @@ export class CustomerDashboardPage implements OnInit {
     calculatedPremium = signal<number>(0);
     isSubmitting = signal<boolean>(false);
 
-    // Policy Detail & Payment
+    // Policy Detail & Payment (legacy, kept what's needed for sub-views)
     showPolicyDetailModal = signal(false);
     selectedPolicy = signal<any | null>(null);
-    isPaying = signal(false);
 
     ngOnInit() {
         this.loadConfig();
@@ -76,6 +90,7 @@ export class CustomerDashboardPage implements OnInit {
         this.policyService.getMyPolicies().subscribe({
             next: (policies) => {
                 this.myPolicies = policies;
+                this.calculateTotals();
                 console.log('User policies loaded:', policies);
             }
         });
@@ -85,9 +100,31 @@ export class CustomerDashboardPage implements OnInit {
         this.claimService.getMyClaims().subscribe({
             next: (claims) => {
                 this.myClaims = claims;
+                this.calculateTotals();
                 console.log('User claims loaded:', claims);
             }
         });
+    }
+
+    calculateTotals() {
+        let coverage = 0;
+        let claims = 0;
+
+        this.myPolicies.forEach(p => {
+            if (p.status === 'Active') {
+                coverage += p.totalCoverageAmount || 0;
+            }
+        });
+
+        this.myClaims.forEach(c => {
+            if (c.status === 'Approved') {
+                claims += c.approvedAmount || 0;
+            }
+        });
+
+        this.totalCoverage.set(coverage);
+        this.totalClaimsPaid.set(claims);
+        this.remainingBalance.set(coverage - claims);
     }
 
     switchView(view: 'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims') {
@@ -163,38 +200,50 @@ export class CustomerDashboardPage implements OnInit {
         });
     }
 
-    viewPolicyDetails(pol: any) {
-        // Parse and normalize JSON data (similar to Agent Dashboard logic)
-        const raw = JSON.parse(pol.applicationDataJson);
-        const normalize = (obj: any) => {
-            if (!obj) return null;
-            const normalized: any = {};
-            Object.keys(obj).forEach(key => {
-                const normalizedKey = key.charAt(0).toLowerCase() + key.slice(1);
-                normalized[normalizedKey] = obj[key];
-            });
-            return normalized;
-        };
+    openPolicyDetails(polId: string) {
+        const pol = this.myPolicies.find(p => p.id === polId);
+        if (!pol) return;
 
-        const details = normalize(raw);
-        if (details) {
-            details.applicant = normalize(details.applicant || details.primaryApplicant || raw.Applicant || raw.PrimaryApplicant);
-            details.nominee = normalize(details.nominee || raw.Nominee);
-            details.familyMembers = details.familyMembers || raw.FamilyMembers;
-            details.paymentMode = details.paymentMode || raw.PaymentMode;
+        // Parse JSON data
+        try {
+            pol.fullDetails = JSON.parse(pol.applicationDataJson);
+        } catch (e) {
+            pol.fullDetails = {};
         }
 
-        // Fetch Tier benefits if possible (from the loaded config)
-        let tierBenefits: string[] = [];
-        if (this.config) {
-            const cat = this.config.policyCategories.find((c: any) => c.categoryId === pol.policyCategory);
-            const tier = cat?.tiers.find((t: any) => t.tierId === pol.tierId);
-            tierBenefits = tier?.benefits || [];
-            pol.coverageAmount = tier?.baseCoverageAmount || 0;
-        }
+        this.detailedPolicy.set(pol);
+        this.detailedClaimsForPolicy.set(this.myClaims.filter(c => c.policyApplicationId === polId));
+        this.selectedPolicyId.set(polId);
+        this.activeView.set('policy-details');
+    }
 
-        this.selectedPolicy.set({ ...pol, fullDetails: details, benefits: tierBenefits });
-        this.showPolicyDetailModal.set(true);
+    payPremiumFromDetails() {
+        const pol = this.detailedPolicy();
+        if (!pol) return;
+
+        if (!confirm(`Confirm payment of ₹${pol.calculatedPremium} for ${pol.tierId} policy?`)) return;
+
+        this.isPaying.set(true);
+        this.policyService.processPayment(pol.id, pol.calculatedPremium).subscribe({
+            next: () => {
+                this.isPaying.set(false);
+                alert('Payment Successful! Your policy is now ACTIVE.');
+                this.loadMyPolicies();
+                this.openPolicyDetails(pol.id); // Refresh view
+            },
+            error: (err) => {
+                this.isPaying.set(false);
+                alert('Payment failed: ' + (err.error?.message || 'Processing error'));
+            }
+        });
+    }
+
+    openClaimDetails(claimId: string) {
+        const claim = this.myClaims.find(c => c.id === claimId);
+        if (!claim) return;
+        this.detailedClaim.set(claim);
+        this.selectedClaimId.set(claimId);
+        this.activeView.set('claim-details');
     }
 
     payPremium() {
@@ -227,7 +276,7 @@ export class CustomerDashboardPage implements OnInit {
         description: '',
         hospitalName: '',
         hospitalizationRequired: false,
-        estimatedClaimAmount: 0,
+        requestedAmount: 0,
         affectedMemberName: '',
         affectedMemberRelation: ''
     };
@@ -259,7 +308,7 @@ export class CustomerDashboardPage implements OnInit {
         formData.append('description', this.claimForm.description);
         formData.append('hospitalName', this.claimForm.hospitalName);
         formData.append('hospitalizationRequired', this.claimForm.hospitalizationRequired.toString());
-        formData.append('estimatedClaimAmount', this.claimForm.estimatedClaimAmount.toString());
+        formData.append('requestedAmount', this.claimForm.requestedAmount.toString());
 
         if (this.selectedPolicyForClaim()!.policyCategory === 'FAMILY') {
             formData.append('affectedMemberName', this.claimForm.affectedMemberName);

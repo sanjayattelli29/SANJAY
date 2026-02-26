@@ -1,0 +1,195 @@
+{
+    "policyCategories": [
+        {
+            "categoryId": "INDIVIDUAL",
+            "categoryName": "Individual Accident Policy",
+            "maxMembersAllowed": 1,
+            "tiers": [
+                {
+                    "tierId": "IND_SILVER",
+                    "tierName": "Silver",
+                    "baseCoverageAmount": 500000,
+                    "basePremiumAmount": 3000,
+                    "validityInYears": 1,
+                    "benefits": [
+                        "Accidental Death Cover",
+                        "Permanent Disability Cover",
+                        "Hospitalization Support"
+                    ]
+                },
+                {
+                    "tierId": "IND_GOLD",
+                    "tierName": "Gold",
+                    "baseCoverageAmount": 1000000,
+                    "basePremiumAmount": 5000,
+                    "validityInYears": 1,
+                    "benefits": [
+                        "Accidental Death Cover",
+                        "Permanent Disability Cover",
+                        "Partial Disability Cover",
+                        "Hospitalization Support",
+                        "Ambulance Charges"
+                    ]
+                },
+                {
+                    "tierId": "IND_PREMIUM",
+                    "tierName": "Premium",
+                    "baseCoverageAmount": 2000000,
+                    "basePremiumAmount": 8000,
+                    "validityInYears": 1,
+                    "benefits": [
+                        "Accidental Death Cover",
+                        "Permanent Disability Cover",
+                        "Partial Disability Cover",
+                        "ICU Cover",
+                        "Worldwide Emergency Cover"
+                    ]
+                }
+            ]
+        },
+        {
+            "categoryId": "FAMILY",
+            "categoryName": "Family Group Accident Policy",
+            "maxMembersAllowed": 4,
+            "premiumBasedOn": "PrimaryApplicantOnly",
+            "tiers": [
+                {
+                    "tierId": "FAM_SILVER",
+                    "tierName": "Silver",
+                    "baseCoverageAmount": 1000000,
+                    "basePremiumAmount": 7000,
+                    "validityInYears": 1,
+                    "benefits": [
+                        "Family Accidental Cover",
+                        "Hospitalization Cover",
+                        "Children Education Support"
+                    ]
+                },
+                {
+                    "tierId": "FAM_GOLD",
+                    "tierName": "Gold",
+                    "baseCoverageAmount": 2000000,
+                    "basePremiumAmount": 12000,
+                    "validityInYears": 1,
+                    "benefits": [
+                        "Family Accidental Cover",
+                        "ICU Cover",
+                        "Children Education Support",
+                        "Ambulance Cover"
+                    ]
+                },
+                {
+                    "tierId": "FAM_PREMIUM",
+                    "tierName": "Premium",
+                    "baseCoverageAmount": 4000000,
+                    "basePremiumAmount": 18000,
+                    "validityInYears": 1,
+                    "benefits": [
+                        "Family Accidental Cover",
+                        "Worldwide Emergency Cover",
+                        "Full Disability Cover",
+                        "ICU + Surgery Cover"
+                    ]
+                }
+            ]
+        }
+    ],
+    "riskFactors": {
+        "ageMultipliers": [
+            {
+                "minAge": 18,
+                "maxAge": 25,
+                "multiplier": 1.0
+            },
+            {
+                "minAge": 26,
+                "maxAge": 45,
+                "multiplier": 1.2
+            },
+            {
+                "minAge": 46,
+                "maxAge": 65,
+                "multiplier": 1.5
+            }
+        ],
+        "professionMultipliers": [
+            {
+                "profession": "SoftwareEmployee",
+                "multiplier": 1.0
+            },
+            {
+                "profession": "Teacher",
+                "multiplier": 1.0
+            },
+            {
+                "profession": "Doctor",
+                "multiplier": 1.2
+            },
+            {
+                "profession": "Driver",
+                "multiplier": 1.5
+            },
+            {
+                "profession": "ConstructionWorker",
+                "multiplier": 1.8
+            },
+            {
+                "profession": "FactoryWorker",
+                "multiplier": 1.6
+            },
+            {
+                "profession": "Police",
+                "multiplier": 1.7
+            },
+            {
+                "profession": "Army",
+                "multiplier": 2.0
+            },
+            {
+                "profession": "SelfEmployed",
+                "multiplier": 1.3
+            },
+            {
+                "profession": "Others",
+                "multiplier": 1.6
+            }
+        ],
+        "alcoholMultiplier": {
+            "nonDrinker": 1.0,
+            "occasional": 1.2,
+            "regular": 1.5,
+            "others": 1.6
+        },
+        "smokingMultiplier": {
+            "nonSmoker": 1.0,
+            "occasional": 1.3,
+            "regular": 1.6,
+            "others": 1.7
+        },
+        "travelFrequencyMultiplier": [
+            {
+                "maxKmPerMonth": 500,
+                "multiplier": 1.0
+            },
+            {
+                "maxKmPerMonth": 2000,
+                "multiplier": 1.2
+            },
+            {
+                "maxKmPerMonth": 5000,
+                "multiplier": 1.5
+            },
+            {
+                "maxKmPerMonth": 100000,
+                "multiplier": 1.7,
+                "label": "Others"
+            }
+        ]
+    },
+    "paymentModeMultipliers": {
+        "monthly": 1.1,
+        "halfYearly": 1.05,
+        "yearly": 0.95
+    },
+    "premiumFormula": "FinalPremium = BasePremium × AgeMultiplier × ProfessionMultiplier × AlcoholMultiplier × SmokingMultiplier × TravelMultiplier × PaymentModeMultiplier"
+}
