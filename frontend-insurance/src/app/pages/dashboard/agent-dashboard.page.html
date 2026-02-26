@@ -1,0 +1,316 @@
+<div class="min-h-screen flex flex-col bg-brand-gray">
+    <!-- Agent Header -->
+    <header class="nav-header shrink-0">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <span class="text-xl font-black tracking-tight">Insurance<span
+                        class="text-brand-orange">Platform</span></span>
+                <span
+                    class="bg-brand-orange/20 text-brand-orange px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest border border-brand-orange/20">Agent
+                    Portal</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <button (click)="logout()"
+                    class="btn-secondary py-1.5 px-3 text-[10px] border-white/20 text-white hover:bg-white/10">Sign
+                    Out</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex grow overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-brand-navy border-r border-white/5 flex flex-col pt-6 shrink-0">
+            <nav class="space-y-1 px-3">
+                <button (click)="setSection('dashboard')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'dashboard' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    Dashboard
+                </button>
+                <button (click)="setSection('policyRequests')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'policyRequests' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Policy Requests
+                </button>
+                <button (click)="setSection('commission')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'commission' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Commission
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="grow overflow-y-auto p-8">
+            <div class="max-w-6xl mx-auto space-y-8">
+
+                @if (message().text) {
+                <div
+                    [class]="'p-4 rounded-lg flex items-center gap-3 ' + (message().type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100')">
+                    <span class="font-bold">{{ message().type === 'success' ? '✓' : '⚠' }}</span>
+                    <p class="text-sm font-bold">{{ message().text }}</p>
+                </div>
+                }
+
+                @if (activeSection() === 'dashboard') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div>
+                        <h1 class="text-3xl font-black text-brand-navy">Agent Overview</h1>
+                        <p class="text-slate-500 text-sm">Welcome back, {{ user.email }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <div (click)="setSection('policyRequests')"
+                            class="card p-4 border-l-4 border-brand-orange cursor-pointer hover:shadow-md transition-all">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Pending Review</p>
+                            <span class="text-2xl font-black text-brand-navy">{{ stats.pendingReview }}</span>
+                        </div>
+                        <div (click)="setSection('commission')"
+                            class="card p-4 border-l-4 border-emerald-500 cursor-pointer hover:shadow-md transition-all">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Total Commission</p>
+                            <span class="text-2xl font-black text-emerald-600">₹{{ stats.totalCommission |
+                                number:'1.0-0' }}</span>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'policyRequests') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div>
+                        <h1 class="text-3xl font-black text-brand-navy">Assigned Requests</h1>
+                        <p class="text-slate-500 text-sm">Review applications assigned to you for final approval.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">Customer</th>
+                                        <th class="px-6 py-4">Category</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (request of policyRequests(); track request.id) {
+                                    @if (request.status === 'Assigned') {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ request.user?.email }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-500">{{ request.policyCategory }} - {{
+                                            request.tierId }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="badge badge-pending">
+                                                ● {{ request.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button (click)="viewDetails(request)"
+                                                class="text-brand-orange hover:text-orange-700 font-black uppercase tracking-tighter">Review</button>
+                                        </td>
+                                    </tr>
+                                    }
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="4" class="p-12 text-center text-slate-400 font-bold italic">No
+                                            pending requests assigned to you.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'commission') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div>
+                        <h1 class="text-3xl font-black text-brand-navy">Commission Earned</h1>
+                        <p class="text-slate-500 text-sm">You earn 10% commission on every active policy assigned to
+                            you.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">Customer</th>
+                                        <th class="px-6 py-4">Policy Type</th>
+                                        <th class="px-6 py-4">Premium Paid</th>
+                                        <th class="px-6 py-4 text-emerald-600">Commission (10%)</th>
+                                        <th class="px-6 py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (policy of commissionData().activePolicies; track policy.id) {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ policy.user?.email }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-500">{{ policy.policyCategory }} - {{
+                                            policy.tierId }}</td>
+                                        <td class="px-6 py-4 font-black">₹{{ policy.calculatedPremium | number:'1.0-0'
+                                            }}</td>
+                                        <td class="px-6 py-4 font-black text-emerald-600 bg-emerald-50/30">₹{{
+                                            (policy.calculatedPremium * 0.10) | number:'1.0-0' }}</td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button (click)="viewDetails(policy)"
+                                                class="text-brand-orange hover:text-orange-700 font-black uppercase tracking-tighter">Details</button>
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="5" class="p-12 text-center text-slate-400 font-bold italic">No
+                                            active policies with commission yet.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr
+                                        class="bg-emerald-50/20 border-t-2 border-emerald-100 font-black text-brand-navy">
+                                        <td colspan="3"
+                                            class="px-6 py-4 text-right uppercase tracking-widest text-[10px]">Grand
+                                            Total Commission:</td>
+                                        <td class="px-6 py-4 text-lg text-emerald-600">₹{{
+                                            commissionData().totalCommission | number:'1.0-2' }}</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Detail & Approval Modal -->
+    @if (showDetailModal() && selectedApplication()) {
+    <div class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div
+            class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h3 class="font-black text-brand-navy uppercase tracking-tight">Review Policy Application</h3>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Application ID: {{
+                        selectedApplication().id }}</p>
+                </div>
+                <button (click)="showDetailModal.set(false)"
+                    class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-8 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Applicant Info -->
+                    <div class="space-y-4">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Applicant
+                            Details</h4>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <span class="text-slate-500 font-bold">Full Name</span>
+                            <span class="font-bold text-brand-navy">{{
+                                selectedApplication().fullDetails?.applicant?.fullName || 'N/A' }}</span>
+
+                            <span class="text-slate-500 font-bold">Age</span>
+                            <span class="font-bold text-brand-navy">{{ selectedApplication().fullDetails?.applicant?.age
+                                }} Years</span>
+
+                            <span class="text-slate-500 font-bold">Profession</span>
+                            <span class="font-bold text-brand-navy">{{
+                                selectedApplication().fullDetails?.applicant?.profession }}</span>
+
+                            <span class="text-slate-500 font-bold">Alcohol Habit</span>
+                            <span class="font-bold text-brand-navy capitalize">{{
+                                selectedApplication().fullDetails?.applicant?.alcoholHabit }}</span>
+
+                            <span class="text-slate-500 font-bold">Smoking Habit</span>
+                            <span class="font-bold text-brand-navy capitalize">{{
+                                selectedApplication().fullDetails?.applicant?.smokingHabit }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Policy Info -->
+                    <div class="space-y-4">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Policy
+                            Summary</h4>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <span class="text-slate-500 font-bold">Category</span>
+                            <span class="font-bold text-brand-navy">{{ selectedApplication().policyCategory }}</span>
+
+                            <span class="text-slate-500 font-bold">Tier/Plan</span>
+                            <span class="font-bold text-brand-navy">{{ selectedApplication().tierId }}</span>
+
+                            <span class="text-slate-500 font-bold">Payment Mode</span>
+                            <span class="font-bold text-brand-navy capitalize">{{
+                                selectedApplication().fullDetails?.paymentMode }}</span>
+
+                            <span class="text-slate-500 font-bold">Premium Amount</span>
+                            <span class="text-lg font-black text-brand-orange">₹{{
+                                selectedApplication().calculatedPremium | number:'1.0-0' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Nominee Info -->
+                    <div class="md:col-span-2 space-y-4 pt-4">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Nominee
+                            Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div class="flex flex-col">
+                                <span class="text-slate-500 font-bold">Nominee Name</span>
+                                <span class="font-bold text-brand-navy">{{
+                                    selectedApplication().fullDetails?.nominee?.nomineeName }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-slate-500 font-bold">Relationship Contact</span>
+                                <span class="font-bold text-brand-navy">{{
+                                    selectedApplication().fullDetails?.nominee?.nomineeEmail }} | {{
+                                    selectedApplication().fullDetails?.nominee?.nomineePhone }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                <button (click)="showDetailModal.set(false)"
+                    class="text-slate-400 font-bold uppercase text-[10px] hover:text-slate-600">Close</button>
+
+                @if (selectedApplication().status === 'Assigned') {
+                <div class="flex gap-3">
+                    <button (click)="reviewApplication('Rejected')" [disabled]="isProcessing()"
+                        class="px-6 py-2.5 bg-rose-50 text-rose-600 rounded-xl font-bold uppercase text-[10px] hover:bg-rose-100 transition-all">Reject
+                        Application</button>
+                    <button (click)="reviewApplication('Approved')" [disabled]="isProcessing()"
+                        class="px-8 py-2.5 bg-brand-orange text-white rounded-xl font-black uppercase text-[10px] shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all">Approve
+                        & Issue</button>
+                </div>
+                } @else {
+                <span
+                    [class]="'font-black uppercase text-[10px] ' + (selectedApplication().status === 'Approved' ? 'text-emerald-600' : 'text-rose-600')">Application
+                    is {{ selectedApplication().status }}</span>
+                }
+            </div>
+        </div>
+    </div>
+    }
+</div>

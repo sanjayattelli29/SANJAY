@@ -1,0 +1,900 @@
+<div class="min-h-screen flex bg-brand-gray">
+    <!-- Sidebar -->
+    <aside class="w-72 bg-white border-r border-border-light flex flex-col shrink-0">
+        <div class="p-8 flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-brand-orange rounded-2xl flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-orange-200">
+                I</div>
+            <span class="text-xl font-black tracking-tighter text-brand-navy">InsurancePlatform</span>
+        </div>
+
+        <nav class="grow px-4 space-y-2 mt-4">
+            <button (click)="switchView('dashboard')" [class.active]="activeView() === 'dashboard'"
+                class="sidebar-link w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Dashboard
+            </button>
+
+            <button (click)="switchView('my-policies')" [class.active]="activeView() === 'my-policies'"
+                class="sidebar-link w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                My Policies
+            </button>
+
+            <button (click)="switchView('my-claims')" [class.active]="activeView() === 'my-claims'"
+                class="sidebar-link w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                My Claims
+            </button>
+
+            <button (click)="switchView('buy-policy')" [class.active]="activeView() === 'buy-policy'"
+                class="sidebar-link w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Buy a New Policy
+            </button>
+        </nav>
+
+        <div class="p-6 border-t border-slate-50">
+            <div class="flex items-center gap-3 mb-6">
+                <div
+                    class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">
+                    {{ user.email?.charAt(0)?.toUpperCase() }}</div>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-black text-brand-navy truncate">{{ user.email }}</p>
+                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{{ user.role }}</p>
+                </div>
+            </div>
+            <button (click)="logout()"
+                class="w-full text-left text-xs font-bold text-slate-400 hover:text-brand-orange flex items-center gap-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="grow flex flex-col h-screen overflow-hidden">
+        <header class="bg-white/50 backdrop-blur-md px-10 py-6 shrink-0 z-10">
+            <h1 class="text-3xl font-black text-brand-navy tracking-tighter">
+                {{ activeView() === 'dashboard' ? 'Welcome Back!' :
+                activeView() === 'my-policies' ? 'My Portfolio' :
+                activeView() === 'raise-claim' ? 'Raise a Claim' :
+                activeView() === 'my-claims' ? 'Claim History' :
+                'Find Your Plan' }}
+            </h1>
+            <p class="text-sm text-slate-400 font-medium">
+                {{ activeView() === 'raise-claim' ? 'Submit your incident details and documents for review.' : 'Manage
+                your protection and peace of mind.' }}
+            </p>
+        </header>
+
+        <div class="grow overflow-y-auto px-10 pb-10">
+            <!-- DASHBOARD VIEW -->
+            @if (activeView() === 'dashboard') {
+            <div class="space-y-10 py-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card bg-brand-navy text-white border-none shadow-xl shadow-slate-200">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Active Policies
+                        </p>
+                        <h3 class="text-4xl font-black">{{ myPolicies.length }}</h3>
+                    </div>
+                    <div class="card">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Coverage
+                        </p>
+                        <h3 class="text-4xl font-black text-brand-navy italic">₹ {{ myPolicies.length * 10 }}+ Lakhs
+                        </h3>
+                    </div>
+                    <div class="card">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Status</p>
+                        <h3 class="text-4xl font-black text-emerald-500">Fully Protected</h3>
+                    </div>
+                </div>
+
+                <section>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-black text-brand-navy">Protection Summary</h2>
+                        <button (click)="switchView('my-policies')"
+                            class="text-xs font-bold text-brand-orange hover:underline">View All</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @for (pol of myPolicies.slice(0, 2); track pol.id) {
+                        <div
+                            class="card flex justify-between items-center group cursor-pointer hover:border-brand-orange/30 transition-all">
+                            <div>
+                                <span
+                                    [class]="'badge mb-2 ' + (pol.status === 'Active' ? 'badge-success' : 'badge-warning')">
+                                    {{ pol.status }}
+                                </span>
+                                <h3 class="text-lg font-bold text-brand-navy">{{ pol.tierId.split('_').pop() }}
+                                    Protection</h3>
+                                <p class="text-xs text-slate-400">{{ pol.policyCategory }} Policy</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Premium</p>
+                                <p class="text-lg font-black text-brand-navy">₹{{ pol.calculatedPremium }}</p>
+                            </div>
+                        </div>
+                        }
+                        <div (click)="switchView('buy-policy')"
+                            class="card border-dashed bg-slate-50 flex items-center justify-center p-8 gap-4 cursor-pointer hover:bg-white transition-all">
+                            <div
+                                class="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center text-brand-orange">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-brand-navy uppercase tracking-tight">Need More Cover?
+                                </p>
+                                <p class="text-xs text-slate-400">Explore family group plans today.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            }
+
+            <!-- MY POLICIES VIEW -->
+            @if (activeView() === 'my-policies') {
+            <div class="py-6">
+                @if (myPolicies.length > 0) {
+                <div class="card p-0 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead
+                            class="bg-slate-50 border-b border-border-light text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            <tr>
+                                <th class="px-8 py-6">Policy ID</th>
+                                <th class="px-8 py-6">Category</th>
+                                <th class="px-8 py-6">Tier</th>
+                                <th class="px-8 py-6">Premium Paid</th>
+                                <th class="px-8 py-6">Date</th>
+                                <th class="px-8 py-6 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @for (pol of myPolicies; track pol.id) {
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-8 py-6 font-mono font-bold text-slate-400">{{ pol.id.substring(0, 8) }}...
+                                </td>
+                                <td class="px-8 py-6 font-bold text-brand-navy">{{ pol.policyCategory }}</td>
+                                <td class="px-8 py-6">
+                                    <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold">{{ pol.tierId
+                                        }}</span>
+                                </td>
+                                <td class="px-8 py-6 font-black text-brand-navy">₹{{ pol.calculatedPremium }}</td>
+                                <td class="px-8 py-6 text-slate-400">{{ pol.submissionDate | date:'mediumDate' }}</td>
+                                <td class="px-8 py-6 text-right flex items-center justify-end gap-3">
+                                    <span
+                                        [class]="'badge ' + (pol.status === 'Active' ? 'badge-success' : (pol.status === 'AwaitingPayment' ? 'badge-warning' : 'badge-pending'))">
+                                        ● {{ pol.status === 'AwaitingPayment' ? 'Awaiting Payment' : pol.status }}
+                                    </span>
+                                    @if (pol.status === 'AwaitingPayment' || pol.status === 'Active') {
+                                    <button (click)="viewPolicyDetails(pol)"
+                                        class="text-[10px] font-black uppercase text-brand-orange hover:underline">View
+                                        Details</button>
+                                    }
+                                    @if (pol.status === 'Active') {
+                                    <button (click)="initiateClaim(pol)"
+                                        class="px-3 py-1 bg-brand-orange text-white rounded-lg text-[10px] font-black uppercase shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all">Raise
+                                        Claim</button>
+                                    }
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                } @else {
+                <div class="card p-20 text-center flex flex-col items-center">
+                    <div
+                        class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-navy mb-2">Your Portfolio is Empty</h3>
+                    <p class="text-slate-400 text-sm mb-8">You don't have any active policies. Start your protection
+                        journey now!</p>
+                    <button (click)="switchView('buy-policy')" class="btn-primary">Browse Policies</button>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- RAISE CLAIM VIEW -->
+            @if (activeView() === 'raise-claim' && selectedPolicyForClaim()) {
+            <div class="py-6 max-w-4xl mx-auto">
+                <div class="mb-8 flex justify-between items-end">
+                    <div>
+                        <span class="badge badge-success mb-2">Claiming for {{ selectedPolicyForClaim()?.tierId
+                            }}</span>
+                        <h2 class="text-2xl font-black text-brand-navy">Submit Incident Details</h2>
+                    </div>
+                    <button (click)="switchView('my-policies')"
+                        class="text-xs font-bold text-slate-400 hover:text-brand-navy">Cancel & Return</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Incident Basics -->
+                        <section class="card">
+                            <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Incident Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Incident
+                                        Date</label>
+                                    <input type="date" [(ngModel)]="claimForm.incidentDate" class="input-field">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Incident
+                                        Type</label>
+                                    <select [(ngModel)]="claimForm.incidentType" class="input-field">
+                                        <option value="Accidental Injury">Accidental Injury</option>
+                                        <option value="Disability">Disability</option>
+                                        <option value="Hospitalization">Hospitalization</option>
+                                        <option value="Fracture/Major Hurt">Fracture/Major Hurt</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2 md:col-span-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Incident
+                                        Location</label>
+                                    <input type="text" [(ngModel)]="claimForm.incidentLocation"
+                                        placeholder="Where did it happen?" class="input-field">
+                                </div>
+                                <div class="space-y-2 md:col-span-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Description</label>
+                                    <textarea [(ngModel)]="claimForm.description" rows="3"
+                                        placeholder="Briefly describe what happened..." class="input-field"></textarea>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Hospital Info -->
+                        <section class="card">
+                            <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Medical Details</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Hospital
+                                        Name</label>
+                                    <input type="text" [(ngModel)]="claimForm.hospitalName"
+                                        placeholder="Name of hospital/clinic" class="input-field">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Hospitalization?</label>
+                                    <div class="flex gap-2">
+                                        <button (click)="claimForm.hospitalizationRequired = true"
+                                            [class.bg-brand-navy]="claimForm.hospitalizationRequired"
+                                            [class.text-white]="claimForm.hospitalizationRequired"
+                                            class="grow py-3 rounded-xl text-[10px] border border-slate-100 font-bold uppercase tracking-tight transition-all">Yes</button>
+                                        <button (click)="claimForm.hospitalizationRequired = false"
+                                            [class.bg-brand-navy]="!claimForm.hospitalizationRequired"
+                                            [class.text-white]="!claimForm.hospitalizationRequired"
+                                            class="grow py-3 rounded-xl text-[10px] border border-slate-100 font-bold uppercase tracking-tight transition-all">No</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Family Member (If category is Family) -->
+                        @if (selectedPolicyForClaim()?.policyCategory === 'FAMILY') {
+                        <section class="card">
+                            <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Affected Family Member</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Member
+                                        Name</label>
+                                    <input type="text" [(ngModel)]="claimForm.affectedMemberName"
+                                        placeholder="Name of family member" class="input-field">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Relation</label>
+                                    <select [(ngModel)]="claimForm.affectedMemberRelation" class="input-field">
+                                        <option value="Spouse">Spouse</option>
+                                        <option value="Son">Son</option>
+                                        <option value="Daughter">Daughter</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </section>
+                        }
+
+                        <!-- Document Upload -->
+                        <section class="card">
+                            <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Supporting Documents</h3>
+                            <div
+                                class="p-8 border-2 border-dashed border-slate-100 rounded-3xl text-center bg-slate-50/50">
+                                <input type="file" multiple (change)="onFileChange($event)" id="doc-upload"
+                                    class="hidden">
+                                <label for="doc-upload" class="cursor-pointer">
+                                    <div
+                                        class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-orange mx-auto mb-4 shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-sm font-bold text-brand-navy mb-1">Click to Upload Documents</p>
+                                    <p class="text-[10px] text-slate-400 uppercase font-black tracking-widest">Medical
+                                        Reports, Bills, etc. (MAX 5MB)</p>
+                                </label>
+
+                                @if (claimFiles.length > 0) {
+                                <div class="mt-6 space-y-2 flex flex-col items-center">
+                                    @for (file of claimFiles; track file.name) {
+                                    <div
+                                        class="px-4 py-2 bg-white rounded-xl text-[10px] font-bold text-slate-500 shadow-sm border border-slate-50 w-full max-w-sm flex justify-between items-center">
+                                        <span>{{ file.name }}</span>
+                                        <span class="text-emerald-500 italic">{{ (file.size / 1024 / 1024) |
+                                            number:'1.1-1' }} MB</span>
+                                    </div>
+                                    }
+                                </div>
+                                }
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="lg:col-span-1">
+                        <div class="card sticky top-10 space-y-6 shadow-2xl shadow-slate-200">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Claim
+                                    Summary</p>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-bold text-slate-400">Policy Type</span>
+                                        <span class="text-xs font-black text-brand-navy uppercase italic">{{
+                                            selectedPolicyForClaim()?.policyCategory }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-bold text-slate-400">Plan</span>
+                                        <span class="text-xs font-black text-brand-navy">{{
+                                            selectedPolicyForClaim()?.tierId }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 border-t border-slate-50">
+                                <label
+                                    class="text-[10px] font-black uppercase tracking-widest text-brand-orange mb-4 block">Estimated
+                                    Claim Amount</label>
+                                <div class="relative">
+                                    <span
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-brand-navy">₹</span>
+                                    <input type="number" [(ngModel)]="claimForm.estimatedClaimAmount"
+                                        class="input-field pl-16 text-2xl font-black text-brand-navy">
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-2 italic font-medium">Final approved amount may
+                                    vary after review.</p>
+                            </div>
+
+                            <button (click)="submitClaim()"
+                                [disabled]="isSubmitting() || !claimForm.incidentDate || !claimForm.estimatedClaimAmount"
+                                class="btn-primary w-full py-5 text-sm shadow-xl shadow-orange-200 flex items-center justify-center gap-3">
+                                @if (isSubmitting()) {
+                                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                                </div>
+                                Submitting Claim...
+                                } @else {
+                                Submit Claim Request
+                                }
+                            </button>
+                            <p class="text-[10px] text-center text-slate-400 leading-relaxed italic">By submitting, you
+                                declare the information provided is true and accurate.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- MY CLAIMS VIEW -->
+            @if (activeView() === 'my-claims') {
+            <div class="py-6">
+                @if (myClaims.length > 0) {
+                <div class="card p-0 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead
+                            class="bg-slate-50 border-b border-border-light text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            <tr>
+                                <th class="px-8 py-6">Claim ID</th>
+                                <th class="px-8 py-6">Policy</th>
+                                <th class="px-8 py-6">Incident Type</th>
+                                <th class="px-8 py-6">Amount Requested</th>
+                                <th class="px-8 py-6">Date Raised</th>
+                                <th class="px-8 py-6 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @for (claim of myClaims; track claim.id) {
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-8 py-6 font-mono font-bold text-slate-400">{{ claim.id.substring(0, 8)
+                                    }}...</td>
+                                <td class="px-8 py-6 font-bold text-brand-navy">{{ claim.policy?.tierId }}</td>
+                                <td class="px-8 py-6 font-bold text-slate-500">{{ claim.incidentType }}</td>
+                                <td class="px-8 py-6 font-black text-brand-navy">₹{{ claim.estimatedClaimAmount |
+                                    number:'1.0-0' }}</td>
+                                <td class="px-8 py-6 text-slate-400">{{ claim.submissionDate | date:'mediumDate' }}</td>
+                                <td class="px-8 py-6 text-right">
+                                    <span
+                                        [class]="'badge ' + (claim.status === 'Approved' ? 'badge-success' : (claim.status === 'Rejected' ? 'badge-pending' : 'badge-warning'))">
+                                        ● {{ claim.status === 'Assigned' ? 'Pending Review' : claim.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                } @else {
+                <div class="card p-20 text-center flex flex-col items-center">
+                    <div
+                        class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-navy mb-2">No Claims Raised Yet</h3>
+                    <p class="text-slate-400 text-sm mb-8">If you've had an incident, you can raise a claim against your
+                        active policies.</p>
+                    <button (click)="switchView('my-policies')" class="btn-primary">View My Policies</button>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- BUY POLICY VIEW -->
+            @if (activeView() === 'buy-policy') {
+            <div class="py-6">
+                <!-- Step 1: Select Category -->
+                @if (!selectedCategory) {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    @for (cat of config?.policyCategories; track cat.categoryId) {
+                    <div (click)="selectCategory(cat)"
+                        class="card cursor-pointer group hover:scale-[1.02] hover:shadow-xl hover:shadow-slate-200 transition-all border-2 border-transparent hover:border-brand-orange/20 overflow-hidden relative">
+                        <div class="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-brand-orange/5 rounded-full">
+                        </div>
+                        <h3 class="text-2xl font-black text-brand-navy mb-2">{{ cat.categoryName }}</h3>
+                        <p class="text-sm text-slate-400 mb-6 font-medium">Covers up to {{ cat.maxMembersAllowed }}
+                            member(s). {{ cat.categoryId === 'FAMILY' ? 'Premium is based on primary applicant only.' :
+                            'Personal accidental protection.' }}</p>
+                        <div
+                            class="flex items-center gap-2 text-brand-orange font-bold text-xs uppercase tracking-widest">
+                            Select Plan Type
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </div>
+                    }
+                </div>
+                }
+
+                <!-- Step 2: Select Tier -->
+                @if (selectedCategory && !selectedTier) {
+                <div class="space-y-6">
+                    <button (click)="selectedCategory = null"
+                        class="text-xs font-bold text-slate-400 flex items-center gap-1 hover:text-brand-navy">
+                        ← Back to Categories
+                    </button>
+                    <h2 class="text-xl font-black text-brand-navy">{{ selectedCategory.categoryName }} - Choose Your
+                        Tier</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        @for (tier of selectedCategory.tiers; track tier.tierId) {
+                        <div (click)="selectTier(tier)"
+                            class="card cursor-pointer border-2 border-transparent hover:border-brand-orange/50 flex flex-col h-full transform transition-all hover:scale-[1.02]">
+                            <div class="mb-6">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">{{
+                                    tier.tierName }} Plan</p>
+                                <h3 class="text-2xl font-black text-brand-navy">₹{{ tier.baseCoverageAmount / 100000 }}
+                                    Lakhs</h3>
+                                <p class="text-xs text-slate-400">Sum Insured</p>
+                            </div>
+                            <ul class="space-y-4 mb-8 grow">
+                                @for (benefit of tier.benefits; track benefit) {
+                                <li class="flex items-start gap-2 text-xs font-bold text-slate-600 italic">
+                                    <span class="text-emerald-500 font-bold shrink-0">✓</span>
+                                    {{ benefit }}
+                                </li>
+                                }
+                            </ul>
+                            <div class="pt-6 border-t border-slate-50">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Starts from</p>
+                                <p class="text-xl font-black text-brand-navy">₹{{ tier.basePremiumAmount }}<span
+                                        class="text-slate-400 text-xs font-medium">/yr</span></p>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+
+                <!-- Step 3: Application Form -->
+                @if (selectedTier) {
+                <div class="max-w-4xl mx-auto space-y-8">
+                    <button (click)="selectedTier = null"
+                        class="text-xs font-bold text-slate-400 flex items-center gap-1 hover:text-brand-navy">
+                        ← Back to Plans
+                    </button>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 space-y-8">
+                            <!-- Applicant Info -->
+                            <section class="card">
+                                <h3 class="text-lg font-black text-brand-navy mb-6">Applicant Details</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Full
+                                            Name</label>
+                                        <input type="text" [(ngModel)]="applicationForm.applicant.fullName"
+                                            placeholder="Enter Full Name" class="input-field"
+                                            (change)="updatePremium()">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Age</label>
+                                        <input type="number" [(ngModel)]="applicationForm.applicant.age"
+                                            class="input-field" (change)="updatePremium()">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Profession</label>
+                                        <select [(ngModel)]="applicationForm.applicant.profession" class="input-field"
+                                            (change)="updatePremium()">
+                                            @for (p of config?.riskFactors?.professionMultipliers; track p.profession) {
+                                            <option [value]="p.profession">{{ p.profession }}</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Avg
+                                            Travel (KM/Month)</label>
+                                        <input type="number" [(ngModel)]="applicationForm.applicant.travelKmPerMonth"
+                                            class="input-field" (change)="updatePremium()">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Alcohol
+                                            Habits</label>
+                                        <div class="flex gap-2">
+                                            @for (habit of ['nonDrinker', 'occasional', 'regular']; track habit) {
+                                            <button
+                                                (click)="applicationForm.applicant.alcoholHabit = habit; updatePremium()"
+                                                [class.bg-brand-orange]="applicationForm.applicant.alcoholHabit === habit"
+                                                [class.text-white]="applicationForm.applicant.alcoholHabit === habit"
+                                                class="grow py-2 rounded-xl text-[10px] border border-slate-100 font-bold uppercase tracking-tight transition-all">
+                                                {{ habit }}
+                                            </button>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Smoking
+                                            Habits</label>
+                                        <div class="flex gap-2">
+                                            @for (habit of ['nonSmoker', 'occasional', 'regular']; track habit) {
+                                            <button
+                                                (click)="applicationForm.applicant.smokingHabit = habit; updatePremium()"
+                                                [class.bg-brand-orange]="applicationForm.applicant.smokingHabit === habit"
+                                                [class.text-white]="applicationForm.applicant.smokingHabit === habit"
+                                                class="grow py-2 rounded-xl text-[10px] border border-slate-100 font-bold uppercase tracking-tight transition-all">
+                                                {{ habit }}
+                                            </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Family Members (If category is Family) -->
+                            @if (selectedCategory.categoryId === 'FAMILY') {
+                            <section class="card">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-lg font-black text-brand-navy">Family Members</h3>
+                                    <button (click)="addFamilyMember()" class="text-xs font-bold text-brand-orange"
+                                        [disabled]="applicationForm.familyMembers.length >= 3">+ Add Member</button>
+                                </div>
+                                <div class="space-y-4">
+                                    @for (member of applicationForm.familyMembers; track $index) {
+                                    <div class="flex gap-4 items-end">
+                                        <div class="grow space-y-2">
+                                            <input type="text" [(ngModel)]="member.fullName" placeholder="Full Name"
+                                                class="input-field">
+                                        </div>
+                                        <div class="w-40 space-y-2">
+                                            <select [(ngModel)]="member.relation" class="input-field">
+                                                <option value="Spouse">Spouse</option>
+                                                <option value="Son">Son</option>
+                                                <option value="Daughter">Daughter</option>
+                                            </select>
+                                        </div>
+                                        <button (click)="removeFamilyMember($index)"
+                                            class="p-3 text-slate-400 hover:text-red-500 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    }
+                                    @if (applicationForm.familyMembers.length === 0) {
+                                    <p class="text-xs text-slate-400 italic">No family members added yet. Add up to 3
+                                        members.</p>
+                                    }
+                                </div>
+                            </section>
+                            }
+
+                            <!-- Nominee Info -->
+                            <section class="card">
+                                <h3 class="text-lg font-black text-brand-navy mb-6">Nominee Information</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nominee
+                                            Name</label>
+                                        <input type="text" [(ngModel)]="applicationForm.nominee.nomineeName"
+                                            class="input-field">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nominee
+                                            Email</label>
+                                        <input type="email" [(ngModel)]="applicationForm.nominee.nomineeEmail"
+                                            class="input-field">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nominee
+                                            Phone</label>
+                                        <input type="text" [(ngModel)]="applicationForm.nominee.nomineePhone"
+                                            class="input-field">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Bank
+                                            Account Number</label>
+                                        <input type="text"
+                                            [(ngModel)]="applicationForm.nominee.nomineeBankAccountNumber"
+                                            class="input-field">
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- Sidebar: Summary Sticky -->
+                        <div class="lg:col-span-1">
+                            <div class="card sticky top-10 flex flex-col gap-8 shadow-2xl shadow-slate-200">
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                                        Selected Plan</p>
+                                    <h4 class="text-xl font-black text-brand-navy">{{ selectedTier.tierName }} {{
+                                        selectedCategory.categoryId }}</h4>
+                                    <p class="text-xs text-emerald-500 font-bold">Sum Insured: ₹{{
+                                        selectedTier.baseCoverageAmount / 100000 }}L</p>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center text-xs font-bold">
+                                        <span class="text-slate-400">Base Premium</span>
+                                        <span class="text-brand-navy">₹{{ selectedTier.basePremiumAmount }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs font-bold">
+                                        <span class="text-slate-400">Risk Multipliers</span>
+                                        <span class="text-emerald-500">Applied</span>
+                                    </div>
+                                    <div class="py-4 border-t border-slate-50 flex justify-between items-end">
+                                        <p class="text-[10px] font-black uppercase tracking-widest text-brand-orange">
+                                            Estimated Premium</p>
+                                        <p class="text-3xl font-black text-brand-orange italic">₹{{ calculatedPremium()
+                                            | number:'1.0-0' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Payment
+                                        Interval</p>
+                                    <div class="grid grid-cols-1 gap-2">
+                                        @for (mode of ['monthly', 'halfYearly', 'yearly']; track mode) {
+                                        <button (click)="applicationForm.paymentMode = mode; updatePremium()"
+                                            [class.ring-2]="applicationForm.paymentMode === mode"
+                                            [class.ring-brand-orange]="applicationForm.paymentMode === mode"
+                                            class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center group transition-all">
+                                            <span class="text-sm font-black text-brand-navy uppercase italic">{{ mode
+                                                }}</span>
+                                            <span
+                                                class="text-[10px] font-bold text-slate-400 group-hover:text-brand-orange">Select</span>
+                                        </button>
+                                        }
+                                    </div>
+                                </div>
+
+                                <button (click)="submitApplication()" [disabled]="isSubmitting()"
+                                    class="btn-primary w-full py-5 text-sm shadow-xl shadow-orange-200 flex items-center justify-center gap-3">
+                                    @if (isSubmitting()) {
+                                    <div
+                                        class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                                    </div>
+                                    Processing...
+                                    } @else {
+                                    Submit Application
+                                    }
+                                </button>
+                                <p class="text-[10px] text-center text-slate-400 leading-relaxed italic">By clicking
+                                    confirm, you agree to our Terms & Conditions for Personal Accident Coverage.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+            <!-- Policy Detail & Payment Modal -->
+            @if (showPolicyDetailModal() && selectedPolicy()) {
+            <div class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div
+                    class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <div>
+                            <h3 class="font-black text-brand-navy uppercase tracking-tight">Policy Details</h3>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">ID: {{
+                                selectedPolicy().id }}</p>
+                        </div>
+                        <button (click)="showPolicyDetailModal.set(false)"
+                            class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-8 max-h-[70vh] overflow-y-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Basic Info -->
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
+                                    Plan Information</h4>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <span class="text-slate-500 font-bold">Category</span>
+                                    <span class="font-bold text-brand-navy">{{ selectedPolicy().policyCategory }}</span>
+                                    <span class="text-slate-500 font-bold">Tier</span>
+                                    <span class="font-bold text-brand-navy">{{ selectedPolicy().tierId }}</span>
+                                    <span class="text-slate-500 font-bold">Coverage</span>
+                                    <span class="font-bold text-emerald-500">₹{{ selectedPolicy().coverageAmount /
+                                        100000 }} Lakhs</span>
+                                    <span class="text-slate-500 font-bold">Status</span>
+                                    <span class="font-black uppercase text-brand-orange">{{ selectedPolicy().status
+                                        }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Applicant Details -->
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
+                                    Applicant Details</h4>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <span class="text-slate-500 font-bold">Name</span>
+                                    <span class="font-bold text-brand-navy">{{
+                                        selectedPolicy().fullDetails?.applicant?.fullName }}</span>
+                                    <span class="text-slate-500 font-bold">Age</span>
+                                    <span class="font-bold text-brand-navy">{{
+                                        selectedPolicy().fullDetails?.applicant?.age }} Years</span>
+                                    <span class="text-slate-500 font-bold">Profession</span>
+                                    <span class="font-bold text-brand-navy">{{
+                                        selectedPolicy().fullDetails?.applicant?.profession }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Benefits -->
+                            <div class="md:col-span-2 space-y-4 pt-4">
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
+                                    Policy Benefits</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs">
+                                    @for (benefit of selectedPolicy().benefits; track benefit) {
+                                    <div class="flex items-start gap-2 italic text-slate-600 font-medium">
+                                        <span class="text-emerald-500">✓</span> {{ benefit }}
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Nominee Info -->
+                            <div class="md:col-span-2 space-y-4 pt-4">
+                                <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">
+                                    Nominee Details</h4>
+                                <div class="grid grid-cols-2 gap-4 text-xs">
+                                    <div class="flex flex-col">
+                                        <span class="text-slate-500 font-bold">Nominee</span>
+                                        <span class="font-bold text-brand-navy">{{
+                                            selectedPolicy().fullDetails?.nominee?.nomineeName }}</span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-slate-500 font-bold">Contact</span>
+                                        <span class="font-bold text-brand-navy">{{
+                                            selectedPolicy().fullDetails?.nominee?.nomineeEmail }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total
+                                Premium</span>
+                            <span class="text-2xl font-black text-brand-orange">₹{{ selectedPolicy().calculatedPremium |
+                                number:'1.0-0' }}</span>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button (click)="showPolicyDetailModal.set(false)"
+                                class="px-6 py-3 text-xs font-bold text-slate-400 uppercase hover:text-slate-600">Close</button>
+                            @if (selectedPolicy().status === 'AwaitingPayment') {
+                            <button (click)="payPremium()" [disabled]="isPaying()"
+                                class="btn-primary py-3 px-10 shadow-xl shadow-orange-200 flex items-center gap-3">
+                                @if (isPaying()) {
+                                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                                </div>
+                                Processing...
+                                } @else {
+                                Pay Premium ₹{{ selectedPolicy().calculatedPremium | number:'1.0-0' }}
+                                }
+                            </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </main>
+</div>

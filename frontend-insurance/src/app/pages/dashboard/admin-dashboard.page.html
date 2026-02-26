@@ -1,0 +1,593 @@
+<div class="min-h-screen flex flex-col bg-brand-gray">
+    <!-- Dashboard Header -->
+    <header class="nav-header shrink-0">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <span class="text-xl font-black tracking-tight">Insurance<span
+                        class="text-brand-orange">Platform</span></span>
+                <span
+                    class="bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest border border-white/20">Admin
+                    Console</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs font-bold">{{ user.email }}</p>
+                    <p class="text-[10px] opacity-60 uppercase">{{ user.role || 'User' }}</p>
+                </div>
+                <button (click)="logout()" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex grow overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-brand-navy border-r border-white/5 flex flex-col pt-6 shrink-0">
+            <nav class="space-y-1 px-3">
+                <button (click)="setSection('dashboard')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'dashboard' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    Dashboard
+                </button>
+                <button (click)="setSection('agents')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'agents' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Create Agent
+                </button>
+                <button (click)="setSection('officers')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'officers' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    Create Claim Officer
+                </button>
+                <button (click)="setSection('policyRequests')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'policyRequests' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Policy Requests
+                </button>
+                <button (click)="setSection('claimRequests')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'claimRequests' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Claim Requests
+                </button>
+            </nav>
+            <div class="mt-auto p-4">
+                <div class="bg-white/5 rounded-xl p-4 border border-white/5">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">System Version</p>
+                    <p class="text-xs text-white">v2.1.4-Stable</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="grow overflow-y-auto p-8">
+            <div class="max-w-6xl mx-auto space-y-8">
+
+                @if (message().text) {
+                <div
+                    [class]="'p-4 rounded-lg flex items-center gap-3 ' + (message().type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100')">
+                    <span class="font-bold">{{ message().type === 'success' ? '✓' : '⚠' }}</span>
+                    <p class="text-sm font-bold">{{ message().text }}</p>
+                </div>
+                }
+
+                @if (activeSection() === 'dashboard') {
+                <div>
+                    <h1 class="text-3xl font-black text-brand-navy">Dashboard Overview</h1>
+                    <p class="text-slate-500 text-sm mb-8">Real-time metrics and system operations.</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        @for (stat of stats; track stat.label) {
+                        <div class="card p-4 border-l-4 border-brand-navy">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">{{ stat.label
+                                }}</p>
+                            <div class="flex items-baseline justify-between">
+                                <span class="text-2xl font-black text-brand-navy">{{ stat.value }}</span>
+                                <span
+                                    [class]="'text-[10px] font-bold ' + (stat.change.startsWith('+') ? 'text-emerald-600' : 'text-rose-600')">
+                                    {{ stat.change }}
+                                </span>
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="col-span-4 card p-8 text-center text-slate-400 italic text-sm">
+                            No overview metrics available yet.
+                        </div>
+                        }
+                    </div>
+
+                    <div class="card p-0 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-bold text-sm uppercase tracking-wide">Recent System Activities</h3>
+                            <a href="#" class="text-[10px] font-bold text-brand-orange hover:underline">View All
+                                Logs</a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-4 py-3">ID</th>
+                                        <th class="px-4 py-3">User</th>
+                                        <th class="px-4 py-3">Activity</th>
+                                        <th class="px-4 py-3 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (act of recentActivities; track act.id) {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-4 py-3 font-mono text-slate-400 uppercase tracking-tighter">{{
+                                            act.id }}</td>
+                                        <td class="px-4 py-3 font-bold">{{ act.user }}</td>
+                                        <td class="px-4 py-3 text-slate-600">{{ act.type }}</td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span class="badge badge-success">● {{ act.status }}</span>
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="4" class="p-12 text-center text-slate-400 font-bold italic">
+                                            No recent system activities to display.
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'agents') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h1 class="text-3xl font-black text-brand-navy">Agent Management</h1>
+                            <p class="text-slate-500 text-sm">Register and manage your field agents.</p>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <div class="card p-0 overflow-hidden border-t-4 border-brand-orange">
+                        <div class="p-6">
+                            <h3 class="text-sm font-bold uppercase tracking-widest mb-6">Register New Agent</h3>
+                            <form [formGroup]="agentForm" (ngSubmit)="registerAgent()"
+                                class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Full Name</label>
+                                    <input type="text" formControlName="name" placeholder="Agent's full name"
+                                        class="input-field py-3 text-sm">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Email ID</label>
+                                    <input type="email" formControlName="emailId" placeholder="official@agency.com"
+                                        class="input-field py-3 text-sm">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">System
+                                        Password</label>
+                                    <input type="password" formControlName="password" placeholder="••••••••"
+                                        class="input-field py-3 text-sm">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Bank Account (16
+                                        Digits)</label>
+                                    <input type="text" formControlName="bankAccountNumber"
+                                        placeholder="1234567890123456" class="input-field py-3 text-sm">
+                                </div>
+                                <div class="md:col-span-2 flex justify-end">
+                                    <button type="submit" [disabled]="agentForm.invalid || isLoading()"
+                                        class="btn-primary px-10 py-3 text-xs shadow-lg shadow-orange-500/20">
+                                        {{ isLoading() ? 'Registering...' : '+ Create Agent Profile' }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- User List -->
+                    <div class="card p-0 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                            <h3 class="font-bold text-sm uppercase tracking-wide">Existing Agents</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">Full Name</th>
+                                        <th class="px-6 py-4">Email ID</th>
+                                        <th class="px-6 py-4">Account Number</th>
+                                        <th class="px-6 py-4 text-right">Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (agent of agents; track agent.id) {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ agent.fullName }}</td>
+                                        <td class="px-6 py-4">{{ agent.email }}</td>
+                                        <td class="px-6 py-4 font-mono text-slate-500">{{ agent.bankAccountNumber }}
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button (click)="deleteUser(agent.id)"
+                                                class="text-rose-500 hover:text-rose-700 font-bold uppercase tracking-tighter">Remove</button>
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="4" class="p-12 text-center text-slate-400 font-bold italic">No
+                                            agents registered yet.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'policyRequests') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div>
+                        <h1 class="text-3xl font-black text-brand-navy">Policy Requests</h1>
+                        <p class="text-slate-500 text-sm">Monitor and assign agents to new policy applications.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-bold text-sm uppercase tracking-wide">Incoming Applications</h3>
+                            <button (click)="loadPolicyRequests()"
+                                class="text-[10px] font-bold text-brand-orange hover:underline uppercase tracking-widest">Refresh
+                                Data</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">Customer Email</th>
+                                        <th class="px-6 py-4">Category</th>
+                                        <th class="px-6 py-4">Tier/Plan</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (request of policyRequests(); track request.id) {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ request.user?.email }}</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-bold uppercase text-[9px]">
+                                                {{ request.policyCategory }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 font-bold">{{ request.tierId }}</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                [class]="'badge ' + (request.status === 'Pending' ? 'badge-warning' : 'badge-success')">
+                                                ● {{ request.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            @if (request.status === 'Pending') {
+                                            <button (click)="openAssignModal(request.id)"
+                                                class="text-brand-orange hover:text-orange-700 font-black uppercase tracking-tighter">Assign
+                                                Agent</button>
+                                            } @else {
+                                            <span class="text-slate-400 font-bold italic">Assigned to {{
+                                                request.assignedAgent?.email || 'Agent' }}</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="5" class="p-12 text-center text-slate-400 font-bold italic">No
+                                            policy requests found.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'officers') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div>
+                        <h1 class="text-3xl font-black text-brand-navy">Claims Management</h1>
+                        <p class="text-slate-500 text-sm">Register and manage claims assessment officers.</p>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <div class="card p-0 overflow-hidden border-t-4 border-indigo-600">
+                        <div class="p-6">
+                            <h3 class="text-sm font-bold uppercase tracking-widest mb-6 text-indigo-600">Assign New
+                                Claims Officer</h3>
+                            <form [formGroup]="officerForm" (ngSubmit)="registerOfficer()"
+                                class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Officer Name</label>
+                                    <input type="text" formControlName="name" placeholder="Full legal name"
+                                        class="input-field py-3 text-sm focus:border-indigo-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Corporate
+                                        Email</label>
+                                    <input type="email" formControlName="emailId" placeholder="officer@platform.com"
+                                        class="input-field py-3 text-sm focus:border-indigo-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Secure
+                                        Password</label>
+                                    <input type="password" formControlName="password" placeholder="••••••••"
+                                        class="input-field py-3 text-sm focus:border-indigo-500">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Salary Account (16
+                                        Digits)</label>
+                                    <input type="text" formControlName="bankAccountNumber"
+                                        placeholder="1234567890123456"
+                                        class="input-field py-3 text-sm focus:border-indigo-500">
+                                </div>
+                                <div class="md:col-span-2 flex justify-end">
+                                    <button type="submit" [disabled]="officerForm.invalid || isLoading()"
+                                        class="bg-indigo-600 text-white rounded-lg font-black px-10 py-3 text-xs shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all uppercase tracking-widest">
+                                        {{ isLoading() ? 'Assigning...' : 'Confirm Assignment' }}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- User List -->
+                    <div class="card p-0 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                            <h3 class="font-bold text-sm uppercase tracking-wide">Active Assessment Team</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">Name</th>
+                                        <th class="px-6 py-4">Work Email</th>
+                                        <th class="px-6 py-4">Account Number</th>
+                                        <th class="px-6 py-4 text-right">Access</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (off of officers; track off.id) {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ off.fullName }}</td>
+                                        <td class="px-6 py-4">{{ off.email }}</td>
+                                        <td class="px-6 py-4 font-mono text-slate-500">{{ off.bankAccountNumber }}</td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button (click)="deleteUser(off.id)"
+                                                class="text-rose-500 hover:text-rose-700 font-bold uppercase tracking-tighter">Revoke
+                                                Access</button>
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="4" class="p-12 text-center text-slate-400 font-bold italic">No
+                                            claims officers assigned yet.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'claimRequests') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div>
+                        <h1 class="text-3xl font-black text-brand-navy">Claim Requests</h1>
+                        <p class="text-slate-500 text-sm">Review and assign claim officers to incoming claims.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-bold text-sm uppercase tracking-wide">Pending Claims</h3>
+                            <button (click)="loadPendingClaims()"
+                                class="text-[10px] font-bold text-brand-orange hover:underline uppercase tracking-widest">Refresh
+                                Data</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">Customer</th>
+                                        <th class="px-6 py-4">Incident Type</th>
+                                        <th class="px-6 py-4">Request Amount</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (claim of pendingClaims(); track claim.id) {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <p class="font-bold text-brand-navy">{{ claim.user?.email }}</p>
+                                            <p class="text-[9px] text-slate-400">Policy: {{ claim.policy?.tierId }}</p>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded font-bold uppercase text-[9px]">
+                                                {{ claim.incidentType }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 font-black">₹{{ claim.estimatedClaimAmount | number:'1.0-0'
+                                            }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="badge badge-warning">● {{ claim.status }}</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button (click)="openAssignOfficerModal(claim.id)"
+                                                class="text-brand-orange hover:text-orange-700 font-black uppercase tracking-tighter">Assign
+                                                Officer</button>
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="5" class="p-12 text-center text-slate-400 font-bold italic">No
+                                            pending claims found.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </main>
+    </div>
+
+    <!-- Assign Agent Modal -->
+    @if (showAssignModal()) {
+    <div class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h3 class="font-black text-brand-navy uppercase tracking-tight">Select Agent for Assignment</h3>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Application ID: {{
+                        selectedApplicationId() }}</p>
+                </div>
+                <button (click)="showAssignModal.set(false)"
+                    class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-0 max-h-[400px] overflow-y-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr
+                            class="sticky top-0 bg-white text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                            <th class="px-6 py-4">Agent Email</th>
+                            <th class="px-6 py-4">Current Load</th>
+                            <th class="px-6 py-4 text-right">Assign</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @for (agent of agentsWithLoad(); track agent.agentId) {
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-6 py-4 font-bold text-brand-navy">{{ agent.agentEmail }}</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-black">{{
+                                    agent.assignedPolicyCount }} Policies</span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button (click)="assignAgent(agent.agentId)" [disabled]="isAssigning()"
+                                    class="text-brand-orange hover:text-orange-700 font-black uppercase tracking-tighter disabled:opacity-50">Confirm</button>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="3" class="p-10 text-center text-slate-400 italic font-bold">No active agents
+                                found in system.</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button (click)="showAssignModal.set(false)" class="btn-secondary py-2 text-[10px]">Cancel</button>
+            </div>
+        </div>
+    </div>
+    }
+
+    <!-- Assign Officer Modal -->
+    @if (showAssignOfficerModal()) {
+    <div class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h3 class="font-black text-brand-navy uppercase tracking-tight">Select Claims Officer</h3>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Claim ID: {{
+                        selectedClaimId()?.substring(0,8) }}...</p>
+                </div>
+                <button (click)="showAssignOfficerModal.set(false)"
+                    class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-0 max-h-[400px] overflow-y-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr
+                            class="sticky top-0 bg-white text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                            <th class="px-6 py-4">Officer Email</th>
+                            <th class="px-6 py-4">Active Claims</th>
+                            <th class="px-6 py-4 text-right">Assign</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @for (officer of claimOfficersWithWorkload(); track officer.claimOfficerId) {
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-6 py-4 font-bold text-brand-navy">{{ officer.email }}</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-black">{{
+                                    officer.assignedClaimsCount }} Claims</span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button (click)="assignOfficer(officer.claimOfficerId)" [disabled]="isAssigning()"
+                                    class="text-brand-orange hover:text-orange-700 font-black uppercase tracking-tighter disabled:opacity-50">Confirm</button>
+                            </td>
+                        </tr>
+                        } @empty {
+                        <tr>
+                            <td colspan="3" class="p-10 text-center text-slate-400 italic font-bold">No claims officers
+                                found in system.</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button (click)="showAssignOfficerModal.set(false)"
+                    class="btn-secondary py-2 text-[10px]">Cancel</button>
+            </div>
+        </div>
+    </div>
+    }
+</div>

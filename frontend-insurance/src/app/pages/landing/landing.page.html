@@ -1,0 +1,128 @@
+<!-- PolicyBazaar Inspired Header -->
+<header class="nav-header">
+  <div class="container mx-auto px-6 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="w-10 h-10 bg-brand-orange rounded-full flex items-center justify-center font-bold text-xl">I</div>
+      <span class="text-2xl font-black tracking-tight">Insurance<span class="text-brand-orange">Platform</span></span>
+    </div>
+    <nav class="hidden md:flex gap-8 font-semibold">
+      <a href="#" class="hover:text-brand-orange transition-colors">Insurance Products</a>
+      <a href="#" class="hover:text-brand-orange transition-colors">Resources</a>
+      <a href="#" class="hover:text-brand-orange transition-colors">Customer Support</a>
+    </nav>
+    <div>
+      <a routerLink="/register" class="btn-primary py-2 px-6 text-sm">Login / Register</a>
+    </div>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<main class="bg-white py-16">
+  <div class="container mx-auto px-6 text-center max-w-4xl">
+    <h1 class="text-5xl font-extrabold mb-6 leading-tight">Complete <span class="text-brand-orange">Accident Insurance</span> for Your Peace of Mind</h1>
+    <p class="text-xl text-slate-600 mb-10">Protect yourself and your loved ones from the unexpected. High coverage, simple claims, and immediate assistance.</p>
+    
+    <!-- Quick Search / Action -->
+    <div class="flex flex-wrap justify-center gap-4 mb-16">
+      <a routerLink="/register" class="btn-primary text-lg px-10">Get Quotes & Register</a>
+      <a href="#plans" class="btn-secondary text-lg px-10">View Our Plans</a>
+    </div>
+
+    <!-- Features -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+      <div class="flex items-start gap-4">
+        <div class="text-brand-orange text-2xl">✓</div>
+        <div>
+          <h3 class="font-bold text-lg">Instant Issuance</h3>
+          <p class="text-slate-500 text-sm">Get your policy in minutes with zero paperwork.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-4">
+        <div class="text-brand-orange text-2xl">✓</div>
+        <div>
+          <h3 class="font-bold text-lg">99% Claim Ratio</h3>
+          <p class="text-slate-500 text-sm">We stand by you when it matters most.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-4">
+        <div class="text-brand-orange text-2xl">✓</div>
+        <div>
+          <h3 class="font-bold text-lg">Cashless Treatment</h3>
+          <p class="text-slate-500 text-sm">Access to 5000+ top-tier hospitals nationwide.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Plans Section -->
+<section id="plans" class="bg-brand-gray py-20">
+  <div class="container mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl font-bold mb-4">Choose the Best Plan for Your Needs</h2>
+      <p class="text-slate-600">Tailored coverage for individuals and families with high-density benefits.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Individual Plan -->
+      <div class="card flex flex-col hover:border-brand-orange transition-colors cursor-pointer group">
+        <div class="mb-4">
+          <span class="badge bg-slate-100 text-slate-600">Most Popular</span>
+        </div>
+        <h3 class="text-2xl font-bold mb-2">Individual Plan</h3>
+        <p class="text-slate-500 text-sm mb-6">Comprehensive protection for solo adventurers and professionals.</p>
+        <div class="text-4xl font-extrabold text-brand-navy mb-8">₹499 <span class="text-base font-normal text-slate-400">/year</span></div>
+        <ul class="space-y-3 mb-10 flex-grow">
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Coverage up to ₹10 Lakhs</li>
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Hospital Cash allowance</li>
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Permanent Disability Support</li>
+        </ul>
+        <a routerLink="/register" class="btn-primary w-full group-hover:scale-105 transition-transform">Protect Myself</a>
+      </div>
+
+      <!-- Family Plan -->
+      <div class="card flex flex-col border-2 border-brand-orange shadow-lg relative">
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-orange text-white px-4 py-1 rounded-full text-xs font-bold uppercase">Best Value</div>
+        <h3 class="text-2xl font-bold mb-2">Family Plan</h3>
+        <p class="text-slate-500 text-sm mb-6">Secure up to 4 family members under a single, robust policy.</p>
+        <div class="text-4xl font-extrabold text-brand-navy mb-8">₹1,299 <span class="text-base font-normal text-slate-400">/year</span></div>
+        <ul class="space-y-3 mb-10 flex-grow">
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Coverage up to ₹25 Lakhs</li>
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Critical Care Cover</li>
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Education Fund for Children</li>
+        </ul>
+        <a routerLink="/register" class="btn-primary w-full scale-105">Protect My Family</a>
+      </div>
+
+      <!-- Over-Age Plan -->
+      <div class="card flex flex-col hover:border-brand-orange transition-colors cursor-pointer group">
+        <h3 class="text-2xl font-bold mb-2">Over-Age Plan</h3>
+        <p class="text-slate-500 text-sm mb-6">Specialized care and support for senior citizens (60+ years).</p>
+        <div class="text-4xl font-extrabold text-brand-navy mb-8">₹899 <span class="text-base font-normal text-slate-400">/year</span></div>
+        <ul class="space-y-3 mb-10 flex-grow">
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Coverage up to ₹15 Lakhs</li>
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Pre-existing illness support</li>
+          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> At-home care assistance</li>
+        </ul>
+        <a routerLink="/register" class="btn-primary w-full group-hover:scale-105 transition-transform">Protect Seniors</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer / Role Access -->
+<footer class="bg-brand-navy text-white py-12">
+  <div class="container mx-auto px-6 text-center">
+    <div class="flex justify-center flex-wrap gap-8 items-center mb-8 text-sm opacity-80">
+      <span>Other roles?</span>
+      <a routerLink="/admin/login" class="text-brand-orange hover:underline">Admin Login</a>
+      <span class="opacity-30">|</span>
+      <a routerLink="/agent/login" class="text-brand-orange hover:underline">Agent Login</a>
+      <span class="opacity-30">|</span>
+      <a routerLink="/claims-officer/login" class="text-brand-orange hover:underline">Claims Officer Login</a>
+    </div>
+    <div class="border-t border-white/10 pt-8 text-xs opacity-50">
+      &copy; 2026 InsurancePlatform. All rights reserved. Professional Utility Design.
+    </div>
+  </div>
+</footer>

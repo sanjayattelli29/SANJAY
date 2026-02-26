@@ -1,0 +1,89 @@
+<div class="min-h-screen flex flex-col items-center justify-center p-6 bg-brand-gray">
+    <div class="mb-8 flex items-center gap-2">
+        <div class="w-8 h-8 bg-brand-orange rounded-full flex items-center justify-center font-bold text-lg text-white">
+            I</div>
+        <span
+            class="text-xl font-black tracking-tight text-brand-navy underline decoration-brand-orange decoration-4">InsurancePlatform</span>
+    </div>
+
+    <div class="card w-full max-w-lg shadow-xl border-none">
+        <h2 class="text-2xl font-bold mb-2 text-center">New Policy Registration</h2>
+        <p class="text-slate-500 text-sm text-center mb-8">Follow 2 simple steps to secure your policy</p>
+
+        <!-- Progress Tracker -->
+        <div class="flex items-center justify-between mb-10 px-4">
+            <div class="flex flex-col items-center">
+                <div
+                    [class]="'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ' + (currentStep() >= 1 ? 'bg-brand-navy text-white' : 'bg-slate-200 text-slate-400')">
+                    1</div>
+                <span class="text-[10px] mt-2 font-bold uppercase tracking-widest text-slate-400">Basic Info</span>
+            </div>
+            <div [class]="'h-1 grow mx-4 transition-colors ' + (currentStep() >= 2 ? 'bg-brand-navy' : 'bg-slate-200')">
+            </div>
+            <div class="flex flex-col items-center">
+                <div
+                    [class]="'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ' + (currentStep() >= 2 ? 'bg-brand-navy text-white' : 'bg-slate-200 text-slate-400')">
+                    2</div>
+                <span class="text-[10px] mt-2 font-bold uppercase tracking-widest text-slate-400">Security</span>
+            </div>
+        </div>
+
+        <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+            <!-- Step 1: Basic Info -->
+            <div *ngIf="currentStep() === 1" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div>
+                    <label class="block text-sm font-bold text-brand-navy mb-2">Full Name</label>
+                    <input type="text" formControlName="name" placeholder="Enter your full name" class="input-field"
+                        [class.border-red-500]="name?.invalid && name?.touched">
+                    <p *ngIf="name?.invalid && name?.touched" class="text-red-500 text-xs mt-1">Name is required.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-brand-navy mb-2">Email Address</label>
+                    <input type="email" formControlName="emailId" placeholder="example@email.com" class="input-field"
+                        [class.border-red-500]="email?.invalid && email?.touched">
+                    <p *ngIf="email?.invalid && email?.touched" class="text-red-500 text-xs mt-1">Enter a valid email
+                        address.</p>
+                </div>
+                <button type="button" (click)="nextStep()" class="btn-primary w-full mt-4">Continue to Next
+                    Step</button>
+            </div>
+
+            <!-- Step 2: Security & Contact -->
+            <div *ngIf="currentStep() === 2" class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div>
+                    <label class="block text-sm font-bold text-brand-navy mb-2">Mobile Number</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">+91</span>
+                        <input type="text" formControlName="mobileNumber" placeholder="9876543210"
+                            class="input-field pl-12" [class.border-red-500]="mobile?.invalid && mobile?.touched">
+                    </div>
+                    <p *ngIf="mobile?.invalid && mobile?.touched" class="text-red-500 text-xs mt-1">Valid 10-digit
+                        mobile number required.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-brand-navy mb-2">Create Password</label>
+                    <input type="password" formControlName="password" placeholder="Min. 6 characters"
+                        class="input-field" [class.border-red-500]="password?.invalid && password?.touched">
+                    <p *ngIf="password?.invalid && password?.touched" class="text-red-500 text-xs mt-1">Password must be
+                        at least 6 characters.</p>
+                </div>
+
+                <div *ngIf="errorMessage()" class="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
+                    {{ errorMessage() }}
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="button" (click)="prevStep()" class="btn-secondary flex-1">Back</button>
+                    <button type="submit" [disabled]="isLoading()" class="btn-primary flex-[2]">
+                        {{ isLoading() ? 'Registering...' : 'Confirm & Register' }}
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 text-center text-sm text-slate-500">
+            Already have a policy? <a routerLink="/customer/login"
+                class="text-brand-orange font-bold hover:underline">Login here</a>
+        </div>
+    </div>
+</div>
