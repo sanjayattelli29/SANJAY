@@ -25,11 +25,19 @@
                     [class.border-red-500]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             </div>
 
+            <div>
+                <label class="block text-sm font-bold text-brand-navy mb-2">Math Captcha: {{ num1() }} + {{ num2() }} =
+                    ?</label>
+                <input type="number" formControlName="captchaInput" placeholder="Enter sum" class="input-field"
+                    [class.border-red-500]="loginForm.get('captchaInput')?.invalid && loginForm.get('captchaInput')?.touched">
+            </div>
+
             <div *ngIf="errorMessage()" class="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
                 {{ errorMessage() }}
             </div>
 
-            <button type="submit" [disabled]="loginForm.invalid || isLoading()" class="btn-primary w-full">
+            <button type="submit" [disabled]="loginForm.invalid || !isCaptchaCorrect() || isLoading()"
+                class="btn-primary w-full">
                 {{ isLoading() ? 'Signing in...' : 'Sign In to Dashboard' }}
             </button>
         </form>

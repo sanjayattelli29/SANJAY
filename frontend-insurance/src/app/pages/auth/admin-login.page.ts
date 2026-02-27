@@ -28,7 +28,14 @@ export class AdminLoginPage {
             this.isLoading.set(true);
             this.authService.login(this.loginForm.value).subscribe({
                 next: (res) => {
-                    this.router.navigate(['/admin/dashboard']);
+                    const role = res.role || res.Role || res.auth_role;
+                    if (role === 'Admin') {
+                        this.router.navigate(['/admin/dashboard']);
+                    } else {
+                        this.authService.logout();
+                        this.errorMessage.set('Invalid admin user.');
+                        this.isLoading.set(false);
+                    }
                 },
                 error: (err) => {
                     this.errorMessage.set(err.error?.message || 'Invalid admin credentials.');

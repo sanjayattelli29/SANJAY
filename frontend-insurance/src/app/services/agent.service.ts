@@ -24,4 +24,9 @@ export class AgentService {
     getAnalytics(): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/analytics`);
     }
+
+    sendAgentEmail(payload: { toEmail: string, subject: string, htmlBody: string }): Observable<any> {
+        const webhookUrl = "https://sanjay29.app.n8n.cloud/webhook/agent-send-email";
+        return this.http.post(webhookUrl, payload);
+    }
 }

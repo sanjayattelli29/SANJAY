@@ -501,7 +501,151 @@ export class AgentDashboardPage implements OnInit {
         this.showUnifiedDetail.set(true);
     }
 
+    // Email Feature State
+    emailFormSubject = signal('');
+    emailFormMessage = signal('');
+    includePaymentReminder = signal(true);
+    selectedCustomerForEmail = signal<any | null>(null);
+
     logout() {
         this.authService.logout();
+    }
+
+    // Email Methods
+    openEmailForm(customer: any) {
+        this.selectedCustomerForEmail.set(customer);
+        this.emailFormSubject.set(`Policy Notification - ${customer.policyNumber || 'General'}`);
+        this.emailFormMessage.set(`Dear ${customer.user?.email?.split('@')[0] || 'Customer'},\n\nI hope this email finds you well. I am reaching out to provide you with an update regarding your policy.`);
+        this.message.set({ type: '', text: '' });
+    }
+
+    sendEmail() {
+        const customer = this.selectedCustomerForEmail();
+        if (!customer) return;
+
+        this.isProcessing.set(true);
+        const htmlBody = this.compileEmailHtml(customer);
+        const payload = {
+            toEmail: customer.user?.email,
+            subject: this.emailFormSubject(),
+            htmlBody: htmlBody
+        };
+
+        this.agentService.sendAgentEmail(payload).subscribe({
+            next: () => {
+                this.isProcessing.set(false);
+                this.message.set({ type: 'success', text: 'Email sent successfully via n8n!' });
+                this.selectedCustomerForEmail.set(null);
+                setTimeout(() => this.message.set({ type: '', text: '' }), 3000);
+            },
+            error: (err) => {
+                this.isProcessing.set(false);
+                this.message.set({ type: 'error', text: 'Failed to send email. Check console for details.' });
+                console.error(err);
+            }
+        });
+    }
+
+    private compileEmailHtml(cust: any): string {
+        const agentName = this.user.email?.split('@')[0] || 'Agent';
+        const agentEmail = this.user.email || '';
+        const customerName = cust.user?.email?.split('@')[0] || 'Customer';
+        const agentMessage = this.emailFormMessage().replace(/\n/g, '<br>');
+
+        let paymentSection = '';
+        if (this.includePaymentReminder()) {
+            paymentSection = `
+                <!-- Payment Breakdown -->
+                <div style="margin-top: 25px; padding: 20px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <h4 style="margin: 0 0 15px 0; color: #1e293b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Payment & Policy Breakdown</h4>
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #64748b; font-size: 12px;">Next Payment:</span>
+                        <strong style="display: block; color: #1e293b; font-size: 16px;">₹${cust.nextPaymentAmount || 0}</strong>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #64748b; font-size: 12px;">Due Date:</span>
+                        <strong style="display: block; color: #1e293b; font-size: 14px;">${cust.nextPaymentDate ? new Date(cust.nextPaymentDate).toLocaleDateString() : 'N/A'}</strong>
+                    </div>
+                    <div style="padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                         <p style="margin: 0; color: #475569; font-size: 11px; line-height: 1.4;">
+                            * Even if the button below is hidden by your email client, you can use the details above for your records.
+                         </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f1f5f9; }
+        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        .header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 30px; text-align: center; color: #ffffff; }
+        .content { padding: 40px; }
+        .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 20px 0; }
+        .btn { display: inline-block; padding: 12px 30px; background-color: #4f46e5; color: #ffffff !important; text-decoration: none; border-radius: 100px; font-weight: bold; font-size: 14px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4); }
+        .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
+        .label { color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.05em; display: block; margin-bottom: 4px; }
+        .value { color: #1e293b; font-weight: 600; font-size: 14px; margin-bottom: 12px; }
+        .grid { display: block; }
+        .col { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2 style="margin: 0; font-weight: 900; letter-spacing: -1px; font-size: 24px;">Insurance<span style="color: #f97316;">Platform</span></h2>
+            <p style="margin: 5px 0 0 0; opacity: 0.8; font-size: 12px; text-transform: uppercase; font-weight: bold; letter-spacing: 2px;">Policy Notification</p>
+        </div>
+        <div class="content">
+            <h3 style="color: #1e293b; font-size: 18px; margin-top: 0;">Hello ${customerName},</h3>
+            <p style="color: #475569; font-size: 15px; margin-bottom: 30px;">${agentMessage}</p>
+
+            <div class="card">
+                <h4 style="margin: 0 0 20px 0; color: #1e293b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Policy Highlights</h4>
+                <div class="grid">
+                    <div class="col"><span class="label">Policy Type</span><div class="value">${cust.policyCategory}</div></div>
+                    <div class="col"><span class="label">Tier / Plan</span><div class="value">${cust.tierId}</div></div>
+                    <div class="col"><span class="label">Policy Number</span><div class="value">${cust.policyNumber || 'N/A'}</div></div>
+                    <div class="col"><span class="label">Whole Coverage</span><div class="value">₹${cust.totalCoverageAmount?.toLocaleString() || 0}</div></div>
+                    <div class="col"><span class="label">Current Coverage</span><div class="value">₹${cust.remainingCoverageAmount?.toLocaleString() || (cust.totalCoverageAmount?.toLocaleString() || 0)}</div></div>
+                    <div class="col"><span class="label">Status</span><div class="value" style="color: #10b981;">● ${cust.status}</div></div>
+                </div>
+            </div>
+
+            <div style="margin: 30px 0;">
+                <h4 style="margin: 0 0 15px 0; color: #1e293b; font-size: 13px;">Customer & Agent Context</h4>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td width="50%" style="padding-right: 15px;">
+                            <span class="label">Customer Details</span>
+                            <div class="value" style="font-size: 12px;">${cust.user?.email}</div>
+                        </td>
+                        <td width="50%">
+                            <span class="label">Agent In-Charge</span>
+                            <div class="value" style="font-size: 12px;">${agentName}<br>${agentEmail}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <center>
+                <a href="#" class="btn">View Payment Details</a>
+            </center>
+
+            ${paymentSection}
+
+        </div>
+        <div class="footer">
+            &copy; 2024 InsurancePlatform. All rights reserved.<br>
+            Secure Policy Management Service.
+        </div>
+    </div>
+</body>
+</html>
+        `;
     }
 }

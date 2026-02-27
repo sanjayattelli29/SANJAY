@@ -28,7 +28,14 @@ export class ClaimsOfficerLoginPage {
             this.isLoading.set(true);
             this.authService.login(this.loginForm.value).subscribe({
                 next: (res) => {
-                    this.router.navigate(['/claims-officer/dashboard']);
+                    const role = res.role || res.Role || res.auth_role;
+                    if (role === 'ClaimsOfficer') {
+                        this.router.navigate(['/claims-officer/dashboard']);
+                    } else {
+                        this.authService.logout();
+                        this.errorMessage.set('Invalid claims officer user.');
+                        this.isLoading.set(false);
+                    }
                 },
                 error: (err) => {
                     this.errorMessage.set(err.error?.message || 'Invalid claims officer credentials.');
