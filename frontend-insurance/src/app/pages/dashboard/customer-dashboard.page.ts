@@ -135,6 +135,10 @@ export class CustomerDashboardPage implements OnInit {
         }
     }
 
+    hasActivePolicy(categoryId: string): boolean {
+        return this.myPolicies.some(p => p.policyCategory === categoryId && p.status === 'Active');
+    }
+
     selectCategory(category: any) {
         this.selectedCategory = category;
         this.selectedTier = null;
@@ -195,7 +199,8 @@ export class CustomerDashboardPage implements OnInit {
             error: (err) => {
                 console.error('Application failed:', err);
                 this.isSubmitting.set(false);
-                alert('Failed to submit application: ' + (err.error?.message || 'Server error'));
+                const errorMessage = err.error?.message || err.error?.Message || 'Server error';
+                alert('Failed to submit application: ' + errorMessage);
             }
         });
     }

@@ -485,28 +485,29 @@
                 <!-- Step 1: Select Category -->
                 @if (!selectedCategory) {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    @for (cat of config?.policyCategories; track cat.categoryId) {
-                    <div (click)="selectCategory(cat)"
-                        class="card cursor-pointer group hover:scale-[1.02] hover:shadow-xl hover:shadow-slate-200 transition-all border-2 border-transparent hover:border-brand-orange/20 overflow-hidden relative">
-                        <div class="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-brand-orange/5 rounded-full">
-                        </div>
-                        <h3 class="text-2xl font-black text-brand-navy mb-2">{{ cat.categoryName }}</h3>
-                        <p class="text-sm text-slate-400 mb-6 font-medium">Covers up to {{ cat.maxMembersAllowed }}
-                            member(s). {{ cat.categoryId === 'FAMILY' ? 'Premium is based on primary applicant only.' :
-                            'Personal accidental protection.' }}</p>
-                        <div
-                            class="flex items-center gap-2 text-brand-orange font-bold text-xs uppercase tracking-widest">
-                            Select Plan Type
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
-                        </div>
-                    </div>
+              @for (cat of config?.policyCategories; track cat.categoryId) {
+                <div (click)="hasActivePolicy(cat.categoryId) ? switchView('my-policies') : selectCategory(cat)" 
+                     class="card cursor-pointer group hover:scale-[1.02] hover:shadow-xl hover:shadow-slate-200 transition-all border-2 border-transparent hover:border-brand-orange/20 overflow-hidden relative">
+                  <div class="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-brand-orange/5 rounded-full"></div>
+                  
+                  <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-2xl font-black text-brand-navy">{{ cat.categoryName }}</h3>
+                    @if (hasActivePolicy(cat.categoryId)) {
+                      <span class="badge badge-success">Active Policy Exists</span>
                     }
+                  </div>
+
+                  <p class="text-sm text-slate-400 mb-6 font-medium">Covers up to {{ cat.maxMembersAllowed }} member(s). {{ cat.categoryId === 'FAMILY' ? 'Premium is based on primary applicant only.' : 'Personal accidental protection.' }}</p>
+                  
+                  <div class="flex items-center gap-2 text-brand-orange font-bold text-xs uppercase tracking-widest">
+                    {{ hasActivePolicy(cat.categoryId) ? 'View My Policy' : 'Select Plan Type' }}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </div>
                 </div>
+              }
+            </div>
                 }
 
                 <!-- Step 2: Select Tier -->
