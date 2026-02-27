@@ -57,6 +57,15 @@
                     </svg>
                     Customer Claims
                 </button>
+                <button (click)="setSection('customers')"
+                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
+                    (activeSection() === 'customers' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    My Customers
+                </button>
             </nav>
         </aside>
 
@@ -218,6 +227,11 @@
                                 <thead>
                                     <tr
                                         class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">ID</th>
+                                        <th class="px-6 py-4">Customer</th>
+                                        <th class="px-6 py-4">Incident</th>
+                                        <th class="px-6 py-4">Amount</th>
+                                        <th class="px-6 py-4">Status</th>
                                         <th class="px-6 py-4 text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -246,6 +260,62 @@
                                     <tr>
                                         <td colspan="6" class="p-12 text-center text-slate-400 italic font-bold">No
                                             customer claims recorded yet.</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'customers') {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div>
+                        <h1 class="text-3xl font-black text-brand-navy">My Customers</h1>
+                        <p class="text-slate-500 text-sm">List of customers under your portfolio and their active
+                            coverage.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden shadow-xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
+                                        <th class="px-6 py-4">Customer Email</th>
+                                        <th class="px-6 py-4">Category</th>
+                                        <th class="px-6 py-4">Plan/Tier</th>
+                                        <th class="px-6 py-4 text-right">Coverage Amount</th>
+                                        <th class="px-6 py-4 text-right">Next Payment</th>
+                                        <th class="px-6 py-4 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @for (cust of myCustomers(); track cust.id) {
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ cust.user?.email }}</td>
+                                        <td class="px-6 py-4 font-bold text-slate-500">{{ cust.policyCategory }}</td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class="px-2 py-0.5 bg-slate-100 rounded text-[10px] uppercase font-black">{{
+                                                cust.tierId }}</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right font-black text-brand-navy">₹{{
+                                            cust.totalCoverageAmount | number }}</td>
+                                        <td class="px-6 py-4 text-right text-slate-400 font-bold">{{
+                                            cust.nextPaymentDate | date:'mediumDate' }}</td>
+                                        <td class="px-6 py-4 text-right">
+                                            <span
+                                                [class]="'badge ' + (cust.status === 'Active' ? 'badge-success' : 'badge-warning')">
+                                                {{ cust.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    } @empty {
+                                    <tr>
+                                        <td colspan="6" class="p-12 text-center text-slate-400 italic font-bold">No
+                                            customers assigned yet.</td>
                                     </tr>
                                     }
                                 </tbody>
@@ -377,7 +447,56 @@
                         <p class="text-xs text-slate-600 italic">"{{ selectedClaim().description }}"</p>
                     </div>
                     }
+
+                    <!-- Internal Tracking (Officer Details) -->
+                    <div class="mt-6 pt-6 border-t border-slate-200 grid grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Handling Officer Email</p>
+                            <p class="text-xs font-black text-brand-navy truncate">{{
+                                selectedClaim().assignedOfficer?.email || 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Officer ID</p>
+                            <p class="text-[10px] font-mono font-bold text-slate-500 uppercase">{{
+                                selectedClaim().assignedClaimOfficerId }}</p>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Supporting Documents -->
+                @if (selectedClaim().documents?.length > 0) {
+                <div class="space-y-4">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">Supporting
+                        Documents</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        @for (doc of selectedClaim().documents; track doc.id) {
+                        <a [href]="doc.fileUrl" target="_blank"
+                            class="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-100 hover:border-brand-orange/30 transition-all group">
+                            <div
+                                class="w-8 h-8 bg-brand-orange/5 rounded-lg flex items-center justify-center text-brand-orange group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-black">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] font-black text-brand-navy truncate">{{ doc.fileName }}</p>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{{
+                                    (doc.fileSize / 1024 / 1024) | number:'1.1-1' }} MB</p>
+                            </div>
+                        </a>
+                        }
+                    </div>
+                </div>
+                }
+
+                <!-- Reviewer Remarks -->
+                @if (selectedClaim().remarks) {
+                <div class="p-6 bg-slate-100 rounded-2xl border-l-4 border-brand-navy">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-2">Officer Internal Remarks</p>
+                    <p class="text-xs text-slate-600 font-medium italic">"{{ selectedClaim().remarks }}"</p>
+                </div>
+                }
             </div>
 
             <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">

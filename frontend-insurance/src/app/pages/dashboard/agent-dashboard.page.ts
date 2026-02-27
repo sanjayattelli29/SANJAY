@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { AgentService } from '../../services/agent.service';
 import { ClaimService } from '../../services/claim.service';
+import { PolicyService } from '../../services/policy.service';
 
 @Component({
     selector: 'app-agent-dashboard',
@@ -17,6 +18,7 @@ export class AgentDashboardPage implements OnInit {
     user = this.authService.getUser();
     activeSection = signal('dashboard');
     private claimService = inject(ClaimService);
+    private policyService = inject(PolicyService);
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
 
@@ -25,6 +27,7 @@ export class AgentDashboardPage implements OnInit {
     policyRequests = signal<any[]>([]);
     commissionData = signal<any>({ totalCommission: 0, activePolicies: [] });
     customerClaims = signal<any[]>([]);
+    myCustomers = signal<any[]>([]);
 
     // UI State for Modal
     showDetailModal = signal(false);
@@ -41,12 +44,20 @@ export class AgentDashboardPage implements OnInit {
         this.loadPolicyRequests();
         this.loadCommissionStats();
         this.loadCustomerClaims();
+        this.loadMyCustomers();
     }
 
     loadCustomerClaims() {
         this.claimService.getAgentClaims().subscribe({
             next: (data: any[]) => this.customerClaims.set(data),
             error: (err: any) => console.error('Failed to load customer claims', err)
+        });
+    }
+
+    loadMyCustomers() {
+        this.policyService.getAgentCustomers().subscribe({
+            next: (data) => this.myCustomers.set(data),
+            error: (err) => console.error('Failed to load my customers', err)
         });
     }
 

@@ -89,6 +89,7 @@ namespace Infrastructure.Services
             return await _context.InsuranceClaims
                 .Include(c => c.Policy)
                 .Include(c => c.Documents)
+                .Include(c => c.AssignedOfficer)
                 .Where(c => c.UserId == userId)
                 .OrderByDescending(c => c.SubmissionDate)
                 .ToListAsync();
@@ -184,6 +185,8 @@ namespace Infrastructure.Services
             return await _context.InsuranceClaims
                 .Include(c => c.User)
                 .Include(c => c.Policy)
+                .Include(c => c.Documents)
+                .Include(c => c.AssignedOfficer)
                 .Where(c => c.Policy.AssignedAgentId == agentId)
                 .OrderByDescending(c => c.SubmissionDate)
                 .ToListAsync();

@@ -19,6 +19,7 @@ namespace Application.Interfaces
         Task<bool> ReviewApplicationAsync(string applicationId, string status, string agentId);
         Task<bool> ProcessPaymentAsync(string applicationId, decimal amount, string transactionId);
         Task<AgentCommissionDto> GetAgentCommissionStatsAsync(string agentId);
+        Task<IEnumerable<PolicyApplication>> GetAgentCustomersAsync(string agentId);
     }
 
     public class AgentCommissionDto

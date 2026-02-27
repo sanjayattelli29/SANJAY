@@ -92,21 +92,25 @@
             <!-- DASHBOARD VIEW -->
             @if (activeView() === 'dashboard') {
             <div class="space-y-10 py-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="card bg-brand-navy text-white border-none shadow-xl shadow-slate-200">
                         <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Coverage
                         </p>
-                        <h3 class="text-4xl font-black italic">₹ {{ totalCoverage() | number }}</h3>
+                        <h3 class="text-3xl font-black italic">₹ {{ totalCoverage() | number }}</h3>
                     </div>
                     <div class="card">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Remaining
-                            Balance</p>
-                        <h3 class="text-4xl font-black text-brand-orange">₹ {{ remainingBalance() | number }}</h3>
-                    </div>
-                    <div class="card">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Claims Approved
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Requested
                         </p>
-                        <h3 class="text-4xl font-black text-emerald-500">₹ {{ totalClaimsPaid() | number }}</h3>
+                        <h3 class="text-3xl font-black text-brand-navy">₹ {{ requestedClaimAmount() | number }}</h3>
+                    </div>
+                    <div class="card bg-brand-orange/5 border-brand-orange/20 shadow-orange-50">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-brand-orange mb-1">Approved
+                        </p>
+                        <h3 class="text-3xl font-black text-brand-orange">₹ {{ approvedClaimAmount() | number }}</h3>
+                    </div>
+                    <div class="card">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Balance</p>
+                        <h3 class="text-3xl font-black text-emerald-500">₹ {{ remainingBalance() | number }}</h3>
                     </div>
                 </div>
 
@@ -447,12 +451,13 @@
                                 <td class="px-8 py-6 text-slate-400">{{ claim.submissionDate | date:'mediumDate' }}</td>
                                 <td class="px-8 py-6 text-right flex items-center justify-end gap-3">
                                     <span
-                                        [class]="'badge ' + (claim.status === 'Approved' ? 'badge-success' : (claim.status === 'Rejected' ? 'badge-pending' : 'badge-warning'))">
-                                        ● {{ claim.status === 'Assigned' ? 'Pending' : claim.status }}
+                                        [class]="'badge ' + (claim.status === 'Approved' || claim.status === 'Paid' ? 'badge-success' : (claim.status === 'Rejected' ? 'badge-pending' : 'badge-warning'))">
+                                        ● {{ (claim.status === 'Assigned' || claim.status === 'Pending') ? 'Processing'
+                                        : claim.status }}
                                     </span>
                                     <button (click)="openClaimDetails(claim.id)"
-                                        class="px-4 py-1.5 bg-brand-gray text-brand-navy rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-100">
-                                        Open
+                                        class="px-4 py-1.5 bg-brand-orange text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-brand-navy transition-all shadow-md shadow-orange-100">
+                                        View Detail
                                     </button>
                                 </td>
                             </tr>
@@ -485,29 +490,36 @@
                 <!-- Step 1: Select Category -->
                 @if (!selectedCategory) {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-              @for (cat of config?.policyCategories; track cat.categoryId) {
-                <div (click)="hasActivePolicy(cat.categoryId) ? switchView('my-policies') : selectCategory(cat)" 
-                     class="card cursor-pointer group hover:scale-[1.02] hover:shadow-xl hover:shadow-slate-200 transition-all border-2 border-transparent hover:border-brand-orange/20 overflow-hidden relative">
-                  <div class="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-brand-orange/5 rounded-full"></div>
-                  
-                  <div class="flex justify-between items-start mb-2">
-                    <h3 class="text-2xl font-black text-brand-navy">{{ cat.categoryName }}</h3>
-                    @if (hasActivePolicy(cat.categoryId)) {
-                      <span class="badge badge-success">Active Policy Exists</span>
-                    }
-                  </div>
+                    @for (cat of config?.policyCategories; track cat.categoryId) {
+                    <div (click)="hasActivePolicy(cat.categoryId) ? switchView('my-policies') : selectCategory(cat)"
+                        class="card cursor-pointer group hover:scale-[1.02] hover:shadow-xl hover:shadow-slate-200 transition-all border-2 border-transparent hover:border-brand-orange/20 overflow-hidden relative">
+                        <div class="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-brand-orange/5 rounded-full">
+                        </div>
 
-                  <p class="text-sm text-slate-400 mb-6 font-medium">Covers up to {{ cat.maxMembersAllowed }} member(s). {{ cat.categoryId === 'FAMILY' ? 'Premium is based on primary applicant only.' : 'Personal accidental protection.' }}</p>
-                  
-                  <div class="flex items-center gap-2 text-brand-orange font-bold text-xs uppercase tracking-widest">
-                    {{ hasActivePolicy(cat.categoryId) ? 'View My Policy' : 'Select Plan Type' }}
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-2xl font-black text-brand-navy">{{ cat.categoryName }}</h3>
+                            @if (hasActivePolicy(cat.categoryId)) {
+                            <span class="badge badge-success">Active Policy Exists</span>
+                            }
+                        </div>
+
+                        <p class="text-sm text-slate-400 mb-6 font-medium">Covers up to {{ cat.maxMembersAllowed }}
+                            member(s). {{ cat.categoryId === 'FAMILY' ? 'Premium is based on primary applicant only.' :
+                            'Personal accidental protection.' }}</p>
+
+                        <div
+                            class="flex items-center gap-2 text-brand-orange font-bold text-xs uppercase tracking-widest">
+                            {{ hasActivePolicy(cat.categoryId) ? 'View My Policy' : 'Select Plan Type' }}
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </div>
+                    }
                 </div>
-              }
-            </div>
                 }
 
                 <!-- Step 2: Select Tier -->
@@ -1019,6 +1031,33 @@
                                 </div>
                             </div>
                         </section>
+
+                        @if (detailedClaim()?.documents?.length > 0) {
+                        <section class="card">
+                            <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest mb-6 border-b pb-4">
+                                Supporting Documents</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                @for (doc of detailedClaim()?.documents; track doc.id) {
+                                <a [href]="doc.fileUrl" target="_blank"
+                                    class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-brand-orange/30 hover:bg-slate-50 transition-all group">
+                                    <div
+                                        class="w-10 h-10 bg-white shadow-sm rounded-xl flex items-center justify-center text-brand-orange group-hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <p class="text-xs font-black text-brand-navy truncate">{{ doc.fileName }}</p>
+                                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{{
+                                            (doc.fileSize / 1024 / 1024) | number:'1.1-1' }} MB</p>
+                                    </div>
+                                </a>
+                                }
+                            </div>
+                        </section>
+                        }
                     </div>
 
                     <div class="space-y-8">
@@ -1028,6 +1067,23 @@
                             <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100 min-h-[120px]">
                                 <p class="text-xs text-slate-500 italic">"{{ detailedClaim()?.remarks || 'No remarks
                                     provided by the reviewer yet.' }}"</p>
+                            </div>
+                        </section>
+
+                        <section class="card bg-brand-navy text-white border-none p-6">
+                            <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 italic">
+                                Process Handling</h3>
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-brand-orange font-bold italic">
+                                    ★</div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase">Managing Officer</p>
+                                    <p class="text-sm font-black italic truncate">{{
+                                        detailedClaim()?.assignedOfficer?.email || 'Allocation Pending' }}</p>
+                                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">ID:
+                                        {{ detailedClaim()?.assignedClaimOfficerId?.substring(0,8) || 'N/A' }}</p>
+                                </div>
                             </div>
                         </section>
                     </div>

@@ -46,4 +46,8 @@ export class PolicyService {
     processPayment(applicationId: string, amount: number): Observable<any> {
         return this.http.post(`https://localhost:7140/api/Payment/process`, { applicationId, amount });
     }
+
+    getAgentCustomers(): Observable<any[]> {
+        return this.http.get<any[]>(`https://localhost:7140/api/Agent/my-customers`);
+    }
 }

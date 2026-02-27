@@ -40,6 +40,16 @@ namespace API.Controllers
             return Ok(new { Message = $"Application {request.Status} successfully" });
         }
 
+        [HttpGet("my-customers")]
+        public async Task<IActionResult> GetMyCustomers()
+        {
+            var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(agentId)) return Unauthorized();
+
+            var customers = await _policyService.GetAgentCustomersAsync(agentId);
+            return Ok(customers);
+        }
+
         [HttpGet("commission-stats")]
         public async Task<IActionResult> GetCommissionStats()
         {

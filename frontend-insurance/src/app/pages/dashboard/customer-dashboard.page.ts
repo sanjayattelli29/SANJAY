@@ -39,6 +39,8 @@ export class CustomerDashboardPage implements OnInit {
     totalCoverage = signal<number>(0);
     totalClaimsPaid = signal<number>(0);
     remainingBalance = signal<number>(0);
+    requestedClaimAmount = signal<number>(0);
+    approvedClaimAmount = signal<number>(0);
 
     // Selection for Buy Policy
     selectedCategory: any = null;
@@ -109,6 +111,8 @@ export class CustomerDashboardPage implements OnInit {
     calculateTotals() {
         let coverage = 0;
         let claims = 0;
+        let requested = 0;
+        let approved = 0;
 
         this.myPolicies.forEach(p => {
             if (p.status === 'Active') {
@@ -117,14 +121,18 @@ export class CustomerDashboardPage implements OnInit {
         });
 
         this.myClaims.forEach(c => {
-            if (c.status === 'Approved') {
+            requested += c.requestedAmount || 0;
+            if (c.status === 'Approved' || c.status === 'Paid') {
                 claims += c.approvedAmount || 0;
+                approved += c.approvedAmount || 0;
             }
         });
 
         this.totalCoverage.set(coverage);
         this.totalClaimsPaid.set(claims);
         this.remainingBalance.set(coverage - claims);
+        this.requestedClaimAmount.set(requested);
+        this.approvedClaimAmount.set(approved);
     }
 
     switchView(view: 'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims') {

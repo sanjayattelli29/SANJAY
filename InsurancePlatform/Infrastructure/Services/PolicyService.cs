@@ -276,5 +276,14 @@ namespace Infrastructure.Services
                 ActivePolicies = activePolicies
             };
         }
+
+        public async Task<IEnumerable<PolicyApplication>> GetAgentCustomersAsync(string agentId)
+        {
+            return await _context.PolicyApplications
+                .Include(pa => pa.User)
+                .Where(pa => pa.AssignedAgentId == agentId)
+                .OrderByDescending(pa => pa.SubmissionDate)
+                .ToListAsync();
+        }
     }
 }
