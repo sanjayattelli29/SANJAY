@@ -103,6 +103,17 @@ namespace Infrastructure.Services
 
         public async Task<object> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request)
         {
+            // Validation: Check if the user already has an active policy in this category
+            var alreadyHasActivePolicy = await _context.PolicyApplications
+                .AnyAsync(pa => pa.UserId == userId && 
+                                pa.PolicyCategory == request.PolicyCategory && 
+                                pa.Status == "Active");
+
+            if (alreadyHasActivePolicy)
+            {
+                throw new Exception("You already have an active policy in this category.");
+            }
+
             var premium = await CalculatePremiumAsync(request);
 
             var application = new PolicyApplication
