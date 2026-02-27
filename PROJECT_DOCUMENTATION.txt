@@ -371,7 +371,7 @@ DATABASE TABLES (Automatically created from entities)
 PROJECT STRUCTURE SUMMARY
 ================================================================================
 
-c:\Sanjay\InsurancePlatform\
+c:\Sanjay\AcciSure\
 │
 ├── API/                           ← Entry point (Controllers, Program.cs)
 │   ├── Controllers/               ← 7 controllers, 33 endpoints

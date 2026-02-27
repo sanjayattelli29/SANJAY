@@ -34,11 +34,17 @@ export class AuthService {
         // Try all possible token variations
         const token = response.token || response.Token || response.auth_token;
         const role = response.role || response.Role || response.auth_role;
+        const userId = response.id || response.Id;
+        const userName = response.fullName || response.FullName;
+        const userPhone = response.phoneNumber || response.PhoneNumber;
 
         if (token) {
           localStorage.setItem('auth_token', token);
           localStorage.setItem('auth_role', role || '');
           localStorage.setItem('user_email', response.email || '');
+          localStorage.setItem('user_id', userId || '');
+          localStorage.setItem('user_name', userName || '');
+          localStorage.setItem('user_phone', userPhone || '');
           console.log('[AuthService] Token and user info saved to localStorage using auth_ keys');
         } else {
           console.warn('[AuthService] No token found in login response! Keys present:', Object.keys(response));
@@ -54,6 +60,9 @@ export class AuthService {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_role');
     localStorage.removeItem('user_email');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_phone');
     localStorage.removeItem('user'); // Also remove old keys just in case
     localStorage.removeItem('token');
     this.router.navigate(['/']);
@@ -71,7 +80,10 @@ export class AuthService {
    */
   getUser() {
     return {
+      id: localStorage.getItem('user_id'),
+      name: localStorage.getItem('user_name'),
       email: localStorage.getItem('user_email'),
+      phone: localStorage.getItem('user_phone'),
       role: localStorage.getItem('auth_role')
     };
   }

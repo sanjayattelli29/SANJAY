@@ -69,6 +69,13 @@ export class CustomerDashboardPage implements OnInit {
     calculatedPremium = signal<number>(0);
     isSubmitting = signal<boolean>(false);
 
+    // AI Chat Helper State
+    isChatOpen = signal<boolean>(false);
+    chatMessages = signal<any[]>([]);
+    currentChatPolicy = signal<any | null>(null);
+    isChatLoading = signal<boolean>(false);
+    chatUserMessage = signal<string>('');
+
     // Policy Detail & Payment (legacy, kept what's needed for sub-views)
     showPolicyDetailModal = signal(false);
     selectedPolicy = signal<any | null>(null);
@@ -348,5 +355,93 @@ export class CustomerDashboardPage implements OnInit {
 
     logout() {
         this.authService.logout();
+    }
+
+    // Chat Helper Logic
+    openChatHelper(tier: any) {
+        if (!this.selectedCategory) return;
+
+        const policyData = {
+            policyId: tier.tierId,
+            policyName: tier.tierName,
+            category: this.selectedCategory.categoryName,
+            coverageAmount: tier.baseCoverageAmount,
+            premium: tier.basePremiumAmount,
+            benefits: tier.benefits
+        };
+
+        this.currentChatPolicy.set(policyData);
+        this.chatMessages.set([]);
+        this.isChatOpen.set(true);
+        this.isChatLoading.set(true);
+
+        // Initial trigger
+        const initialText = "Hi"; // To trigger the first response from AI
+        this.sendChatMessage(initialText, true);
+    }
+
+    sendChatMessage(messageText?: string, isInitial: boolean = false) {
+        const text = messageText || this.chatUserMessage();
+        if (!text && !isInitial) return;
+
+        if (!isInitial) {
+            this.chatMessages.update((msgs: any[]) => [...msgs, { role: 'user', content: text }]);
+            this.chatUserMessage.set('');
+        }
+
+        this.isChatLoading.set(true);
+
+        // Fetch fresh user data to ensure all fields are current
+        const freshUser = this.authService.getUser();
+
+        const payload = {
+            customer: {
+                id: freshUser.id,
+                name: freshUser.name,
+                email: freshUser.email,
+                phone: freshUser.phone
+            },
+            policy: this.currentChatPolicy(),
+            message: text,
+            question: text // Included as a fallback for n8n AI Agent nodes
+        };
+
+        console.log('[ChatHelper] Sending payload to n8n:', JSON.stringify(payload));
+
+        this.policyService.sendChatQuestion(payload).subscribe({
+            next: (res) => {
+                this.isChatLoading.set(false);
+
+
+                // const aiReply = res.reply || res.answer || "I'm' sorry, I couldn't get a response. Please try again.";
+                let aiReply = res.reply || res.answer || 
+  "I'm sorry, I couldn't get a response. Please try again.";
+
+// Remove markdown special characters like *, -, _, `, #
+aiReply = aiReply
+  .replace(/[*_`#>-]/g, '')     // remove markdown symbols
+  .replace(/\n{2,}/g, '\n')     // remove extra line breaks
+  .trim();
+
+this.chatMessages.update((msgs: any[]) => [
+  ...msgs,
+  { role: 'bot', content: aiReply }
+]);
+
+
+
+                // this.chatMessages.update((msgs: any[]) => [...msgs, { role: 'bot', content: aiReply }]);
+
+                // Scroll to bottom logic would go here if using ViewChild
+            },
+            error: (err) => {
+                this.isChatLoading.set(false);
+                this.chatMessages.update((msgs: any[]) => [...msgs, { role: 'bot', content: "Error: Could not reach the policy assistant." }]);
+            }
+        });
+    }
+
+    closeChat() {
+        this.isChatOpen.set(false);
     }
 }

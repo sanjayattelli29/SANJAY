@@ -43,4 +43,8 @@ export class ClaimService {
     getAgentClaims(): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/agent/customer-claims`);
     }
+
+    getClaimByPolicyId(policyId: string): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/policy/${policyId}`);
+    }
 }

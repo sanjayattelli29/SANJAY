@@ -91,7 +91,10 @@ namespace Infrastructure.Services
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
                     Expiration = token.ValidTo,
                     Role = userRoles.FirstOrDefault(),
-                    Email = user.Email
+                    Email = user.Email,
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    PhoneNumber = user.PhoneNumber
                 };
             }
             return new AuthResponseDto { Status = "Error", Message = "Invalid login attempt." };

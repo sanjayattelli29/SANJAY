@@ -59,6 +59,16 @@ namespace API.Controllers
             var stats = await _policyService.GetAgentCommissionStatsAsync(agentId);
             return Ok(stats);
         }
+
+        [HttpGet("analytics")]
+        public async Task<IActionResult> GetAnalytics()
+        {
+            var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(agentId)) return Unauthorized();
+
+            var analytics = await _policyService.GetAgentAnalyticsAsync(agentId);
+            return Ok(analytics);
+        }
     }
 
     public class ReviewApplicationRequest

@@ -27,6 +27,7 @@ namespace Application.Interfaces
         // General / Admin
         Task<IEnumerable<InsuranceClaim>> GetAllClaimsAsync();
         Task<AdminDashboardStatsDto> GetAdminStatsAsync();
+        Task<InsuranceClaim?> GetClaimByPolicyIdAsync(string policyId);
     }
 
     public class RaiseClaimRequest

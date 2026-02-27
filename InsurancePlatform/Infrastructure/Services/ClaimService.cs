@@ -140,6 +140,7 @@ namespace Infrastructure.Services
             return await _context.InsuranceClaims
                 .Include(c => c.User)
                 .Include(c => c.Policy)
+                    .ThenInclude(p => p.AssignedAgent)
                 .Include(c => c.Documents)
                 .Where(c => c.AssignedClaimOfficerId == officerId)
                 .OrderByDescending(c => c.SubmissionDate)
@@ -185,6 +186,7 @@ namespace Infrastructure.Services
             return await _context.InsuranceClaims
                 .Include(c => c.User)
                 .Include(c => c.Policy)
+                    .ThenInclude(p => p.AssignedAgent)
                 .Include(c => c.Documents)
                 .Include(c => c.AssignedOfficer)
                 .Where(c => c.Policy.AssignedAgentId == agentId)
@@ -197,7 +199,9 @@ namespace Infrastructure.Services
             return await _context.InsuranceClaims
                 .Include(c => c.User)
                 .Include(c => c.Policy)
+                    .ThenInclude(p => p.AssignedAgent)
                 .Include(c => c.Documents)
+                .Include(c => c.AssignedOfficer)
                 .OrderByDescending(c => c.SubmissionDate)
                 .ToListAsync();
         }
@@ -214,6 +218,17 @@ namespace Infrastructure.Services
                     .SumAsync(c => (decimal?)c.ApprovedAmount) ?? 0
             };
             return stats;
+        }
+
+        public async Task<InsuranceClaim?> GetClaimByPolicyIdAsync(string policyId)
+        {
+            return await _context.InsuranceClaims
+                .Include(c => c.User)
+                .Include(c => c.Policy)
+                    .ThenInclude(p => p.AssignedAgent)
+                .Include(c => c.Documents)
+                .Include(c => c.AssignedOfficer)
+                .FirstOrDefaultAsync(c => c.PolicyApplicationId == policyId);
         }
     }
 }

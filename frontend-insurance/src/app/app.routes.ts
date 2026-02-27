@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { LandingComponent  } from './pages/landing/landing.page';
+import { LandingComponent } from './pages/landing/landing.page';
 import { CustomerRegisterPage } from './pages/auth/customer-register.page';
 import { CustomerLoginPage } from './pages/auth/customer-login.page';
 import { AdminLoginPage } from './pages/auth/admin-login.page';

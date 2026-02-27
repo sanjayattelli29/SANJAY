@@ -285,5 +285,82 @@ namespace Infrastructure.Services
                 .OrderByDescending(pa => pa.SubmissionDate)
                 .ToListAsync();
         }
+
+        public async Task<AgentAnalyticsDto> GetAgentAnalyticsAsync(string agentId)
+        {
+            var allAssigned = await _context.PolicyApplications
+                .Include(pa => pa.User)
+                .Where(pa => pa.AssignedAgentId == agentId)
+                .ToListAsync();
+
+            var activePolicies = allAssigned.Where(pa => pa.Status == "Active").ToList();
+            
+            // Total Claims for these policies
+            var policyIds = allAssigned.Select(pa => pa.Id).ToList();
+            var claims = await _context.InsuranceClaims
+                .Where(c => policyIds.Contains(c.PolicyApplicationId))
+                .ToListAsync();
+
+            var analytics = new AgentAnalyticsDto
+            {
+                TotalCoverageProvided = activePolicies.Sum(pa => pa.TotalCoverageAmount),
+                ActivePolicyCount = activePolicies.Count,
+                UniqueCustomerCount = allAssigned.Select(pa => pa.UserId).Distinct().Count(),
+                TotalPremiumCollected = activePolicies.Sum(pa => pa.PaidAmount ?? 0),
+                TotalCommissionEarned = activePolicies.Sum(pa => pa.CalculatedPremium * 0.10m),
+
+                BestPerformingCategory = allAssigned.GroupBy(pa => pa.PolicyCategory)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.Key)
+                    .FirstOrDefault() ?? "N/A",
+
+                BestPerformingTier = allAssigned.GroupBy(pa => pa.TierId)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.Key)
+                    .FirstOrDefault() ?? "N/A",
+
+                // Portfolio Mix (Category Distribution)
+                PortfolioMix = allAssigned.GroupBy(pa => pa.PolicyCategory)
+                    .Select(g => new CategoryDistribution { Category = g.Key, Count = g.Count() })
+                    .ToList(),
+
+                // Tier Breakdown
+                TierBreakdown = allAssigned.GroupBy(pa => pa.TierId)
+                    .Select(g => new TierDistribution { Tier = g.Key, Count = g.Count() })
+                    .ToList(),
+
+                // Status Metrics
+                PolicyStatusMetrics = allAssigned.GroupBy(pa => pa.Status)
+                    .Select(g => new StatusCount { Status = g.Key, Count = g.Count() })
+                    .ToList(),
+
+                // Commission & Premium Trends (Last 6 Months)
+                CommissionPerformance = activePolicies
+                    .Where(pa => pa.PaymentDate.HasValue)
+                    .GroupBy(pa => pa.PaymentDate!.Value.ToString("MMM yyyy"))
+                    .OrderBy(g => g.Min(pa => pa.PaymentDate))
+                    .Select(g => new MonthlyDataPoint { Month = g.Key, Value = g.Sum(pa => pa.CalculatedPremium * 0.10m) })
+                    .TakeLast(6)
+                    .ToList(),
+
+                PremiumTrends = activePolicies
+                    .Where(pa => pa.PaymentDate.HasValue)
+                    .GroupBy(pa => pa.PaymentDate!.Value.ToString("MMM yyyy"))
+                    .OrderBy(g => g.Min(pa => pa.PaymentDate))
+                    .Select(g => new MonthlyDataPoint { Month = g.Key, Value = g.Sum(pa => pa.PaidAmount ?? 0) })
+                    .TakeLast(6)
+                    .ToList(),
+
+                // Claim Impact
+                ClaimImpact = new List<ClaimImpactData>
+                {
+                    new ClaimImpactData { Metric = "Premium Collected", Value = activePolicies.Sum(pa => pa.PaidAmount ?? 0) },
+                    new ClaimImpactData { Metric = "Approved Claims", Value = claims.Where(c => c.Status == "Approved").Sum(c => c.ApprovedAmount) },
+                    new ClaimImpactData { Metric = "Pending Claims", Value = claims.Where(c => c.Status == "Pending" || c.Status == "Assigned").Sum(c => c.RequestedAmount) }
+                }
+            };
+
+            return analytics;
+        }
     }
 }

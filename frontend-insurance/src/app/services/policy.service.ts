@@ -50,4 +50,12 @@ export class PolicyService {
     getAgentCustomers(): Observable<any[]> {
         return this.http.get<any[]>(`https://localhost:7140/api/Agent/my-customers`);
     }
+
+    /**
+     * Sends a chat question to the n8n webhook.
+     */
+    sendChatQuestion(payload: any): Observable<any> {
+        const webhookUrl = "https://sanjay29.app.n8n.cloud/webhook/chatbot-agent-1";
+        return this.http.post(webhookUrl, payload);
+    }
 }

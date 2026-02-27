@@ -20,4 +20,8 @@ export class AgentService {
     getCommissionStats(): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/commission-stats`);
     }
+
+    getAnalytics(): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/analytics`);
+    }
 }

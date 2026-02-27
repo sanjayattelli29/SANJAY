@@ -114,6 +114,13 @@ namespace API.Controllers
             var claims = await _claimService.GetAgentClaimsAsync(agentId);
             return Ok(claims);
         }
+
+        [HttpGet("policy/{policyId}")]
+        public async Task<IActionResult> GetClaimByPolicyId(string policyId)
+        {
+            var claim = await _claimService.GetClaimByPolicyIdAsync(policyId);
+            return Ok(claim);
+        }
     }
 
     public class AssignOfficerRequest
@@ -128,5 +135,6 @@ namespace API.Controllers
         public string Status { get; set; } = string.Empty; // Approved or Rejected
         public string Remarks { get; set; } = string.Empty;
         public decimal ApprovedAmount { get; set; }
+
     }
 }

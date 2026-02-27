@@ -4,6 +4,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
 import { ClaimService } from '../../services/claim.service';
+import { PolicyService } from '../../services/policy.service';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 @Component({
     selector: 'app-admin-dashboard',
@@ -15,10 +19,11 @@ export class AdminDashboardPage implements OnInit {
     private authService = inject(AuthService);
     private adminService = inject(AdminService);
     private claimService = inject(ClaimService);
+    private policyService = inject(PolicyService);
     private fb = inject(FormBuilder);
 
     user = this.authService.getUser();
-    activeSection = signal('dashboard'); // dashboard, agents, officers, analysis-users, analysis-policies, analysis-claims
+    activeSection = signal('dashboard'); // dashboard, agents, officers, analysis-users, analysis-policies, analysis-commands
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
 
@@ -36,12 +41,18 @@ export class AdminDashboardPage implements OnInit {
     allUsers = signal<any[]>([]);
     allClaims = signal<any[]>([]);
     allPolicyApps = signal<any[]>([]);
+    config = signal<any>(null);
+
+    // Chart instances
+    private charts: Chart[] = [];
 
     // UI State
     showAssignModal = signal(false);
     showAssignOfficerModal = signal(false);
     selectedApplicationId = signal<string | null>(null);
     selectedClaimId = signal<string | null>(null);
+    showUnifiedDetail = signal(false);
+    selectedUnifiedDetail = signal<any>(null);
     isAssigning = signal(false);
 
     // Forms
@@ -71,32 +82,195 @@ export class AdminDashboardPage implements OnInit {
         this.loadPendingClaims();
         this.loadAllUsers();
         this.loadAllClaims();
+        this.loadConfig();
+    }
+
+    loadConfig() {
+        this.policyService.getConfiguration().subscribe({
+            next: (data) => this.config.set(data),
+            error: (err) => console.error('Failed to load config', err)
+        });
     }
 
     loadAdminStats() {
         this.adminService.getAdminStats().subscribe({
-            next: (data) => this.adminStats.set(data),
-            error: (err) => console.error('Failed to load admin stats', err)
+            next: (data: any) => this.adminStats.set(data),
+            error: (err: any) => console.error('Failed to load admin stats', err)
         });
     }
 
     loadAllUsers() {
         this.adminService.getAllUsers().subscribe({
-            next: (data) => this.allUsers.set(data),
-            error: (err) => console.error('Failed to load all users', err)
+            next: (data: any) => this.allUsers.set(data),
+            error: (err: any) => console.error('Failed to load all users', err)
         });
     }
 
     loadAllClaims() {
         this.adminService.getAllClaims().subscribe({
-            next: (data) => this.allClaims.set(data),
-            error: (err) => console.error('Failed to load all claims', err)
+            next: (data: any) => {
+                this.allClaims.set(data);
+                this.initCharts();
+            },
+            error: (err: any) => console.error('Failed to load all claims', err)
         });
+    }
+
+    loadPolicyRequests() {
+        this.adminService.getPolicyRequests().subscribe({
+            next: (data: any) => {
+                this.policyRequests.set(data);
+                this.initCharts();
+            },
+            error: (err: any) => console.error('Failed to load policy requests', err)
+        });
+    }
+
+    private initCharts() {
+        // Only init if we have enough data and are on dashboard
+        if (this.activeSection() !== 'dashboard') return;
+
+        // Debounce or delay slightly to ensure DOM is ready
+        setTimeout(() => {
+            this.destroyCharts();
+            this.createBestPolicyChart();
+            this.createBestAgentChart();
+            this.createRatioChart();
+            this.createClaimsChart();
+        }, 100);
+    }
+
+    private destroyCharts() {
+        this.charts.forEach(c => c.destroy());
+        this.charts = [];
+    }
+
+    private createBestPolicyChart() {
+        const canvas = document.getElementById('bestPolicyChart') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        const apps = this.policyRequests();
+        const categories: any = {};
+        apps.forEach(a => {
+            categories[a.policyCategory] = (categories[a.policyCategory] || 0) + 1;
+        });
+
+        this.charts.push(new Chart(canvas, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(categories),
+                datasets: [{
+                    data: Object.values(categories),
+                    backgroundColor: ['#4f46e5', '#f97316', '#10b981', '#6366f1', '#ec4899']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 10 } } }
+                }
+            }
+        }));
+    }
+
+    private createBestAgentChart() {
+        const canvas = document.getElementById('bestAgentChart') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        const apps = this.policyRequests();
+        const agentPerf: any = {};
+        apps.forEach(a => {
+            if (a.assignedAgent) {
+                const name = a.assignedAgent.email.split('@')[0];
+                agentPerf[name] = (agentPerf[name] || 0) + 1;
+            }
+        });
+
+        this.charts.push(new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(agentPerf),
+                datasets: [{
+                    label: 'Policies Assigned',
+                    data: Object.values(agentPerf),
+                    backgroundColor: '#6366f1',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { display: false } },
+                    x: { grid: { display: false } }
+                }
+            }
+        }));
+    }
+
+    private createRatioChart() {
+        const canvas = document.getElementById('ratioChart') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        const totalUsers = this.allUsers().length;
+        const totalAgents = this.agents.length;
+        const totalOfficers = this.officers.length;
+
+        this.charts.push(new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['Customers', 'Agents', 'Officers'],
+                datasets: [{
+                    data: [totalUsers - totalAgents - totalOfficers, totalAgents, totalOfficers],
+                    backgroundColor: ['#4f46e5', '#f97316', '#64748b']
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 10 } } }
+                }
+            }
+        }));
+    }
+
+    private createClaimsChart() {
+        const canvas = document.getElementById('claimsChart') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        const claims = this.allClaims();
+        const statusCounts: any = {};
+        claims.forEach(c => {
+            statusCounts[c.status] = (statusCounts[c.status] || 0) + 1;
+        });
+
+        this.charts.push(new Chart(canvas, {
+            type: 'polarArea',
+            data: {
+                labels: Object.keys(statusCounts),
+                datasets: [{
+                    data: Object.values(statusCounts),
+                    backgroundColor: ['#10b981', '#f97316', '#ef4444', '#6366f1']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 10 } } }
+                }
+            }
+        }));
     }
 
     setSection(section: string) {
         this.activeSection.set(section);
         this.message.set({ type: '', text: '' });
+        if (section === 'dashboard') {
+            this.initCharts();
+        } else {
+            this.destroyCharts();
+        }
     }
 
     loadAgents() {
@@ -110,13 +284,6 @@ export class AdminDashboardPage implements OnInit {
         this.adminService.getClaimOfficers().subscribe({
             next: (data) => this.officers = data,
             error: (err) => console.error('Failed to load officers', err)
-        });
-    }
-
-    loadPolicyRequests() {
-        this.adminService.getPolicyRequests().subscribe({
-            next: (data) => this.policyRequests.set(data),
-            error: (err) => console.error('Failed to load policy requests', err)
         });
     }
 
@@ -242,6 +409,75 @@ export class AdminDashboardPage implements OnInit {
                 }
             });
         }
+    }
+
+    viewUnifiedDetails(item: any, type: 'policy' | 'claim' = 'policy') {
+        let policy: any;
+        let claim: any;
+
+        if (type === 'policy') {
+            policy = item;
+            claim = this.allClaims().find(c => c.policyId === policy.id);
+        } else {
+            claim = item;
+            policy = claim.policy || this.policyRequests().find(p => p.id === claim.policyId);
+        }
+
+        // Aggregate complete details
+        const details: any = {
+            customer: policy?.user || claim?.user,
+            policy: {
+                ...policy,
+                totalCoverage: policy?.totalCoverageAmount || 0,
+                remainingCoverage: policy?.remainingCoverageAmount || 0
+            },
+            agent: policy?.assignedAgent,
+            claim: claim ? {
+                ...claim,
+                totalCoverage: policy?.totalCoverageAmount || 0,
+                remainingCoverage: policy?.remainingCoverageAmount || 0
+            } : null,
+            claimOfficer: claim?.assignedOfficer,
+            payments: policy?.payments || []
+        };
+
+        // Parse ApplicationDataJson if present (Mirroring Claims Officer depth)
+        if (policy?.applicationDataJson) {
+            try {
+                const raw = JSON.parse(policy.applicationDataJson);
+                const normalize = (obj: any) => {
+                    if (!obj) return null;
+                    const normalized: any = {};
+                    Object.keys(obj).forEach(key => {
+                        const normalizedKey = key.charAt(0).toLowerCase() + key.slice(1);
+                        normalized[normalizedKey] = obj[key];
+                    });
+                    return normalized;
+                };
+
+                const fullDetails = normalize(raw);
+                if (fullDetails) {
+                    fullDetails.applicant = normalize(fullDetails.applicant || fullDetails.primaryApplicant || raw.Applicant || raw.PrimaryApplicant);
+                    fullDetails.nominee = normalize(fullDetails.nominee || raw.Nominee);
+                    fullDetails.medicalProfile = normalize(fullDetails.medicalProfile || raw.MedicalProfile);
+                    fullDetails.lifestyle = normalize(fullDetails.lifestyle || raw.Lifestyle);
+                    fullDetails.incident = normalize(fullDetails.incident || fullDetails.incidentVerification || raw.Incident || raw.IncidentVerification);
+                }
+                details.policy.fullDetails = fullDetails;
+
+                // Sync sum insured from config if available
+                if (this.config()) {
+                    const cat = this.config().policyCategories?.find((c: any) => c.categoryId === policy.policyCategory);
+                    const tier = cat?.tiers?.find((t: any) => t.tierId === policy.tierId);
+                    details.policy.coverageAmount = tier?.baseCoverageAmount || (policy.sumInsured || 0);
+                }
+            } catch (e) {
+                console.error('Failed to parse policy data', e);
+            }
+        }
+
+        this.selectedUnifiedDetail.set(details);
+        this.showUnifiedDetail.set(true);
     }
 
     deleteUser(userId: string) {
