@@ -173,6 +173,31 @@ namespace Infrastructure.Services
         }
 
         /// <summary>
+        /// Returns a list of all users in the system with their roles.
+        /// </summary>
+        public async Task<IEnumerable<object>> GetAllUsersAsync()
+        {
+            var users = _userManager.Users.ToList();
+            var result = new List<object>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                result.Add(new
+                {
+                    user.Id,
+                    user.FullName,
+                    user.Email,
+                    user.PhoneNumber,
+                    user.BankAccountNumber,
+                    Roles = roles
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Deletes a user from the system.
         /// </summary>
         public async Task<object> DeleteUserAsync(string userId)

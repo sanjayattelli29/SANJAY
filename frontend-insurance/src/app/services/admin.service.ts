@@ -40,4 +40,16 @@ export class AdminService {
     assignAgent(applicationId: string, agentId: string): Observable<any> {
         return this.http.post(`${this.apiUrl}/assign-agent`, { applicationId, agentId });
     }
+
+    getAllUsers(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/all-users`);
+    }
+
+    getAllClaims(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/all-claims`);
+    }
+
+    getAdminStats(): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/admin-stats`);
+    }
 }

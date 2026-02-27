@@ -13,11 +13,13 @@ namespace API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IPolicyService _policyService;
+        private readonly IClaimService _claimService;
 
-        public AdminController(IAuthService authService, IPolicyService policyService)
+        public AdminController(IAuthService authService, IPolicyService policyService, IClaimService claimService)
         {
             _authService = authService;
             _policyService = policyService;
+            _claimService = claimService;
         }
 
         /// <summary>
@@ -90,6 +92,27 @@ namespace API.Controllers
             var success = await _policyService.AssignAgentAsync(request.ApplicationId, request.AgentId);
             if (!success) return BadRequest(new { Message = "Assignment failed" });
             return Ok(new { Message = "Agent assigned successfully" });
+        }
+
+        [HttpGet("all-users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _authService.GetAllUsersAsync();
+            return Ok(users);
+        }
+
+        [HttpGet("all-claims")]
+        public async Task<IActionResult> GetAllClaimsMaster()
+        {
+            var claims = await _claimService.GetAllClaimsAsync();
+            return Ok(claims);
+        }
+
+        [HttpGet("admin-stats")]
+        public async Task<IActionResult> GetAdminStats()
+        {
+            var stats = await _claimService.GetAdminStatsAsync();
+            return Ok(stats);
         }
     }
 

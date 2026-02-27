@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
@@ -19,6 +20,13 @@ namespace Application.Interfaces
         // Claim Officer
         Task<IEnumerable<InsuranceClaim>> GetOfficerClaimsAsync(string officerId);
         Task<bool> ReviewClaimAsync(string claimId, string status, string officerId, string remarks, decimal approvedAmount = 0);
+
+        // Agent
+        Task<IEnumerable<InsuranceClaim>> GetAgentClaimsAsync(string agentId);
+
+        // General / Admin
+        Task<IEnumerable<InsuranceClaim>> GetAllClaimsAsync();
+        Task<AdminDashboardStatsDto> GetAdminStatsAsync();
     }
 
     public class RaiseClaimRequest

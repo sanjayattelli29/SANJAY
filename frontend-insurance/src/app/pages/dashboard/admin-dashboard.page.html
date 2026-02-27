@@ -1,157 +1,304 @@
-<div class="min-h-screen flex flex-col bg-brand-gray">
-    <!-- Dashboard Header -->
-    <header class="nav-header shrink-0">
-        <div class="container mx-auto px-6 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <span class="text-xl font-black tracking-tight">Insurance<span
-                        class="text-brand-orange">Platform</span></span>
-                <span
-                    class="bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest border border-white/20">Admin
-                    Console</span>
-            </div>
-            <div class="flex items-center gap-6">
-                <div class="text-right hidden sm:block">
-                    <p class="text-xs font-bold">{{ user.email }}</p>
-                    <p class="text-[10px] opacity-60 uppercase">{{ user.role || 'User' }}</p>
-                </div>
-                <button (click)="logout()" class="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+<div class="min-h-screen flex flex-col bg-slate-50">
+    <!-- Premium Header -->
+    <header class="h-20 bg-brand-navy shrink-0 border-b border-white/5 flex items-center px-10 relative z-30">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 bg-brand-orange rounded-2xl flex items-center justify-center shadow-lg shadow-brand-orange/20">
+                    <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
-                </button>
+                </div>
+                <span class="text-2xl font-black text-white tracking-tighter italic">Shield<span
+                        class="text-brand-orange">Pro</span></span>
             </div>
+            <div class="h-6 w-px bg-white/10"></div>
+            <span
+                class="bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Admin
+                Console</span>
+        </div>
+        <div class="ml-auto flex items-center gap-8">
+            <div class="flex flex-col items-end">
+                <p class="text-sm font-black text-white italic">{{ user.email }}</p>
+                <p class="text-[10px] text-brand-orange font-black uppercase tracking-widest">Master Administrator</p>
+            </div>
+            <button (click)="logout()"
+                class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/5 group">
+                <svg class="w-5 h-5 text-white/60 group-hover:text-white transition-colors" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </button>
         </div>
     </header>
 
     <div class="flex grow overflow-hidden">
         <!-- Sidebar -->
-        <aside class="w-64 bg-brand-navy border-r border-white/5 flex flex-col pt-6 shrink-0">
-            <nav class="space-y-1 px-3">
-                <button (click)="setSection('dashboard')"
-                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
-                    (activeSection() === 'dashboard' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                    Dashboard
-                </button>
-                <button (click)="setSection('agents')"
-                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
-                    (activeSection() === 'agents' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    Create Agent
-                </button>
-                <button (click)="setSection('officers')"
-                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
-                    (activeSection() === 'officers' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    Create Claim Officer
-                </button>
-                <button (click)="setSection('policyRequests')"
-                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
-                    (activeSection() === 'policyRequests' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    Policy Requests
-                </button>
-                <button (click)="setSection('claimRequests')"
-                    [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ' + 
-                    (activeSection() === 'claimRequests' ? 'bg-brand-orange text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Claim Requests
-                </button>
-            </nav>
-            <div class="mt-auto p-4">
-                <div class="bg-white/5 rounded-xl p-4 border border-white/5">
-                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">System Version</p>
-                    <p class="text-xs text-white">v2.1.4-Stable</p>
+        <aside class="w-72 bg-brand-navy border-r border-white/5 flex flex-col pt-8 shrink-0 sticky top-0 h-screen">
+            <div class="px-6 mb-8">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Main Menu</p>
+                <nav class="space-y-2">
+                    <button (click)="setSection('dashboard')"
+                        [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
+                        (activeSection() === 'dashboard' ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        Overview
+                    </button>
+                    <button (click)="setSection('policyRequests')"
+                        [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
+                        (activeSection() === 'policyRequests' ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Policy Queue
+                    </button>
+                    <button (click)="setSection('claimRequests')"
+                        [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
+                        (activeSection() === 'claimRequests' ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Claim Queue
+                    </button>
+                </nav>
+            </div>
+
+            <div class="px-6 mb-8">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Complete Analysis</p>
+                <nav class="space-y-2">
+                    <button (click)="setSection('analysis-users')"
+                        [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
+                        (activeSection() === 'analysis-users' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Users Registry
+                    </button>
+                    <button (click)="setSection('analysis-policies')"
+                        [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
+                        (activeSection() === 'analysis-policies' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Active Policies
+                    </button>
+                </nav>
+            </div>
+
+            <div class="px-6 mb-8">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Administration</p>
+                <nav class="space-y-2">
+                    <button (click)="setSection('agents')"
+                        [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
+                        (activeSection() === 'agents' ? 'bg-brand-navy-light text-white border border-white/10' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Manage Agents
+                    </button>
+                    <button (click)="setSection('officers')"
+                        [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
+                        (activeSection() === 'officers' ? 'bg-brand-navy-light text-white border border-white/10' : 'text-slate-400 hover:bg-white/5 hover:text-white')">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Manage Officers
+                    </button>
+                </nav>
+            </div>
+            <div class="mt-auto p-6">
+                <div class="bg-indigo-500/10 rounded-2xl p-4 border border-indigo-500/20">
+                    <p class="text-[10px] text-indigo-400 font-black uppercase mb-2 tracking-widest">System Engine</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <p class="text-xs text-white font-black">v2.1.4-Premium</p>
+                    </div>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content Area -->
-        <main class="grow overflow-y-auto p-8">
-            <div class="max-w-6xl mx-auto space-y-8">
+        <main class="grow overflow-y-auto p-12 bg-slate-50/50">
+            <div class="max-w-7xl mx-auto space-y-12">
 
                 @if (message().text) {
                 <div
-                    [class]="'p-4 rounded-lg flex items-center gap-3 ' + (message().type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100')">
-                    <span class="font-bold">{{ message().type === 'success' ? '✓' : '⚠' }}</span>
-                    <p class="text-sm font-bold">{{ message().text }}</p>
+                    [class]="'p-6 rounded-3xl flex items-center gap-4 animate-in slide-in-from-top-4 duration-300 ' + (message().type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-lg shadow-emerald-500/5' : 'bg-rose-50 text-rose-700 border border-rose-100 shadow-lg shadow-rose-500/5')">
+                    <div
+                        [class]="'w-10 h-10 rounded-full flex items-center justify-center ' + (message().type === 'success' ? 'bg-emerald-100' : 'bg-rose-100')">
+                        <span class="font-black text-lg">{{ message().type === 'success' ? '✓' : '!' }}</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black uppercase tracking-widest">{{ message().type === 'success' ?
+                            'Success' :
+                            'Attention' }}</p>
+                        <p class="text-xs opacity-80 font-bold mt-0.5">{{ message().text }}</p>
+                    </div>
                 </div>
                 }
 
                 @if (activeSection() === 'dashboard') {
-                <div>
-                    <h1 class="text-3xl font-black text-brand-navy">Dashboard Overview</h1>
-                    <p class="text-slate-500 text-sm mb-8">Real-time metrics and system operations.</p>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        @for (stat of stats; track stat.label) {
-                        <div class="card p-4 border-l-4 border-brand-navy">
-                            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">{{ stat.label
-                                }}</p>
-                            <div class="flex items-baseline justify-between">
-                                <span class="text-2xl font-black text-brand-navy">{{ stat.value }}</span>
-                                <span
-                                    [class]="'text-[10px] font-bold ' + (stat.change.startsWith('+') ? 'text-emerald-600' : 'text-rose-600')">
-                                    {{ stat.change }}
-                                </span>
-                            </div>
-                        </div>
-                        } @empty {
-                        <div class="col-span-4 card p-8 text-center text-slate-400 italic text-sm">
-                            No overview metrics available yet.
-                        </div>
-                        }
+                <div class="animate-in fade-in duration-700">
+                    <div class="mb-10">
+                        <h1 class="text-4xl font-black text-brand-navy tracking-tight">Executive Dashboard</h1>
+                        <p class="text-slate-400 font-bold mt-2">Real-time enterprise metrics & operational health.</p>
                     </div>
 
-                    <div class="card p-0 overflow-hidden">
-                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <h3 class="font-bold text-sm uppercase tracking-wide">Recent System Activities</h3>
-                            <a href="#" class="text-[10px] font-bold text-brand-orange hover:underline">View All
-                                Logs</a>
+                    <!-- Analytics Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                        <!-- Total Customers -->
+                        <div
+                            class="card p-6 border-none shadow-xl shadow-slate-200/50 group hover:scale-[1.02] transition-all cursor-default overflow-hidden relative">
+                            <div
+                                class="absolute -right-4 -bottom-4 w-24 h-24 bg-brand-navy/5 rounded-full group-hover:scale-150 transition-transform">
+                            </div>
+                            <p
+                                class="text-[10px] uppercase font-black text-slate-400 mb-4 tracking-[0.2em] relative z-10">
+                                Total
+                                Customers</p>
+                            <div class="flex items-baseline justify-between relative z-10">
+                                <span class="text-4xl font-black text-brand-navy tracking-tighter">{{
+                                    adminStats()?.totalCustomers || 0 }}</span>
+                                <span
+                                    class="bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">+12%</span>
+                            </div>
+                        </div>
+
+                        <!-- Active Policies -->
+                        <div
+                            class="card p-6 border-none shadow-xl shadow-slate-200/50 group hover:scale-[1.02] transition-all cursor-default overflow-hidden relative">
+                            <div
+                                class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/5 rounded-full group-hover:scale-150 transition-transform">
+                            </div>
+                            <p
+                                class="text-[10px] uppercase font-black text-slate-400 mb-4 tracking-[0.2em] relative z-10">
+                                Active Policies</p>
+                            <div class="flex items-baseline justify-between relative z-10">
+                                <span class="text-4xl font-black text-brand-navy tracking-tighter">{{
+                                    adminStats()?.totalPolicies || 0 }}</span>
+                                <span
+                                    class="bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">Live</span>
+                            </div>
+                        </div>
+
+                        <!-- Total Claims -->
+                        <div
+                            class="card p-6 border-none shadow-xl shadow-slate-200/50 group hover:scale-[1.02] transition-all cursor-default overflow-hidden relative">
+                            <div
+                                class="absolute -right-4 -bottom-4 w-24 h-24 bg-brand-orange/5 rounded-full group-hover:scale-150 transition-transform">
+                            </div>
+                            <p
+                                class="text-[10px] uppercase font-black text-slate-400 mb-4 tracking-[0.2em] relative z-10">
+                                Claims Logged</p>
+                            <div class="flex items-baseline justify-between relative z-10">
+                                <span class="text-4xl font-black text-brand-navy tracking-tighter">{{
+                                    adminStats()?.totalClaims
+                                    || 0 }}</span>
+                                <span
+                                    class="bg-brand-orange/10 text-brand-orange px-2 py-0.5 rounded text-[10px] font-black uppercase">Active</span>
+                            </div>
+                        </div>
+
+                        <!-- Payout Amount -->
+                        <div
+                            class="card p-6 border-none shadow-xl shadow-slate-200/50 group hover:scale-[1.02] transition-all cursor-default overflow-hidden relative">
+                            <div
+                                class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform">
+                            </div>
+                            <p
+                                class="text-[10px] uppercase font-black text-slate-400 mb-4 tracking-[0.2em] relative z-10">
+                                Total
+                                Settlements</p>
+                            <div class="flex items-baseline justify-between relative z-10 text-emerald-600">
+                                <span class="text-2xl font-black tracking-tighter italic">₹{{
+                                    adminStats()?.totalClaimedAmount |
+                                    number }}</span>
+                                <span class="text-[10px] font-black uppercase opacity-60">Verified</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden border-none shadow-2xl shadow-slate-200/50">
+                        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
+                            <div>
+                                <h3 class="font-black text-lg text-brand-navy tracking-tight italic">Global Command Log
+                                </h3>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Real-time
+                                    system
+                                    events</p>
+                            </div>
+                            <button (click)="loadData()"
+                                class="p-3 bg-brand-gray rounded-2xl hover:bg-slate-100 transition-all group">
+                                <svg class="w-5 h-5 text-brand-navy group-hover:rotate-180 transition-transform duration-500"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left">
                                 <thead>
                                     <tr
-                                        class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
-                                        <th class="px-4 py-3">ID</th>
-                                        <th class="px-4 py-3">User</th>
-                                        <th class="px-4 py-3">Activity</th>
-                                        <th class="px-4 py-3 text-right">Status</th>
+                                        class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
+                                        <th class="px-8 py-5">Event ID</th>
+                                        <th class="px-8 py-5">Subject</th>
+                                        <th class="px-8 py-5">Activity Trace</th>
+                                        <th class="px-8 py-5 text-right">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    @for (act of recentActivities; track act.id) {
-                                    <tr class="hover:bg-slate-50/50 transition-colors">
-                                        <td class="px-4 py-3 font-mono text-slate-400 uppercase tracking-tighter">{{
-                                            act.id }}</td>
-                                        <td class="px-4 py-3 font-bold">{{ act.user }}</td>
-                                        <td class="px-4 py-3 text-slate-600">{{ act.type }}</td>
-                                        <td class="px-4 py-3 text-right">
-                                            <span class="badge badge-success">● {{ act.status }}</span>
+                                <tbody class="divide-y divide-slate-50">
+                                    @for (act of allClaims().slice(0, 5); track act.id) {
+                                    <tr class="hover:bg-slate-50/30 transition-colors group">
+                                        <td
+                                            class="px-8 py-6 font-mono text-[11px] text-slate-400 group-hover:text-brand-navy transition-colors">
+                                            #{{ act.id.substring(0,8) }}</td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-brand-navy">{{ act.user?.email }}</p>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                                                Verified
+                                                Policyholder</p>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <span
+                                                class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest">
+                                                Claim: {{ act.incidentType }}
+                                            </span>
+                                        </td>
+                                        <td class="px-8 py-6 text-right">
+                                            <span
+                                                [class]="'px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ' + 
+                                                (act.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-brand-orange/10 text-brand-orange')">
+                                                ● {{ act.status }}
+                                            </span>
                                         </td>
                                     </tr>
                                     } @empty {
                                     <tr>
-                                        <td colspan="4" class="p-12 text-center text-slate-400 font-bold italic">
-                                            No recent system activities to display.
+                                        <td colspan="4" class="p-20 text-center">
+                                            <div
+                                                class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 grayscale opacity-20">
+                                                <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2.5"
+                                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                                </svg>
+                                            </div>
+                                            <p class="text-sm font-black text-slate-300 uppercase tracking-widest">No
+                                                activities
+                                                recorded</p>
                                         </td>
                                     </tr>
                                     }
@@ -468,11 +615,202 @@
                     </div>
                 </div>
                 }
+
+                @if (activeSection() === 'analysis-users') {
+                <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                    <div>
+                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Registry: Identity Master
+                        </h1>
+                        <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Total system
+                            users including Agents, Officers and Customers.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden border-none shadow-2xl shadow-slate-200/50">
+                        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
+                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Master User List
+                            </h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
+                                        <th class="px-8 py-5">Global ID</th>
+                                        <th class="px-8 py-5">User Profile</th>
+                                        <th class="px-8 py-5">Role/Access</th>
+                                        <th class="px-8 py-5">Contact Details</th>
+                                        <th class="px-8 py-5 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    @for (u of allUsers(); track u.id) {
+                                    <tr class="hover:bg-slate-50/30 transition-colors group">
+                                        <td class="px-8 py-6 font-mono text-[11px] text-slate-400">#{{
+                                            u.id.substring(0,8) }}</td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-brand-navy">{{ u.fullName }}</p>
+                                            <p class="text-[10px] text-slate-400 font-bold italic">{{ u.email }}</p>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            @for (role of u.roles; track role) {
+                                            <span
+                                                class="px-3 py-1 bg-brand-navy/5 text-brand-navy rounded-full text-[9px] font-black uppercase tracking-widest mr-2">
+                                                {{ role }}
+                                            </span>
+                                            }
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-bold text-slate-600">{{ u.phoneNumber || 'N/A' }}</p>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                                                Verified Phone</p>
+                                        </td>
+                                        <td class="px-8 py-6 text-right">
+                                            <button (click)="deleteUser(u.id)"
+                                                class="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-700 transition-colors">Termiate</button>
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'analysis-policies') {
+                <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                    <div>
+                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Ledger: Risk Assets</h1>
+                        <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Complete history
+                            of all policy applications and active underwritings.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden border-none shadow-2xl shadow-slate-200/50">
+                        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
+                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Consolidated Assets
+                            </h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
+                                        <th class="px-8 py-5">Policyholder</th>
+                                        <th class="px-8 py-5">Plan Detail</th>
+                                        <th class="px-8 py-5">Financial Status</th>
+                                        <th class="px-8 py-5">Assigned Agent</th>
+                                        <th class="px-8 py-5 text-right">State</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    @for (p of policyRequests(); track p.id) {
+                                    <tr class="hover:bg-slate-50/30 transition-colors">
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-brand-navy">{{ p.user?.email }}</p>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                                                UID: {{ p.userId.substring(0,8) }}</p>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-indigo-600 italic tracking-tight">{{
+                                                p.tierId }}</p>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase">{{
+                                                p.policyCategory }}</p>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-brand-navy italic">₹{{ p.calculatedPremium
+                                                | number }} /yr</p>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                                                Premium</p>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-bold text-slate-600">{{ p.assignedAgent?.email ||
+                                                'UNASSIGNED' }}</p>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                                                Verification Body</p>
+                                        </td>
+                                        <td class="px-8 py-6 text-right">
+                                            <span
+                                                [class]="'px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ' + 
+                                                (p.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-brand-orange/10 text-brand-orange')">
+                                                ● {{ p.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                @if (activeSection() === 'analysis-claims') {
+                <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                    <div>
+                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Audit: Claim Master</h1>
+                        <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">End-to-end audit
+                            trail of every claim requested, processed and settled.</p>
+                    </div>
+
+                    <div class="card p-0 overflow-hidden border-none shadow-2xl shadow-slate-200/50">
+                        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
+                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Global Claim
+                                Registry</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
+                                        <th class="px-8 py-5">Claim ID</th>
+                                        <th class="px-8 py-5">Policyholder</th>
+                                        <th class="px-8 py-5">Incident Detail</th>
+                                        <th class="px-8 py-5">Settlement (₹)</th>
+                                        <th class="px-8 py-5 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    @for (c of allClaims(); track c.id) {
+                                    <tr class="hover:bg-slate-50/30 transition-colors group">
+                                        <td class="px-8 py-6 font-mono text-[11px] text-slate-400">#{{
+                                            c.id.substring(0,8) }}</td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-brand-navy">{{ c.user?.email }}</p>
+                                            <p class="text-[9px] text-slate-400 font-bold">Policy: {{ c.policy?.tierId
+                                                }}</p>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-indigo-600 uppercase tracking-tight">{{
+                                                c.incidentType }}</p>
+                                            <p class="text-[9px] text-slate-400 font-bold italic">{{ c.incidentDate |
+                                                date }}</p>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <p class="text-xs font-black text-emerald-600">₹{{ c.approvedAmount ||
+                                                c.requestedAmount | number }}</p>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                                                Settled Capital</p>
+                                        </td>
+                                        <td class="px-8 py-6 text-right">
+                                            <span
+                                                [class]="'px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ' + 
+                                                (c.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-brand-orange/10 text-brand-orange')">
+                                                ● {{ c.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                }
             </div>
         </main>
     </div>
 
-    <!-- Assign Agent Modal -->
+    <!-- Modals -->
     @if (showAssignModal()) {
     <div class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
@@ -531,7 +869,6 @@
     </div>
     }
 
-    <!-- Assign Officer Modal -->
     @if (showAssignOfficerModal()) {
     <div class="fixed inset-0 bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">

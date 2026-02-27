@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
@@ -176,6 +177,40 @@ namespace Infrastructure.Services
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<InsuranceClaim>> GetAgentClaimsAsync(string agentId)
+        {
+            return await _context.InsuranceClaims
+                .Include(c => c.User)
+                .Include(c => c.Policy)
+                .Where(c => c.Policy.AssignedAgentId == agentId)
+                .OrderByDescending(c => c.SubmissionDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<InsuranceClaim>> GetAllClaimsAsync()
+        {
+            return await _context.InsuranceClaims
+                .Include(c => c.User)
+                .Include(c => c.Policy)
+                .Include(c => c.Documents)
+                .OrderByDescending(c => c.SubmissionDate)
+                .ToListAsync();
+        }
+
+        public async Task<AdminDashboardStatsDto> GetAdminStatsAsync()
+        {
+            var stats = new AdminDashboardStatsDto
+            {
+                TotalCustomers = await _userManager.GetUsersInRoleAsync(UserRoles.Customer).ContinueWith(t => t.Result.Count),
+                TotalPolicies = await _context.PolicyApplications.CountAsync(),
+                TotalClaims = await _context.InsuranceClaims.CountAsync(),
+                TotalClaimedAmount = await _context.InsuranceClaims
+                    .Where(c => c.Status == "Approved" || c.Status == "Paid")
+                    .SumAsync(c => (decimal?)c.ApprovedAmount) ?? 0
+            };
+            return stats;
         }
     }
 }

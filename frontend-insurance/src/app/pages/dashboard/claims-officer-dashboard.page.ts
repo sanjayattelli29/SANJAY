@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ClaimService } from '../../services/claim.service';
@@ -20,6 +20,18 @@ export class ClaimsOfficerDashboardPage implements OnInit {
     myRequests = signal<any[]>([]);
     isLoading = signal(false);
     config = signal<any>(null);
+    activeSection = signal('dashboard');
+
+    // Stats
+    stats = computed(() => {
+        const requests = this.myRequests();
+        return {
+            total: requests.length,
+            pending: requests.filter(r => r.status === 'PendingAssessment' || r.status === 'Assigned').length,
+            approved: requests.filter(r => r.status === 'Approved').length,
+            rejected: requests.filter(r => r.status === 'Rejected').length
+        };
+    });
 
     // Review Modal State
     selectedClaim = signal<any | null>(null);
@@ -98,12 +110,16 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         this.reviewForm.approvedAmount = claim.requestedAmount || 0;
     }
 
-    submitReview() {
+    setSection(section: string) {
+        this.activeSection.set(section);
+    }
+
+    submitReview(status: string) {
         const claimId = this.selectedClaim()?.id;
         if (!claimId) return;
 
         this.isLoading.set(true);
-        this.claimService.reviewClaim(claimId, this.reviewForm.status, this.reviewForm.remarks, this.reviewForm.approvedAmount).subscribe({
+        this.claimService.reviewClaim(claimId, status, this.reviewForm.remarks, this.reviewForm.approvedAmount).subscribe({
             next: () => {
                 this.isLoading.set(false);
                 this.showReviewModal.set(false);

@@ -18,12 +18,12 @@ export class AdminDashboardPage implements OnInit {
     private fb = inject(FormBuilder);
 
     user = this.authService.getUser();
-    activeSection = signal('dashboard'); // dashboard, agents, officers
+    activeSection = signal('dashboard'); // dashboard, agents, officers, analysis-users, analysis-policies, analysis-claims
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
 
     // Data
-    stats: any[] = [];
+    adminStats = signal<any>(null);
     recentActivities: any[] = [];
     agents: any[] = [];
     officers: any[] = [];
@@ -31,6 +31,11 @@ export class AdminDashboardPage implements OnInit {
     agentsWithLoad = signal<any[]>([]);
     pendingClaims = signal<any[]>([]);
     claimOfficersWithWorkload = signal<any[]>([]);
+
+    // Complete Analysis Data
+    allUsers = signal<any[]>([]);
+    allClaims = signal<any[]>([]);
+    allPolicyApps = signal<any[]>([]);
 
     // UI State
     showAssignModal = signal(false);
@@ -59,10 +64,34 @@ export class AdminDashboardPage implements OnInit {
     }
 
     loadData() {
+        this.loadAdminStats();
         this.loadAgents();
         this.loadOfficers();
         this.loadPolicyRequests();
         this.loadPendingClaims();
+        this.loadAllUsers();
+        this.loadAllClaims();
+    }
+
+    loadAdminStats() {
+        this.adminService.getAdminStats().subscribe({
+            next: (data) => this.adminStats.set(data),
+            error: (err) => console.error('Failed to load admin stats', err)
+        });
+    }
+
+    loadAllUsers() {
+        this.adminService.getAllUsers().subscribe({
+            next: (data) => this.allUsers.set(data),
+            error: (err) => console.error('Failed to load all users', err)
+        });
+    }
+
+    loadAllClaims() {
+        this.adminService.getAllClaims().subscribe({
+            next: (data) => this.allClaims.set(data),
+            error: (err) => console.error('Failed to load all claims', err)
+        });
     }
 
     setSection(section: string) {

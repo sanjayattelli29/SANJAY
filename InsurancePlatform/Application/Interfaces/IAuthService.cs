@@ -34,6 +34,11 @@ namespace Application.Interfaces
         Task<IEnumerable<object>> GetUsersByRoleAsync(string role);
 
         /// <summary>
+        /// Returns a list of all users in the system.
+        /// </summary>
+        Task<IEnumerable<object>> GetAllUsersAsync();
+
+        /// <summary>
         /// Deletes a user by their unique identifier.
         /// </summary>
         Task<object> DeleteUserAsync(string userId);

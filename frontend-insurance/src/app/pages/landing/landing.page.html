@@ -1,128 +1,405 @@
-<!-- PolicyBazaar Inspired Header -->
-<header class="nav-header">
-  <div class="container mx-auto px-6 flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <div class="w-10 h-10 bg-brand-orange rounded-full flex items-center justify-center font-bold text-xl">I</div>
-      <span class="text-2xl font-black tracking-tight">Insurance<span class="text-brand-orange">Platform</span></span>
-    </div>
-    <nav class="hidden md:flex gap-8 font-semibold">
-      <a href="#" class="hover:text-brand-orange transition-colors">Insurance Products</a>
-      <a href="#" class="hover:text-brand-orange transition-colors">Resources</a>
-      <a href="#" class="hover:text-brand-orange transition-colors">Customer Support</a>
-    </nav>
-    <div>
-      <a routerLink="/register" class="btn-primary py-2 px-6 text-sm">Login / Register</a>
-    </div>
+<!-- ===== NAV ===== -->
+<nav class="lp-nav">
+  <a class="lp-logo" href="http://localhost:4200/register">
+    <div class="lp-logo-mark">I</div>
+    <span class="lp-logo-text">Insureplus<em> Shield™</em></span>
+  </a>
+  <div class="lp-nav-links">
+    <a href="http://localhost:4200/register">Insurance Products ▾</a>
+    <a href="http://localhost:4200/register">Renewals ▾</a>
+    <a href="http://localhost:4200/register">Claims ▾</a>
+    <a href="http://localhost:4200/register">Help</a>
   </div>
-</header>
-
-<!-- Hero Section -->
-<main class="bg-white py-16">
-  <div class="container mx-auto px-6 text-center max-w-4xl">
-    <h1 class="text-5xl font-extrabold mb-6 leading-tight">Complete <span class="text-brand-orange">Accident Insurance</span> for Your Peace of Mind</h1>
-    <p class="text-xl text-slate-600 mb-10">Protect yourself and your loved ones from the unexpected. High coverage, simple claims, and immediate assistance.</p>
-    
-    <!-- Quick Search / Action -->
-    <div class="flex flex-wrap justify-center gap-4 mb-16">
-      <a routerLink="/register" class="btn-primary text-lg px-10">Get Quotes & Register</a>
-      <a href="#plans" class="btn-secondary text-lg px-10">View Our Plans</a>
-    </div>
-
-    <!-- Features -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-      <div class="flex items-start gap-4">
-        <div class="text-brand-orange text-2xl">✓</div>
-        <div>
-          <h3 class="font-bold text-lg">Instant Issuance</h3>
-          <p class="text-slate-500 text-sm">Get your policy in minutes with zero paperwork.</p>
-        </div>
-      </div>
-      <div class="flex items-start gap-4">
-        <div class="text-brand-orange text-2xl">✓</div>
-        <div>
-          <h3 class="font-bold text-lg">99% Claim Ratio</h3>
-          <p class="text-slate-500 text-sm">We stand by you when it matters most.</p>
-        </div>
-      </div>
-      <div class="flex items-start gap-4">
-        <div class="text-brand-orange text-2xl">✓</div>
-        <div>
-          <h3 class="font-bold text-lg">Cashless Treatment</h3>
-          <p class="text-slate-500 text-sm">Access to 5000+ top-tier hospitals nationwide.</p>
-        </div>
-      </div>
-    </div>
+  <div class="lp-nav-btns">
+    <a href="http://localhost:4200/register" class="lp-btn-ghost">Sign In</a>
+    <a href="http://localhost:4200/register" class="lp-btn-orange">Sign Up</a>
   </div>
-</main>
+</nav>
 
-<!-- Plans Section -->
-<section id="plans" class="bg-brand-gray py-20">
-  <div class="container mx-auto px-6">
-    <div class="text-center mb-16">
-      <h2 class="text-3xl font-bold mb-4">Choose the Best Plan for Your Needs</h2>
-      <p class="text-slate-600">Tailored coverage for individuals and families with high-density benefits.</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- Individual Plan -->
-      <div class="card flex flex-col hover:border-brand-orange transition-colors cursor-pointer group">
-        <div class="mb-4">
-          <span class="badge bg-slate-100 text-slate-600">Most Popular</span>
+<!-- ===== HERO ===== -->
+<section class="lp-hero">
+  <div class="lp-hero-grid">
+    <!-- Left -->
+    <div class="lp-hero-left">
+      <div class="lp-hero-badge">
+        <span class="lp-badge-dot"></span>
+        Trusted by 9.6M+ customers
+      </div>
+      <h2 class="lp-hero-h1">
+        Protect Today. <br>
+        <em class="lp-hero-em">Brighter Tomorrow.</em>
+      </h2>
+      <p class="lp-hero-sub">
+        Tailored accident insurance for you and your family. Full coverage with transparent rates and instant digital
+        issuance.
+      </p>
+      <div class="lp-hero-cta">
+        <a href="http://localhost:4200/register" class="lp-cta-primary">Get A Free Quote →</a>
+        <a href="#lp-plans" class="lp-cta-outline">View Plans</a>
+      </div>
+      <div class="lp-hero-stats">
+        <div class="lp-stat">
+          <div class="lp-stat-num">9.6<span>M+</span></div>
+          <div class="lp-stat-lbl">Happy Customers</div>
         </div>
-        <h3 class="text-2xl font-bold mb-2">Individual Plan</h3>
-        <p class="text-slate-500 text-sm mb-6">Comprehensive protection for solo adventurers and professionals.</p>
-        <div class="text-4xl font-extrabold text-brand-navy mb-8">₹499 <span class="text-base font-normal text-slate-400">/year</span></div>
-        <ul class="space-y-3 mb-10 flex-grow">
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Coverage up to ₹10 Lakhs</li>
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Hospital Cash allowance</li>
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Permanent Disability Support</li>
-        </ul>
-        <a routerLink="/register" class="btn-primary w-full group-hover:scale-105 transition-transform">Protect Myself</a>
+        <div class="lp-stat-div"></div>
+        <div class="lp-stat">
+          <div class="lp-stat-num">99<span>%</span></div>
+          <div class="lp-stat-lbl">Claim Settlement</div>
+        </div>
+        <div class="lp-stat-div"></div>
+        <div class="lp-stat">
+          <div class="lp-stat-num">25<span>+</span></div>
+          <div class="lp-stat-lbl">Years Experience</div>
+        </div>
       </div>
-
-      <!-- Family Plan -->
-      <div class="card flex flex-col border-2 border-brand-orange shadow-lg relative">
-        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-orange text-white px-4 py-1 rounded-full text-xs font-bold uppercase">Best Value</div>
-        <h3 class="text-2xl font-bold mb-2">Family Plan</h3>
-        <p class="text-slate-500 text-sm mb-6">Secure up to 4 family members under a single, robust policy.</p>
-        <div class="text-4xl font-extrabold text-brand-navy mb-8">₹1,299 <span class="text-base font-normal text-slate-400">/year</span></div>
-        <ul class="space-y-3 mb-10 flex-grow">
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Coverage up to ₹25 Lakhs</li>
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Critical Care Cover</li>
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Education Fund for Children</li>
-        </ul>
-        <a routerLink="/register" class="btn-primary w-full scale-105">Protect My Family</a>
+    </div>
+    <!-- Right image -->
+    <div class="lp-hero-right">
+      <div class="lp-img-frame">
+        <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=720&q=85" alt="Happy family">
+        <span class="lp-licensed-badge">✓ Fully Licensed &amp; Regulated</span>
       </div>
-
-      <!-- Over-Age Plan -->
-      <div class="card flex flex-col hover:border-brand-orange transition-colors cursor-pointer group">
-        <h3 class="text-2xl font-bold mb-2">Over-Age Plan</h3>
-        <p class="text-slate-500 text-sm mb-6">Specialized care and support for senior citizens (60+ years).</p>
-        <div class="text-4xl font-extrabold text-brand-navy mb-8">₹899 <span class="text-base font-normal text-slate-400">/year</span></div>
-        <ul class="space-y-3 mb-10 flex-grow">
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Coverage up to ₹15 Lakhs</li>
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> Pre-existing illness support</li>
-          <li class="flex items-center gap-2"><span class="text-brand-orange">●</span> At-home care assistance</li>
-        </ul>
-        <a routerLink="/register" class="btn-primary w-full group-hover:scale-105 transition-transform">Protect Seniors</a>
+      <div class="lp-float-left">
+        <div class="lp-fl-icon">💬</div>
+        <p class="lp-fl-text">"The claim process was seamless. Got settled in 48 hours!"</p>
+        <div class="lp-fl-author">
+          <div class="lp-fl-avatar">RK</div>
+          <span class="lp-fl-name">Rahul K. — Verified</span>
+        </div>
+      </div>
+      <div class="lp-float-right">
+        <div class="lp-fr-stars">★★★★★</div>
+        <div class="lp-fr-num">4.9</div>
+        <div class="lp-fr-lbl">Service Rating</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Footer / Role Access -->
-<footer class="bg-brand-navy text-white py-12">
-  <div class="container mx-auto px-6 text-center">
-    <div class="flex justify-center flex-wrap gap-8 items-center mb-8 text-sm opacity-80">
-      <span>Other roles?</span>
-      <a routerLink="/admin/login" class="text-brand-orange hover:underline">Admin Login</a>
-      <span class="opacity-30">|</span>
-      <a routerLink="/agent/login" class="text-brand-orange hover:underline">Agent Login</a>
-      <span class="opacity-30">|</span>
-      <a routerLink="/claims-officer/login" class="text-brand-orange hover:underline">Claims Officer Login</a>
+<!-- ===== QUOTE FORM ===== -->
+<div class="lp-quote-wrap">
+  <div class="lp-quote-form">
+    <div class="lp-qf-group">
+      <label class="lp-qf-label">Insurance For</label>
+      <select class="lp-qf-select">
+        <option value="">Select insurance type</option>
+        <optgroup label="Individual Accident Policy">
+          <option>Individual — Silver Plan (₹5 Lakhs · ₹3,000/yr)</option>
+          <option>Individual — Gold Plan (₹10 Lakhs · ₹5,000/yr)</option>
+          <option>Individual — Premium Plan (₹20 Lakhs · ₹8,000/yr)</option>
+        </optgroup>
+        <optgroup label="Family Group Accident Policy">
+          <option>Family — Silver Plan (₹10 Lakhs · ₹7,000/yr)</option>
+          <option>Family — Gold Plan (₹20 Lakhs · ₹12,000/yr)</option>
+          <option>Family — Premium Plan (₹40 Lakhs · ₹18,000/yr)</option>
+        </optgroup>
+      </select>
     </div>
-    <div class="border-t border-white/10 pt-8 text-xs opacity-50">
-      &copy; 2026 InsurancePlatform. All rights reserved. Professional Utility Design.
+    <div class="lp-qf-group">
+      <label class="lp-qf-label">Email Address</label>
+      <input class="lp-qf-input" type="email" placeholder="Enter your email">
+    </div>
+    <div class="lp-qf-group">
+      <label class="lp-qf-label">Phone Number</label>
+      <input class="lp-qf-input" type="tel" placeholder="Enter mobile number">
+    </div>
+    <button class="lp-qf-btn" (click)="goRegister()">Get A Quote →</button>
+  </div>
+</div>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="lp-sec lp-cats-sec">
+  <div class="lp-sec-head">
+    <p class="lp-eyebrow">Coverage Options</p>
+    <h2 class="lp-sec-title">Discover Our Insurance Categories</h2>
+    <p class="lp-sec-sub">Explore our range of insurance options designed to protect what matters most.</p>
+  </div>
+  <div class="lp-cats-grid">
+    <div class="lp-cat-card">
+      <div class="lp-cat-icon">👤</div>
+      <h3 class="lp-cat-title">Individual Accident</h3>
+      <p class="lp-cat-desc">Personal accidental protection covering death, disability, ICU &amp; worldwide emergency.
+      </p>
+      <a href="http://localhost:4200/register" class="lp-cat-link">Explore Plans →</a>
+    </div>
+    <div class="lp-cat-card">
+      <div class="lp-cat-icon">👨‍👩‍👧‍👦</div>
+      <h3 class="lp-cat-title">Family Group Accident</h3>
+      <p class="lp-cat-desc">Covers up to 4 members. ICU, ambulance, children education support &amp; surgery cover.</p>
+      <a href="http://localhost:4200/register" class="lp-cat-link">Explore Plans →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== WHY US ===== -->
+<section class="lp-why-sec">
+  <div class="lp-why-inner">
+    <div class="lp-why-img">
+      <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=620&q=80" alt="Family protected">
+    </div>
+    <div class="lp-why-content">
+      <p class="lp-eyebrow">Why Choose Us</p>
+      <h2 class="lp-sec-title lp-white">Your Trusted Partner For Comprehensive Insurance</h2>
+      <p class="lp-sec-sub lp-muted">Decades of expertise with digital-first technology delivering protection that truly
+        works.</p>
+      <div class="lp-why-feats">
+        <div class="lp-feat">
+          <div class="lp-feat-dot">✓</div>
+          <div>
+            <h4 class="lp-feat-title">Get Full Coverage</h4>
+            <p class="lp-feat-desc">Protection across accidents, health, home and family — one provider, total peace of
+              mind.</p>
+          </div>
+        </div>
+        <div class="lp-feat">
+          <div class="lp-feat-dot">✓</div>
+          <div>
+            <h4 class="lp-feat-title">Easy Claim Process</h4>
+            <p class="lp-feat-desc">File claims in minutes through our app. Most claims resolved within 48 hours,
+              guaranteed.</p>
+          </div>
+        </div>
+        <div class="lp-feat">
+          <div class="lp-feat-dot">✓</div>
+          <div>
+            <h4 class="lp-feat-title">Flexible Annual Plans</h4>
+            <p class="lp-feat-desc">Competitive rates with zero lock-in. Switch, upgrade or cancel anytime without
+              penalty.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FIND YOUR PLAN ===== -->
+<section class="lp-plans-sec" id="lp-plans">
+  <div class="lp-sec-head">
+    <p class="lp-eyebrow">Accident Insurance</p>
+    <h2 class="lp-sec-title">Find Your Plan</h2>
+    <p class="lp-sec-sub">Manage your protection and peace of mind. Choose the tier that fits your life.</p>
+  </div>
+
+  <div class="lp-pol-tabs">
+    <button class="lp-pol-tab" [class.lp-tab-active]="activePolicy === 'individual'"
+      (click)="activePolicy = 'individual'">
+      <span class="lp-tab-icon">👤</span>
+      <div>
+        <div class="lp-tab-title">Individual Accident Policy</div>
+        <div class="lp-tab-sub">Covers 1 member · Personal accidental protection</div>
+      </div>
+    </button>
+    <button class="lp-pol-tab" [class.lp-tab-active]="activePolicy === 'family'" (click)="activePolicy = 'family'">
+      <span class="lp-tab-icon">👨‍👩‍👧‍👦</span>
+      <div>
+        <div class="lp-tab-title">Family Group Accident Policy</div>
+        <div class="lp-tab-sub">Covers up to 4 members · Premium on primary applicant</div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Individual Plans -->
+  <div class="lp-plans-grid" *ngIf="activePolicy === 'individual'">
+    <div class="lp-plan-card">
+      <div class="lp-plan-tier lp-silver">🥈 SILVER PLAN</div>
+      <div class="lp-plan-sum">₹5 Lakhs</div>
+      <div class="lp-plan-sum-lbl">Sum Insured</div>
+      <div class="lp-plan-div"></div>
+      <ul class="lp-plan-feats">
+        <li>Accidental Death Cover</li>
+        <li>Permanent Disability Cover</li>
+        <li>Hospitalisation Support</li>
+      </ul>
+      <div class="lp-plan-price-row">
+        <div class="lp-plan-starts">STARTS FROM</div>
+        <div class="lp-plan-price">₹3,000<span>/yr</span></div>
+      </div>
+      <a href="http://localhost:4200/register" class="lp-plan-btn lp-btn-outline-navy">Get Started →</a>
+    </div>
+    <div class="lp-plan-card lp-plan-featured">
+      <div class="lp-plan-badge">⭐ Most Popular</div>
+      <div class="lp-plan-tier lp-gold">🥇 GOLD PLAN</div>
+      <div class="lp-plan-sum">₹10 Lakhs</div>
+      <div class="lp-plan-sum-lbl">Sum Insured</div>
+      <div class="lp-plan-div"></div>
+      <ul class="lp-plan-feats">
+        <li>Accidental Death Cover</li>
+        <li>Permanent Disability Cover</li>
+        <li>Partial Disability Cover</li>
+        <li>Hospitalisation Support</li>
+        <li>Ambulance Charges</li>
+      </ul>
+      <div class="lp-plan-price-row">
+        <div class="lp-plan-starts">STARTS FROM</div>
+        <div class="lp-plan-price">₹5,000<span>/yr</span></div>
+      </div>
+      <a href="http://localhost:4200/register" class="lp-plan-btn lp-btn-orange-solid">Get Started →</a>
+    </div>
+    <div class="lp-plan-card">
+      <div class="lp-plan-tier lp-prem">💎 PREMIUM PLAN</div>
+      <div class="lp-plan-sum">₹20 Lakhs</div>
+      <div class="lp-plan-sum-lbl">Sum Insured</div>
+      <div class="lp-plan-div"></div>
+      <ul class="lp-plan-feats">
+        <li>Accidental Death Cover</li>
+        <li>Permanent Disability Cover</li>
+        <li>Partial Disability Cover</li>
+        <li>ICU Cover</li>
+        <li>Worldwide Emergency Cover</li>
+      </ul>
+      <div class="lp-plan-price-row">
+        <div class="lp-plan-starts">STARTS FROM</div>
+        <div class="lp-plan-price">₹8,000<span>/yr</span></div>
+      </div>
+      <a href="http://localhost:4200/register" class="lp-plan-btn lp-btn-outline-navy">Get Started →</a>
+    </div>
+  </div>
+
+  <!-- Family Plans -->
+  <div class="lp-plans-grid" *ngIf="activePolicy === 'family'">
+    <div class="lp-plan-card">
+      <div class="lp-plan-tier lp-silver">🥈 SILVER PLAN</div>
+      <div class="lp-plan-sum">₹10 Lakhs</div>
+      <div class="lp-plan-sum-lbl">Sum Insured</div>
+      <div class="lp-plan-div"></div>
+      <ul class="lp-plan-feats">
+        <li>Family Accidental Cover</li>
+        <li>Hospitalisation Cover</li>
+        <li>Children Education Support</li>
+      </ul>
+      <div class="lp-plan-price-row">
+        <div class="lp-plan-starts">STARTS FROM</div>
+        <div class="lp-plan-price">₹7,000<span>/yr</span></div>
+      </div>
+      <a href="http://localhost:4200/register" class="lp-plan-btn lp-btn-outline-navy">Get Started →</a>
+    </div>
+    <div class="lp-plan-card lp-plan-featured">
+      <div class="lp-plan-badge">⭐ Most Popular</div>
+      <div class="lp-plan-tier lp-gold">🥇 GOLD PLAN</div>
+      <div class="lp-plan-sum">₹20 Lakhs</div>
+      <div class="lp-plan-sum-lbl">Sum Insured</div>
+      <div class="lp-plan-div"></div>
+      <ul class="lp-plan-feats">
+        <li>Family Accidental Cover</li>
+        <li>ICU Cover</li>
+        <li>Children Education Support</li>
+        <li>Ambulance Cover</li>
+      </ul>
+      <div class="lp-plan-price-row">
+        <div class="lp-plan-starts">STARTS FROM</div>
+        <div class="lp-plan-price">₹12,000<span>/yr</span></div>
+      </div>
+      <a href="http://localhost:4200/register" class="lp-plan-btn lp-btn-orange-solid">Get Started →</a>
+    </div>
+    <div class="lp-plan-card">
+      <div class="lp-plan-tier lp-prem">💎 PREMIUM PLAN</div>
+      <div class="lp-plan-sum">₹40 Lakhs</div>
+      <div class="lp-plan-sum-lbl">Sum Insured</div>
+      <div class="lp-plan-div"></div>
+      <ul class="lp-plan-feats">
+        <li>Family Accidental Cover</li>
+        <li>Worldwide Emergency Cover</li>
+        <li>Full Disability Cover</li>
+        <li>ICU + Surgery Cover</li>
+      </ul>
+      <div class="lp-plan-price-row">
+        <div class="lp-plan-starts">STARTS FROM</div>
+        <div class="lp-plan-price">₹18,000<span>/yr</span></div>
+      </div>
+      <a href="http://localhost:4200/register" class="lp-plan-btn lp-btn-outline-navy">Get Started →</a>
+    </div>
+  </div>
+
+  <p class="lp-plans-note">✓ 24/7 claims support &nbsp;·&nbsp; ✓ Digital policy issuance &nbsp;·&nbsp; ✓ No medical
+    tests required</p>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="lp-sec lp-testi-sec">
+  <div class="lp-sec-head">
+    <p class="lp-eyebrow">Customer Stories</p>
+    <h2 class="lp-sec-title">Real Experiences, Real Satisfaction</h2>
+  </div>
+  <div class="lp-testi-grid">
+    <div class="lp-testi-img">
+      <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=620&q=80" alt="Happy family">
+    </div>
+    <div class="lp-testi-cards">
+      <div class="lp-t-card">
+        <div class="lp-t-stars">★★★★★</div>
+        <p class="lp-t-text">"The claims process was smooth and hassle-free. I received my settlement on time and
+          appreciate the peace of mind that comes with knowing I am fully protected."</p>
+        <div class="lp-t-author">
+          <div class="lp-t-avatar">RE</div>
+          <div>
+            <h5 class="lp-t-name">Ralph Edwards</h5>
+            <p class="lp-t-since">Policyholder since 2020</p>
+          </div>
+        </div>
+      </div>
+      <div class="lp-t-card">
+        <div class="lp-t-stars">★★★★★</div>
+        <p class="lp-t-text">"Filing my claim was incredibly simple. The InsurePlus Shield™ team was responsive
+          throughout. I'd recommend this to every family looking for real, comprehensive protection."</p>
+        <div class="lp-t-author">
+          <div class="lp-t-avatar">HW</div>
+          <div>
+            <h5 class="lp-t-name">Henry Wilson</h5>
+            <p class="lp-t-since">Policyholder since 2019</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA BAND ===== -->
+<section class="lp-cta-band">
+  <h2 class="lp-cta-h2">Ready to Protect What Matters Most?</h2>
+  <p class="lp-cta-p">Join 9.6 million happy customers. Get your plan in under 2 minutes.</p>
+  <a href="http://localhost:4200/register" class="lp-cta-primary">Get A Free Quote Today →</a>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="lp-footer">
+  <div class="lp-foot-grid">
+    <div class="lp-foot-brand">
+      <a class="lp-logo" href="http://localhost:4200/register">
+        <div class="lp-logo-mark">I</div>
+        <span class="lp-logo-text">Insure<em>Plus</em></span>
+      </a>
+      <p class="lp-foot-desc">Full peace of mind with tailored accident insurance. Protect your family and future with
+        reliable coverage.</p>
+    </div>
+    <div class="lp-foot-col">
+      <h4 class="lp-foot-head">Company</h4>
+      <a href="http://localhost:4200/register">About Us</a>
+      <a href="http://localhost:4200/register">Our Investors</a>
+      <a href="http://localhost:4200/register">Careers</a>
+      <a href="http://localhost:4200/register">Terms &amp; Conditions</a>
+    </div>
+    <div class="lp-foot-col">
+      <h4 class="lp-foot-head">Support</h4>
+      <a href="http://localhost:4200/register">Blog</a>
+      <a href="http://localhost:4200/register">FAQ</a>
+      <a href="http://localhost:4200/register">Press</a>
+      <a href="http://localhost:4200/register">Privacy Policy</a>
+    </div>
+    <div class="lp-foot-col">
+      <h4 class="lp-foot-head">Contact</h4>
+      <a href="http://localhost:4200/register">+1 (800) 123-4567</a>
+      <a href="http://localhost:4200/register">hello@InsurePlus Shield™.com</a>
+      <a href="http://localhost:4200/register">204 Anywhere Street</a>
+    </div>
+  </div>
+  <div class="lp-foot-bottom">
+    <p>©2026 InsurePlus Shield™. All rights reserved.</p>
+    <div class="lp-foot-roles">
+      <a href="http://localhost:4200/admin/login">Admin Login</a>
+      <a href="http://localhost:4200/agent/login">Agent Login</a>
+      <a href="http://localhost:4200/claims-officer/login">Claims Officer Login</a>
     </div>
   </div>
 </footer>

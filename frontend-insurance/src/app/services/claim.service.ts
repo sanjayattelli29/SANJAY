@@ -39,4 +39,8 @@ export class ClaimService {
     reviewClaim(claimId: string, status: string, remarks: string, approvedAmount: number): Observable<any> {
         return this.http.post(`${this.apiUrl}/officer/review`, { claimId, status, remarks, approvedAmount });
     }
+
+    getAgentClaims(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/agent/customer-claims`);
+    }
 }

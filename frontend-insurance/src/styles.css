@@ -51,4 +51,21 @@
   .badge-pending {
     @apply bg-amber-100 text-amber-700;
   }
+
+  /* Premium Shadow-Free UI Utilities */
+  .hero-gradient {
+    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+  }
+
+  .package-card {
+    @apply bg-white border border-slate-100 rounded-2xl p-8 transition-all hover:border-brand-orange hover:bg-slate-50;
+  }
+
+  .stat-card {
+    @apply border-l-2 border-brand-orange pl-6 py-2;
+  }
+
+  .faq-item {
+    @apply border-b border-slate-100 py-4 cursor-pointer hover:bg-slate-50 transition-colors px-4 rounded-lg;
+  }
 }

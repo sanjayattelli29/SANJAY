@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { LandingPage } from './pages/landing/landing.page';
+import { LandingComponent  } from './pages/landing/landing.page';
 import { CustomerRegisterPage } from './pages/auth/customer-register.page';
 import { CustomerLoginPage } from './pages/auth/customer-login.page';
 import { AdminLoginPage } from './pages/auth/admin-login.page';
@@ -7,7 +7,7 @@ import { AgentLoginPage } from './pages/auth/agent-login.page';
 import { ClaimsOfficerLoginPage } from './pages/auth/claims-officer-login.page';
 
 export const routes: Routes = [
-  { path: '', component: LandingPage },
+  { path: '', component: LandingComponent },
   { path: 'register', component: CustomerRegisterPage },
   { path: 'customer/login', component: CustomerLoginPage },
   { path: 'admin/login', component: AdminLoginPage },

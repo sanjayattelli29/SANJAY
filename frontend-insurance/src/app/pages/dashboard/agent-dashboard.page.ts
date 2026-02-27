@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { AgentService } from '../../services/agent.service';
+import { ClaimService } from '../../services/claim.service';
 
 @Component({
     selector: 'app-agent-dashboard',
@@ -15,6 +16,7 @@ export class AgentDashboardPage implements OnInit {
 
     user = this.authService.getUser();
     activeSection = signal('dashboard');
+    private claimService = inject(ClaimService);
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
 
@@ -22,10 +24,13 @@ export class AgentDashboardPage implements OnInit {
     stats: any = { pendingReview: 0, totalCommission: 0 };
     policyRequests = signal<any[]>([]);
     commissionData = signal<any>({ totalCommission: 0, activePolicies: [] });
+    customerClaims = signal<any[]>([]);
 
     // UI State for Modal
     showDetailModal = signal(false);
+    showClaimModal = signal(false);
     selectedApplication = signal<any | null>(null);
+    selectedClaim = signal<any | null>(null);
     isProcessing = signal(false);
 
     ngOnInit() {
@@ -35,6 +40,14 @@ export class AgentDashboardPage implements OnInit {
     loadData() {
         this.loadPolicyRequests();
         this.loadCommissionStats();
+        this.loadCustomerClaims();
+    }
+
+    loadCustomerClaims() {
+        this.claimService.getAgentClaims().subscribe({
+            next: (data: any[]) => this.customerClaims.set(data),
+            error: (err: any) => console.error('Failed to load customer claims', err)
+        });
     }
 
     setSection(section: string) {
@@ -109,6 +122,36 @@ export class AgentDashboardPage implements OnInit {
                 this.message.set({ type: 'error', text: 'Operation failed!' });
             }
         });
+    }
+
+    viewClaimDetails(claim: any) {
+        if (claim.policy?.applicationDataJson) {
+            try {
+                const raw = JSON.parse(claim.policy.applicationDataJson);
+                const normalize = (obj: any) => {
+                    if (!obj) return null;
+                    const normalized: any = {};
+                    Object.keys(obj).forEach(key => {
+                        const normalizedKey = key.charAt(0).toLowerCase() + key.slice(1);
+                        normalized[normalizedKey] = obj[key];
+                    });
+                    return normalized;
+                };
+
+                const details = normalize(raw);
+                if (details) {
+                    details.applicant = normalize(details.applicant || details.primaryApplicant || raw.Applicant || raw.PrimaryApplicant);
+                    details.nominee = normalize(details.nominee || raw.Nominee);
+                    details.familyMembers = details.familyMembers || raw.FamilyMembers;
+                    details.paymentMode = details.paymentMode || raw.PaymentMode;
+                }
+                claim.fullPolicyDetails = details;
+            } catch (e) {
+                console.error('Failed to parse claim policy data', e);
+            }
+        }
+        this.selectedClaim.set(claim);
+        this.showClaimModal.set(true);
     }
 
     logout() {

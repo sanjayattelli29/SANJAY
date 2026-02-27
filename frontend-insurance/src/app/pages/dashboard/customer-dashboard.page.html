@@ -389,11 +389,11 @@
                                 <label
                                     class="text-[10px] font-black uppercase tracking-widest text-brand-orange mb-4 block">Estimated
                                     Claim Amount</label>
-                                <div class="relative">
+                                <div class="relative mt-4">
                                     <span
-                                        class="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-brand-navy">₹</span>
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black text-brand-navy">₹</span>
                                     <input type="number" [(ngModel)]="claimForm.estimatedClaimAmount"
-                                        class="input-field pl-16 text-2xl font-black text-brand-navy">
+                                        class="w-full pl-20 pr-4 py-5 bg-white border-2 border-brand-orange/20 rounded-2xl font-black text-3xl text-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-orange/10 transition-all">
                                 </div>
                                 <p class="text-[10px] text-slate-400 mt-2 italic font-medium">Final approved amount may
                                     vary after review.</p>
@@ -448,7 +448,7 @@
                                 <td class="px-8 py-6 text-right flex items-center justify-end gap-3">
                                     <span
                                         [class]="'badge ' + (claim.status === 'Approved' ? 'badge-success' : (claim.status === 'Rejected' ? 'badge-pending' : 'badge-warning'))">
-                                        ● {{ claim.status === 'Assigned' ? 'Pending Review' : claim.status }}
+                                        ● {{ claim.status === 'Assigned' ? 'Pending' : claim.status }}
                                     </span>
                                     <button (click)="openClaimDetails(claim.id)"
                                         class="px-4 py-1.5 bg-brand-gray text-brand-navy rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-slate-100 transition-all border border-slate-100">

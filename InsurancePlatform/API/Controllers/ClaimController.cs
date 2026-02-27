@@ -101,6 +101,19 @@ namespace API.Controllers
             if (!result) return BadRequest(new { Message = "Review failed." });
             return Ok(new { Message = $"Claim {request.Status} successfully." });
         }
+
+        // --- Agent Endpoints ---
+
+        [HttpGet("agent/customer-claims")]
+        [Authorize(Roles = UserRoles.Agent)]
+        public async Task<IActionResult> GetAgentCustomerClaims()
+        {
+            var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (agentId == null) return Unauthorized();
+
+            var claims = await _claimService.GetAgentClaimsAsync(agentId);
+            return Ok(claims);
+        }
     }
 
     public class AssignOfficerRequest
