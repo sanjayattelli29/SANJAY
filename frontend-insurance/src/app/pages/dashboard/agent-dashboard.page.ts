@@ -8,7 +8,10 @@ import { AgentService } from '../../services/agent.service';
 import { ClaimService } from '../../services/claim.service';
 import { PolicyService } from '../../services/policy.service';
 import { ChatService } from '../../services/chat.service';
+import { AdminService } from '../../services/admin.service';
 import { Chart, registerables } from 'chart.js';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 Chart.register(...registerables);
 
@@ -22,11 +25,22 @@ export class AgentDashboardPage implements OnInit {
     private authService = inject(AuthService);
     private agentService = inject(AgentService);
 
+    protected readonly JSON = JSON;
+
+    parseJson(json: string | null | undefined): any {
+        try {
+            return json ? JSON.parse(json) : null;
+        } catch {
+            return null;
+        }
+    }
+
     user = this.authService.getUser();
     activeSection = signal('dashboard');
     private claimService = inject(ClaimService);
     private policyService = inject(PolicyService);
     private chatService = inject(ChatService);
+    private adminService = inject(AdminService);
     private router = inject(Router);
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
@@ -48,6 +62,7 @@ export class AgentDashboardPage implements OnInit {
     customerClaims = signal<any[]>([]);
     myCustomers = signal<any[]>([]);
     myChats = signal<any[]>([]);
+    unifiedPayments = signal<any[]>([]);
 
     // UI State for Modal
     showDetailModal = signal(false);
@@ -56,6 +71,8 @@ export class AgentDashboardPage implements OnInit {
     selectedUnifiedDetail = signal<any>(null);
     selectedApplication = signal<any | null>(null);
     selectedClaim = signal<any | null>(null);
+    selectedPayment = signal<any>(null);
+    showInvoiceModal = signal(false);
     isProcessing = signal(false);
 
     // Chart instances
@@ -72,6 +89,7 @@ export class AgentDashboardPage implements OnInit {
         this.loadMyCustomers();
         this.loadAnalytics();
         this.loadChatList();
+        this.loadUnifiedPayments();
     }
 
     loadAnalytics() {
@@ -110,6 +128,9 @@ export class AgentDashboardPage implements OnInit {
         this.message.set({ type: '', text: '' });
         if (section === 'dashboard') {
             this.initCharts();
+        } else if (section === 'payments') {
+            this.loadUnifiedPayments();
+            this.destroyCharts();
         } else {
             this.destroyCharts();
         }
@@ -364,10 +385,19 @@ export class AgentDashboardPage implements OnInit {
     }
 
     viewDetails(application: any) {
-        // Parse the JSON data stored in ApplicationDataJson
-        const raw = JSON.parse(application.applicationDataJson);
+        if (!application) return;
 
-        // Normalize keys (handle both PascalCase from DB and camelCase from frontend)
+        // Parse the JSON data stored in ApplicationDataJson
+        let raw: any = {};
+        try {
+            raw = typeof application.applicationDataJson === 'string'
+                ? JSON.parse(application.applicationDataJson)
+                : (application.applicationDataJson || {});
+        } catch (e) {
+            console.error('Failed to parse applicationDataJson', e);
+        }
+
+        // Normalize keys helper
         const normalize = (obj: any) => {
             if (!obj) return null;
             const normalized: any = {};
@@ -378,13 +408,23 @@ export class AgentDashboardPage implements OnInit {
             return normalized;
         };
 
-        const details = normalize(raw);
-        if (details) {
-            details.applicant = normalize(details.applicant || details.primaryApplicant || raw.Applicant || raw.PrimaryApplicant);
-            details.nominee = normalize(details.nominee || raw.Nominee);
-            details.familyMembers = details.familyMembers || raw.FamilyMembers;
-            details.paymentMode = details.paymentMode || raw.PaymentMode;
+        const details = normalize(raw) || {};
+
+        // Ensure applicant/primaryApplicant is extracted and normalized
+        let applicant = normalize(details.applicant || details.primaryApplicant || raw.Applicant || raw.PrimaryApplicant);
+
+        // Fallback to User object if applicant details are missing
+        if (!applicant || !applicant.fullName) {
+            applicant = {
+                ...applicant,
+                fullName: application.user?.fullName || application.user?.userName || 'N/A',
+                age: applicant?.age || '--',
+                profession: applicant?.profession || 'Standard Employment'
+            };
         }
+
+        details.applicant = applicant;
+        details.nominee = normalize(details.nominee || raw.Nominee) || { nomineeName: '', nomineeEmail: '', nomineePhone: '' };
 
         this.selectedApplication.set({ ...application, fullDetails: details });
         this.showDetailModal.set(true);
@@ -499,7 +539,10 @@ export class AgentDashboardPage implements OnInit {
         // Parse ApplicationDataJson if present (Mirroring Claims Officer depth)
         if (policy?.applicationDataJson) {
             try {
-                const raw = JSON.parse(policy.applicationDataJson);
+                const raw = typeof policy.applicationDataJson === 'string'
+                    ? JSON.parse(policy.applicationDataJson)
+                    : policy.applicationDataJson;
+
                 const normalize = (obj: any) => {
                     if (!obj) return null;
                     const normalized: any = {};
@@ -510,14 +553,23 @@ export class AgentDashboardPage implements OnInit {
                     return normalized;
                 };
 
-                const fullDetails = normalize(raw);
-                if (fullDetails) {
-                    fullDetails.applicant = normalize(fullDetails.applicant || fullDetails.primaryApplicant || raw.Applicant || raw.PrimaryApplicant);
-                    fullDetails.nominee = normalize(fullDetails.nominee || raw.Nominee);
-                    fullDetails.medicalProfile = normalize(fullDetails.medicalProfile || raw.MedicalProfile);
-                    fullDetails.lifestyle = normalize(fullDetails.lifestyle || raw.Lifestyle);
-                    fullDetails.incident = normalize(fullDetails.incident || fullDetails.incidentVerification || raw.Incident || raw.IncidentVerification);
+                const fullDetails = normalize(raw) || {};
+
+                // Extract applicant with fallback to user object
+                let applicant = normalize(fullDetails.applicant || fullDetails.primaryApplicant || raw.Applicant || raw.PrimaryApplicant);
+                if (!applicant || !applicant.fullName) {
+                    applicant = {
+                        ...applicant,
+                        fullName: policy.user?.fullName || policy.user?.userName || 'N/A'
+                    };
                 }
+
+                fullDetails.applicant = applicant;
+                fullDetails.nominee = normalize(fullDetails.nominee || raw.Nominee) || { nomineeName: '', nomineeEmail: '', nomineePhone: '' };
+                fullDetails.medicalProfile = normalize(fullDetails.medicalProfile || raw.MedicalProfile);
+                fullDetails.lifestyle = normalize(fullDetails.lifestyle || raw.Lifestyle);
+                fullDetails.incident = normalize(fullDetails.incident || fullDetails.incidentVerification || raw.Incident || raw.IncidentVerification);
+
                 details.policy.fullDetails = fullDetails;
 
                 // Sync sum insured from config if available
@@ -543,6 +595,65 @@ export class AgentDashboardPage implements OnInit {
     includePaymentReminder = signal(true);
     selectedCustomerForEmail = signal<any | null>(null);
 
+    loadUnifiedPayments() {
+        this.adminService.getUnifiedPayments().subscribe({
+            next: (data) => this.unifiedPayments.set(data),
+            error: (err) => console.error('Failed to load unified payments', err)
+        });
+    }
+
+    openInvoiceModal(payment: any) {
+        this.selectedPayment.set(payment);
+        this.showInvoiceModal.set(true);
+    }
+
+    generateInvoicePDF(payment: any) {
+        const doc = new jsPDF();
+        doc.setFontSize(22);
+        doc.setTextColor(15, 23, 42);
+        doc.text('ACCISURE INSURANCE', 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text('PREMIUM PAYMENT INVOICE', 105, 28, { align: 'center' });
+        doc.setFontSize(12);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`Invoice ID: INV-${payment.transactionId?.substring(0, 8) || 'N/A'}`, 20, 45);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 52);
+        doc.text(`Transaction ID: ${payment.transactionId || 'Pending'}`, 20, 59);
+        doc.setDrawColor(226, 232, 240);
+        doc.line(20, 65, 190, 65);
+        autoTable(doc, {
+            startY: 75,
+            head: [['Description', 'Detail']],
+            body: [
+                ['Customer Email', payment.customerEmail],
+                ['Agent Email', payment.agentEmail || 'N/A'],
+                ['Claim Officer', payment.claimsOfficerEmail || 'N/A'],
+                ['Plan Type', payment.tierId],
+                ['Category', payment.policyCategory],
+                ['Premium Amount', `INR ${payment.premiumAmount.toLocaleString()}`],
+                ['Paid Amount', `INR ${payment.paidAmount?.toLocaleString() || '0'}`],
+                ['Payment Mode', payment.paymentMode?.toUpperCase() || 'N/A'],
+                ['Total Coverage', `INR ${payment.totalCoverage.toLocaleString()}`],
+                ['Current Coverage', `INR ${payment.currentCoverage.toLocaleString()}`],
+                ['Next Payment Date', payment.nextPaymentDate ? new Date(payment.nextPaymentDate).toLocaleDateString() : 'N/A'],
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
+            styles: { fontSize: 10, cellPadding: 5 }
+        });
+        const finalY = (doc as any).lastAutoTable.finalY + 20;
+        doc.setFontSize(10);
+        doc.setTextColor(15, 23, 42);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Thank you for choosing AcciSure!', 105, finalY, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text('This is a computer-generated invoice and requires no signature.', 105, finalY + 10, { align: 'center' });
+        doc.save(`Invoice_${payment.transactionId || 'Pending'}.pdf`);
+    }
+
     logout() {
         this.authService.logout();
     }
@@ -552,7 +663,6 @@ export class AgentDashboardPage implements OnInit {
         this.selectedCustomerForEmail.set(customer);
         this.emailFormSubject.set(`Policy Notification - ${customer.policyNumber || 'General'}`);
         this.emailFormMessage.set(`Dear ${customer.user?.email?.split('@')[0] || 'Customer'},\n\nI hope this email finds you well. I am reaching out to provide you with an update regarding your policy.`);
-        this.message.set({ type: '', text: '' });
     }
 
     sendEmail() {
@@ -676,7 +786,7 @@ export class AgentDashboardPage implements OnInit {
 
         </div>
         <div class="footer">
-            &copy; 2024 InsurancePlatform. All rights reserved.<br>
+            &copy; 2024 AcciSure. All rights reserved.<br>
             Secure Policy Management Service.
         </div>
     </div>

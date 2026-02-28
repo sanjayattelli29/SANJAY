@@ -5,6 +5,10 @@ import { ClaimService } from '../../services/claim.service';
 import { PolicyService } from '../../services/policy.service';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
+import { AdminService } from '../../services/admin.service';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { UserOptions } from 'jspdf-autotable';
 
 Chart.register(...registerables);
 
@@ -18,12 +22,18 @@ export class ClaimsOfficerDashboardPage implements OnInit {
     private authService = inject(AuthService);
     private claimService = inject(ClaimService);
     private policyService = inject(PolicyService);
+    private adminService = inject(AdminService);
 
     user = this.authService.getUser();
     myRequests = signal<any[]>([]);
     isLoading = signal(false);
     config = signal<any>(null);
     activeSection = signal('dashboard');
+
+    // Payments Dashboard signals
+    unifiedPayments = signal<any[]>([]);
+    selectedPayment = signal<any | null>(null);
+    showInvoiceModal = signal(false);
 
     // Stats
     stats = computed(() => {
@@ -201,9 +211,107 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         this.activeSection.set(section);
         if (section === 'dashboard') {
             this.initCharts();
+        } else if (section === 'payments') {
+            this.destroyCharts();
+            this.loadUnifiedPayments();
         } else {
             this.destroyCharts();
         }
+    }
+
+    loadUnifiedPayments() {
+        this.isLoading.set(true);
+        this.adminService.getUnifiedPayments().subscribe({
+            next: (data) => {
+                this.unifiedPayments.set(data);
+                this.isLoading.set(false);
+            },
+            error: (err) => {
+                console.error('Failed to load unified payments', err);
+                this.isLoading.set(false);
+            }
+        });
+    }
+
+    openInvoiceModal(payment: any) {
+        this.selectedPayment.set(payment);
+        this.showInvoiceModal.set(true);
+    }
+
+    generateInvoicePDF(pay: any) {
+        const doc = new jsPDF() as any;
+
+        // Header Section
+        doc.setFillColor(30, 41, 59); // Brand Navy
+        doc.rect(0, 0, 210, 40, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PREMIUM INVOICE', 20, 25);
+
+        doc.setFontSize(10);
+        doc.setTextColor(249, 115, 22); // Brand Orange
+        doc.text('INSURANCE PLATFORM - ENTERPRISE AUDIT', 20, 32);
+
+        // Body Content
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(12);
+        doc.text('BILL TO:', 20, 55);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Customer: ${pay.customerEmail}`, 20, 62);
+        doc.text(`Transaction: ${pay.transactionId || 'Awaiting Sync'}`, 20, 68);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE DATE:', 140, 55);
+        doc.setFont('helvetica', 'normal');
+        doc.text(new Date(pay.nextPaymentDate).toLocaleDateString(), 140, 62);
+
+        // Table Data
+        const tableBody = [
+            ['Policy Category', pay.policyCategory],
+            ['Plan Tier', pay.tierId],
+            ['Agent Email', pay.agentEmail || 'Direct'],
+            ['Claims Officer', pay.claimsOfficerEmail || 'Unassigned'],
+            ['Total Coverage', `INR ${pay.totalCoverage.toLocaleString()}`],
+            ['Active Coverage', `INR ${pay.currentCoverage.toLocaleString()}`],
+            ['Premium Amount', `INR ${pay.premiumAmount.toLocaleString()}`],
+            ['Total Paid To Date', `INR ${pay.paidAmount.toLocaleString()}`]
+        ];
+
+        (doc as any).autoTable({
+            startY: 85,
+            head: [['Description', 'Detail']],
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 5 },
+            columnStyles: {
+                0: { cellWidth: 80, fontStyle: 'bold' },
+                1: { cellWidth: 'auto' }
+            }
+        });
+
+        const finalY = (doc as any).lastAutoTable.finalY + 20;
+
+        // Total Branding
+        doc.setFillColor(249, 115, 22);
+        doc.rect(130, finalY - 10, 60, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text('TOTAL PAID', 135, finalY);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`INR ${pay.paidAmount.toLocaleString()}`, 135, finalY + 7);
+
+        // Footer
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(8);
+        doc.text('This is a computer-generated audit log and requires no physical signature.', 105, 280, { align: 'center' });
+        doc.text('Insurance Platform Enterprise Security Protocol v2.4', 105, 285, { align: 'center' });
+
+        doc.save(`Invoice_${pay.transactionId || 'TEMP'}.pdf`);
     }
 
     viewHistoryDetail(claim: any) {

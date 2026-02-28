@@ -52,4 +52,8 @@ export class AdminService {
     getAdminStats(): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/admin-stats`);
     }
+
+    getUnifiedPayments(): Observable<any[]> {
+        return this.http.get<any[]>(`https://localhost:7140/api/Report/unified-payments`);
+    }
 }

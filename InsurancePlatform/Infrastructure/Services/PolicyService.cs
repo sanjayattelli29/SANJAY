@@ -362,5 +362,38 @@ namespace Infrastructure.Services
 
             return analytics;
         }
+
+        public async Task<IEnumerable<UnifiedPaymentDto>> GetUnifiedPaymentsAsync()
+        {
+            var reports = await _context.PolicyApplications
+                .Include(pa => pa.User)
+                .Include(pa => pa.AssignedAgent)
+                .Select(pa => new UnifiedPaymentDto
+                {
+                    ApplicationId = pa.Id,
+                    CustomerEmail = pa.User != null ? pa.User.Email : "Unknown",
+                    AgentEmail = pa.AssignedAgent != null ? pa.AssignedAgent.Email : "Unassigned",
+                    // We take the first assigned officer from any associated claim for this policy
+                    ClaimsOfficerEmail = _context.InsuranceClaims
+                        .Include(c => c.AssignedOfficer)
+                        .Where(c => c.PolicyApplicationId == pa.Id && c.AssignedClaimOfficerId != null)
+                        .Select(c => c.AssignedOfficer.Email)
+                        .FirstOrDefault() ?? "N/A",
+                    PolicyCategory = pa.PolicyCategory,
+                    TierId = pa.TierId,
+                    TotalCoverage = pa.TotalCoverageAmount,
+                    CurrentCoverage = pa.RemainingCoverageAmount,
+                    PremiumAmount = pa.CalculatedPremium,
+                    PaidAmount = pa.PaidAmount,
+                    NextPaymentDate = pa.NextPaymentDate,
+                    LastPaymentDate = pa.PaymentDate,
+                    TransactionId = pa.TransactionId,
+                    PaymentMode = pa.PaymentMode,
+                    Status = pa.Status
+                })
+                .ToListAsync();
+
+            return reports;
+        }
     }
 }

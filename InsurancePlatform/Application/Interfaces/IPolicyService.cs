@@ -21,6 +21,7 @@ namespace Application.Interfaces
         Task<AgentCommissionDto> GetAgentCommissionStatsAsync(string agentId);
         Task<IEnumerable<PolicyApplication>> GetAgentCustomersAsync(string agentId);
         Task<AgentAnalyticsDto> GetAgentAnalyticsAsync(string agentId);
+        Task<IEnumerable<UnifiedPaymentDto>> GetUnifiedPaymentsAsync();
     }
 
     public class AgentAnalyticsDto

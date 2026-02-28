@@ -29,7 +29,7 @@ export class ClaimsOfficerLoginPage {
             this.authService.login(this.loginForm.value).subscribe({
                 next: (res) => {
                     const role = res.role || res.Role || res.auth_role;
-                    if (role === 'ClaimsOfficer') {
+                    if (role === 'ClaimOfficer') {
                         this.router.navigate(['/claims-officer/dashboard']);
                     } else {
                         this.authService.logout();
