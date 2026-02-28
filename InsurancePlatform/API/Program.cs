@@ -1,3 +1,4 @@
+using API.Hubs;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Data;
@@ -63,12 +64,18 @@ namespace API
             builder.Services.AddScoped<IPolicyService, PolicyService>();
             builder.Services.AddScoped<IFileStorageService, ImageKitFileStorageService>();
             builder.Services.AddScoped<IClaimService, ClaimService>();
+            builder.Services.AddScoped<IChatService, ChatService>();
+            
+            builder.Services.AddSignalR();
 
             // 6. Configure CORS
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
-                    builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+                    builder => builder.WithOrigins("http://localhost:4200")
+                                      .AllowAnyMethod()
+                                      .AllowAnyHeader()
+                                      .AllowCredentials());
             });
 
             // Add services to the container.
@@ -149,6 +156,7 @@ namespace API
 
 
             app.MapControllers();
+            app.MapHub<ChatHub>("/chathub");
 
             app.Run();
         }

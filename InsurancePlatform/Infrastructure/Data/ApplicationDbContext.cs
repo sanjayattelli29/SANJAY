@@ -17,6 +17,8 @@ namespace Infrastructure.Data
         public DbSet<PolicyApplication> PolicyApplications { get; set; }
         public DbSet<InsuranceClaim> InsuranceClaims { get; set; }
         public DbSet<ClaimDocument> ClaimDocuments { get; set; }
+        public DbSet<Chat> Chats { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -54,6 +56,16 @@ namespace Infrastructure.Data
                 .HasOne(d => d.Claim)
                 .WithMany(c => c.Documents)
                 .HasForeignKey(d => d.ClaimId);
+
+            builder.Entity<Chat>()
+                .HasOne(c => c.Policy)
+                .WithMany()
+                .HasForeignKey(c => c.PolicyId);
+
+            builder.Entity<ChatMessage>()
+                .HasOne(m => m.Chat)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ChatId);
         }
     }
 }

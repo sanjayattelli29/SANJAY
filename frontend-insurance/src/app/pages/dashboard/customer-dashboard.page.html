@@ -48,6 +48,15 @@
                 </svg>
                 Buy a New Policy
             </button>
+
+            <button (click)="switchView('chat')" [class.active]="activeView() === 'chat'" class="sidebar-link w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Chat
+            </button>
         </nav>
 
         <div class="p-6 border-t border-slate-50">
@@ -80,6 +89,7 @@
                 activeView() === 'my-policies' ? 'My Portfolio' :
                 activeView() === 'raise-claim' ? 'Raise a Claim' :
                 activeView() === 'my-claims' ? 'Claim History' :
+                activeView() === 'chat' ? 'Customer Support Chat' :
                 'Find Your Plan' }}
             </h1>
             <p class="text-sm text-slate-400 font-medium">
@@ -478,6 +488,65 @@
                     <h3 class="text-xl font-bold text-brand-navy mb-2">No Claims Raised Yet</h3>
                     <p class="text-slate-400 text-sm mb-8">If you've had an incident, you can raise a claim against your
                         active policies.</p>
+                    <button (click)="switchView('my-policies')" class="btn-primary">View My Policies</button>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- CHAT VIEW -->
+            @if (activeView() === 'chat') {
+            <div class="py-6">
+                @if (myChats().length > 0) {
+                <div class="card p-0 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead
+                            class="bg-slate-50 border-b border-border-light text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            <tr>
+                                <th class="px-8 py-6">Agent Email</th>
+                                <th class="px-8 py-6">Policy Name</th>
+                                <th class="px-8 py-6">Category</th>
+                                <th class="px-8 py-6">Coverage Amount</th>
+                                <th class="px-8 py-6">Date Activated</th>
+                                <th class="px-8 py-6 text-right">Chat</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @for (chat of myChats(); track chat.id) {
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-8 py-6 font-bold text-brand-navy">{{ chat.agentEmail }}</td>
+                                <td class="px-8 py-6 font-bold text-slate-500">{{ chat.policyName }}</td>
+                                <td class="px-8 py-6">
+                                    <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold">{{ chat.category
+                                        }}</span>
+                                </td>
+                                <td class="px-8 py-6 font-black text-brand-navy">₹{{ chat.coverageAmount | number }}
+                                </td>
+                                <td class="px-8 py-6 text-slate-400">{{ chat.dateActivated | date:'mediumDate' }}</td>
+                                <td class="px-8 py-6 text-right">
+                                    <button (click)="navigateToChat(chat)"
+                                        class="px-4 py-1.5 bg-brand-orange text-white rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-brand-navy transition-all shadow-md shadow-orange-100">
+                                        Chat Now
+                                    </button>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                } @else {
+                <div class="card p-20 text-center flex flex-col items-center">
+                    <div
+                        class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-brand-navy mb-2">No Active Chats</h3>
+                    <p class="text-slate-400 text-sm mb-8">You can start a chat with an agent for any of your active
+                        policies.</p>
                     <button (click)="switchView('my-policies')" class="btn-primary">View My Policies</button>
                 </div>
                 }

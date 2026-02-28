@@ -21,6 +21,8 @@ export const routes: Routes = [
   { path: 'admin/dashboard', loadComponent: () => import('./pages/dashboard/admin-dashboard.page').then(m => m.AdminDashboardPage) },
   { path: 'agent/dashboard', loadComponent: () => import('./pages/dashboard/agent-dashboard.page').then(m => m.AgentDashboardPage) },
   { path: 'claims-officer/dashboard', loadComponent: () => import('./pages/dashboard/claims-officer-dashboard.page').then(m => m.ClaimsOfficerDashboardPage) },
+  { path: 'chat/:policyId', loadComponent: () => import('./pages/dashboard/chat.page').then(m => m.ChatPage) },
+
 
   { path: '**', redirectTo: '' }
 ];

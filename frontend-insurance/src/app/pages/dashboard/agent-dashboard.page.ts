@@ -1,9 +1,13 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AgentService } from '../../services/agent.service';
 import { ClaimService } from '../../services/claim.service';
 import { PolicyService } from '../../services/policy.service';
+import { ChatService } from '../../services/chat.service';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -11,7 +15,7 @@ Chart.register(...registerables);
 @Component({
     selector: 'app-agent-dashboard',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule, RouterModule],
     templateUrl: './agent-dashboard.page.html'
 })
 export class AgentDashboardPage implements OnInit {
@@ -22,6 +26,8 @@ export class AgentDashboardPage implements OnInit {
     activeSection = signal('dashboard');
     private claimService = inject(ClaimService);
     private policyService = inject(PolicyService);
+    private chatService = inject(ChatService);
+    private router = inject(Router);
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
 
@@ -41,6 +47,7 @@ export class AgentDashboardPage implements OnInit {
     commissionData = signal<any>({ totalCommission: 0, activePolicies: [] });
     customerClaims = signal<any[]>([]);
     myCustomers = signal<any[]>([]);
+    myChats = signal<any[]>([]);
 
     // UI State for Modal
     showDetailModal = signal(false);
@@ -64,6 +71,7 @@ export class AgentDashboardPage implements OnInit {
         this.loadCustomerClaims();
         this.loadMyCustomers();
         this.loadAnalytics();
+        this.loadChatList();
     }
 
     loadAnalytics() {
@@ -105,6 +113,34 @@ export class AgentDashboardPage implements OnInit {
         } else {
             this.destroyCharts();
         }
+        if (section === 'chat') {
+            this.loadChatList();
+        }
+    }
+
+    navigateToChat(chat: any) {
+        if (chat.id && chat.id.startsWith('new_')) {
+            const initData = {
+                policyId: chat.policyId,
+                customerId: chat.customerId,
+                agentId: chat.agentId
+            };
+            this.chatService.initChat(initData).subscribe({
+                next: (res) => {
+                    this.router.navigate(['/chat', chat.policyId]);
+                },
+                error: (err) => alert('Failed to initialize chat: ' + (err.error?.message || 'Server error'))
+            });
+        } else {
+            this.router.navigate(['/chat', chat.policyId]);
+        }
+    }
+
+    loadChatList() {
+        this.chatService.getChatList().subscribe({
+            next: (chats) => this.myChats.set(chats),
+            error: (err) => console.error('Failed to load chat list', err)
+        });
     }
 
     private initCharts() {

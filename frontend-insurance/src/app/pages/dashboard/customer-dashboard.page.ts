@@ -1,9 +1,11 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { PolicyService } from '../../services/policy.service';
 import { ClaimService } from '../../services/claim.service';
+import { ChatService } from '../../services/chat.service';
 
 import { RouterModule } from '@angular/router';
 
@@ -18,9 +20,11 @@ export class CustomerDashboardPage implements OnInit {
     private authService = inject(AuthService);
     private policyService = inject(PolicyService);
     private claimService = inject(ClaimService);
+    private chatService = inject(ChatService);
+    private router = inject(Router);
 
     user = this.authService.getUser();
-    activeView = signal<'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'policy-details' | 'claim-details'>('dashboard');
+    activeView = signal<'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'policy-details' | 'claim-details' | 'chat'>('dashboard');
 
     // Sub-view State
     selectedPolicyId = signal<string | null>(null);
@@ -35,6 +39,7 @@ export class CustomerDashboardPage implements OnInit {
     config: any = null;
     myPolicies: any[] = [];
     myClaims: any[] = [];
+    myChats = signal<any[]>([]);
 
     totalCoverage = signal<number>(0);
     totalClaimsPaid = signal<number>(0);
@@ -84,6 +89,7 @@ export class CustomerDashboardPage implements OnInit {
         this.loadConfig();
         this.loadMyPolicies();
         this.loadMyClaims();
+        this.loadChatList();
     }
 
     loadConfig() {
@@ -115,6 +121,13 @@ export class CustomerDashboardPage implements OnInit {
         });
     }
 
+    loadChatList() {
+        this.chatService.getChatList().subscribe({
+            next: (chats) => this.myChats.set(chats),
+            error: (err) => console.error('Failed to load chat list', err)
+        });
+    }
+
     calculateTotals() {
         let coverage = 0;
         let claims = 0;
@@ -142,11 +155,32 @@ export class CustomerDashboardPage implements OnInit {
         this.approvedClaimAmount.set(approved);
     }
 
-    switchView(view: 'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims') {
+    switchView(view: 'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'chat') {
         this.activeView.set(view);
         if (view === 'buy-policy') {
             this.selectedCategory = null;
             this.selectedTier = null;
+        }
+        if (view === 'chat') {
+            this.loadChatList();
+        }
+    }
+
+    navigateToChat(chat: any) {
+        if (chat.id && chat.id.startsWith('new_')) {
+            const initData = {
+                policyId: chat.policyId,
+                customerId: chat.customerId,
+                agentId: chat.agentId
+            };
+            this.chatService.initChat(initData).subscribe({
+                next: (res) => {
+                    this.router.navigate(['/chat', chat.policyId]);
+                },
+                error: (err) => alert('Failed to initialize chat: ' + (err.error?.message || 'Server error'))
+            });
+        } else {
+            this.router.navigate(['/chat', chat.policyId]);
         }
     }
 
@@ -414,19 +448,19 @@ export class CustomerDashboardPage implements OnInit {
 
 
                 // const aiReply = res.reply || res.answer || "I'm' sorry, I couldn't get a response. Please try again.";
-                let aiReply = res.reply || res.answer || 
-  "I'm sorry, I couldn't get a response. Please try again.";
+                let aiReply = res.reply || res.answer ||
+                    "I'm sorry, I couldn't get a response. Please try again.";
 
-// Remove markdown special characters like *, -, _, `, #
-aiReply = aiReply
-  .replace(/[*_`#>-]/g, '')     // remove markdown symbols
-  .replace(/\n{2,}/g, '\n')     // remove extra line breaks
-  .trim();
+                // Remove markdown special characters like *, -, _, `, #
+                aiReply = aiReply
+                    .replace(/[*_`#>-]/g, '')     // remove markdown symbols
+                    .replace(/\n{2,}/g, '\n')     // remove extra line breaks
+                    .trim();
 
-this.chatMessages.update((msgs: any[]) => [
-  ...msgs,
-  { role: 'bot', content: aiReply }
-]);
+                this.chatMessages.update((msgs: any[]) => [
+                    ...msgs,
+                    { role: 'bot', content: aiReply }
+                ]);
 
 
 
