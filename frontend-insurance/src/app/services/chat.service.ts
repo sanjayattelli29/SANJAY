@@ -91,4 +91,11 @@ export class ChatService {
     initChat(data: { policyId: string, customerId: string, agentId: string }): Observable<any> {
         return this.http.post(`${this.apiUrl}/init`, data);
     }
+
+    /**
+     * Marks messages as read for a given policy.
+     */
+    markAsRead(policyId: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/${policyId}/read`, {});
+    }
 }

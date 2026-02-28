@@ -699,6 +699,7 @@
                                         <th class="px-6 py-4">Policy Name</th>
                                         <th class="px-6 py-4">Category</th>
                                         <th class="px-6 py-4">Date Activated</th>
+                                        <th class="px-6 py-4">Unread</th>
                                         <th class="px-6 py-4 text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -714,6 +715,17 @@
                                         </td>
                                         <td class="px-6 py-4 text-slate-400">{{ chat.dateActivated | date:'mediumDate'
                                             }}</td>
+                                        <td class="px-6 py-4">
+                                            @if (chat.unreadCount > 0) {
+                                            <span
+                                                class="px-2 py-1 bg-red-500 text-white text-[10px] font-black rounded-full shadow-lg shadow-red-200">
+                                                {{ chat.unreadCount }} New
+                                            </span>
+                                            } @else {
+                                            <span
+                                                class="text-slate-300 text-[10px] font-bold uppercase tracking-widest">Seen</span>
+                                            }
+                                        </td>
                                         <td class="px-6 py-4 text-right">
                                             <button (click)="navigateToChat(chat)"
                                                 class="px-4 py-2 bg-brand-orange text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-brand-navy transition-all shadow-md shadow-orange-100">

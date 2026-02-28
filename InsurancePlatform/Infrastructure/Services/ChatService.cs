@@ -110,7 +110,20 @@ public class ChatService : IChatService
         // 3. Merge: Return all policies as Chat objects
         var result = policies.Select(p => {
             var chat = existingChats.FirstOrDefault(c => c.PolicyId == p.Id);
-            if (chat != null) return chat;
+            
+            // Calculate unread count if chat exists
+            int unreadCount = 0;
+            if (chat != null)
+            {
+                unreadCount = _context.ChatMessages
+                    .Count(m => m.ChatId == chat.Id && !m.IsRead && m.SenderRole != role);
+            }
+
+            if (chat != null) 
+            {
+                chat.UnreadCount = unreadCount;
+                return chat;
+            }
 
             // Return a transient Chat object for the UI
             return new Chat
@@ -125,7 +138,8 @@ public class ChatService : IChatService
                 Category = p.PolicyCategory,
                 CoverageAmount = p.TotalCoverageAmount,
                 DateActivated = p.StartDate ?? p.SubmissionDate,
-                UpdatedAt = p.SubmissionDate
+                UpdatedAt = p.SubmissionDate,
+                UnreadCount = 0
             };
         });
 
@@ -137,5 +151,24 @@ public class ChatService : IChatService
         return await _context.Chats
             .Include(c => c.Messages.OrderBy(m => m.Timestamp))
             .FirstOrDefaultAsync(c => c.PolicyId == policyId);
+    }
+
+    public async Task MarkMessagesAsReadAsync(string policyId, string readerRole)
+    {
+        var chat = await _context.Chats.FirstOrDefaultAsync(c => c.PolicyId == policyId);
+        if (chat == null) return;
+
+        var unreadMessages = await _context.ChatMessages
+            .Where(m => m.ChatId == chat.Id && !m.IsRead && m.SenderRole != readerRole)
+            .ToListAsync();
+
+        if (unreadMessages.Any())
+        {
+            foreach (var msg in unreadMessages)
+            {
+                msg.IsRead = true;
+            }
+            await _context.SaveChangesAsync();
+        }
     }
 }

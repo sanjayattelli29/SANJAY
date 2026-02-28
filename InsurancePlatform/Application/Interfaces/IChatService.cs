@@ -8,4 +8,5 @@ public interface IChatService
     Task<Chat> GetOrCreateChatAsync(string policyId, string customerId, string agentId);
     Task<ChatMessage> SaveMessageAsync(string policyId, string senderId, string senderRole, string message);
     Task<Chat?> GetChatHistoryAsync(string policyId);
+    Task MarkMessagesAsReadAsync(string policyId, string readerRole);
 }

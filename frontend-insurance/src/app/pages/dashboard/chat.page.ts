@@ -31,6 +31,7 @@ export class ChatPage implements OnInit, OnDestroy {
             if (this.policyId) {
                 this.loadChatHistory();
                 this.chatService.startConnection(this.policyId);
+                this.chatService.markAsRead(this.policyId).subscribe();
             }
         });
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
@@ -20,6 +21,9 @@ public class Chat
     
     public string? LastMessage { get; set; }
     public DateTime? LastMessageTime { get; set; }
+    
+    [NotMapped]
+    public int UnreadCount { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

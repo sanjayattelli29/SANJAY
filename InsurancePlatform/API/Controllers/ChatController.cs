@@ -61,6 +61,16 @@ public class ChatController : ControllerBase
         var chat = await _chatService.GetOrCreateChatAsync(request.PolicyId, request.CustomerId, request.AgentId);
         return Ok(chat);
     }
+
+    [HttpPost("{policyId}/read")]
+    public async Task<IActionResult> MarkRead(string policyId)
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(role)) return Unauthorized();
+
+        await _chatService.MarkMessagesAsReadAsync(policyId, role);
+        return Ok();
+    }
 }
 
 public class ChatInitRequest
