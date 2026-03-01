@@ -55,7 +55,7 @@ export class PolicyService {
      * Sends a chat question to the n8n webhook.
      */
     sendChatQuestion(payload: any): Observable<any> {
-        const webhookUrl = "https://sanjay29.app.n8n.cloud/webhook/chatbot-agent-1";
+        const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/chatbot-agent-1";
         return this.http.post(webhookUrl, payload);
     }
 }

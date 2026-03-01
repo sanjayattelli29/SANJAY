@@ -26,7 +26,7 @@ export class AgentService {
     }
 
     sendAgentEmail(payload: { toEmail: string, subject: string, htmlBody: string }): Observable<any> {
-        const webhookUrl = "https://sanjay29.app.n8n.cloud/webhook/agent-send-email";
+        const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/agent-send-email";
         return this.http.post(webhookUrl, payload);
     }
 }

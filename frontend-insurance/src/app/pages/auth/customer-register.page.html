@@ -62,10 +62,38 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-brand-navy mb-2">Create Password</label>
-                    <input type="password" formControlName="password" placeholder="Min. 6 characters"
-                        class="input-field" [class.border-red-500]="password?.invalid && password?.touched">
-                    <p *ngIf="password?.invalid && password?.touched" class="text-red-500 text-xs mt-1">Password must be
-                        at least 6 characters.</p>
+                    <input type="password" formControlName="password" placeholder="Secure password" class="input-field"
+                        [class.border-red-500]="password?.invalid && password?.touched">
+
+                    <!-- Password Strength Indicator -->
+                    <div class="mt-3 space-y-1.5 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Security Score
+                        </div>
+                        <div class="flex items-center gap-2 text-xs" [class.text-green-600]="hasMinLength"
+                            [class.text-slate-400]="!hasMinLength">
+                            <span class="w-4">{{ hasMinLength ? '✅' : '○' }}</span>
+                            <span>At least 8 characters</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs" [class.text-green-600]="hasNumber"
+                            [class.text-slate-400]="!hasNumber">
+                            <span class="w-4">{{ hasNumber ? '✅' : '○' }}</span>
+                            <span>At least 1 number</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs" [class.text-green-600]="hasSpecialChar"
+                            [class.text-slate-400]="!hasSpecialChar">
+                            <span class="w-4">{{ hasSpecialChar ? '✅' : '○' }}</span>
+                            <span>At least 1 special character</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-brand-navy mb-2">Math Captcha: {{ num1() }} + {{ num2()
+                        }}
+                        =
+                        ?</label>
+                    <input type="number" formControlName="captchaInput" placeholder="Enter sum" class="input-field"
+                        [class.border-red-500]="registrationForm.get('captchaInput')?.invalid && registrationForm.get('captchaInput')?.touched">
                 </div>
 
                 <div *ngIf="errorMessage()" class="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
@@ -74,7 +102,8 @@
 
                 <div class="flex gap-4">
                     <button type="button" (click)="prevStep()" class="btn-secondary flex-1">Back</button>
-                    <button type="submit" [disabled]="isLoading()" class="btn-primary flex-[2]">
+                    <button type="submit" [disabled]="registrationForm.invalid || !isCaptchaCorrect() || isLoading()"
+                        class="btn-primary flex-[2]">
                         {{ isLoading() ? 'Registering...' : 'Confirm & Register' }}
                     </button>
                 </div>

@@ -35,7 +35,7 @@ export class AdminDashboardPage implements OnInit {
     }
 
     user = this.authService.getUser();
-    activeSection = signal('dashboard'); // dashboard, agents, officers, analysis-users, analysis-policies, analysis-commands, analysis-payments
+    activeSection = signal('dashboard'); // dashboard, agents, officers, analysis-users, analysis-policies, analysis-commands, analysis-payments, email-automation
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
 
@@ -69,6 +69,9 @@ export class AdminDashboardPage implements OnInit {
     selectedPayment = signal<any>(null);
     showInvoiceModal = signal(false);
     isAssigning = signal(false);
+    showEmailModal = signal(false);
+    selectedUserForEmail = signal<any>(null);
+    isSendingEmail = signal(false);
 
     // Forms
     agentForm = this.fb.group({
@@ -83,6 +86,12 @@ export class AdminDashboardPage implements OnInit {
         emailId: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required, Validators.minLength(6)]],
         bankAccountNumber: ['', [Validators.required, Validators.pattern(/^\d{16}$/)]]
+    });
+
+    emailForm = this.fb.group({
+        toEmail: ['', [Validators.required, Validators.email]],
+        subject: ['', [Validators.required, Validators.minLength(5)]],
+        message: ['', [Validators.required, Validators.minLength(10)]]
     });
 
     ngOnInit() {
@@ -285,6 +294,9 @@ export class AdminDashboardPage implements OnInit {
             this.destroyCharts();
         } else if (section === 'analysis-commands') {
             this.loadAllClaims();
+            this.destroyCharts();
+        } else if (section === 'email-automation') {
+            this.loadAllUsers();
             this.destroyCharts();
         } else {
             this.destroyCharts();
@@ -563,6 +575,49 @@ export class AdminDashboardPage implements OnInit {
                     }
                 },
                 error: (err) => alert('Delete failed!')
+            });
+        }
+    }
+
+    openEmailForm(user: any) {
+        this.selectedUserForEmail.set(user);
+        this.emailForm.patchValue({
+            toEmail: user.email,
+            subject: 'Official Communication from AcciSure Admin',
+            message: `Dear ${user.fullName || user.userName},\n\n`
+        });
+        this.showEmailModal.set(true);
+    }
+
+    sendEmail() {
+        if (this.emailForm.valid) {
+            this.isSendingEmail.set(true);
+            const form = this.emailForm.value;
+            const payload = {
+                toEmail: form.toEmail!,
+                subject: form.subject!,
+                htmlBody: `
+                    <div style="font-family: sans-serif; padding: 20px; color: #0f172a;">
+                        <h2 style="color: #f97316;">AcciSure Insurance</h2>
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                        <p>${form.message?.replace(/\n/g, '<br>')}</p>
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                        <p style="font-size: 12px; color: #64748b;">This is an automated communication from the AcciSure Administration Department.</p>
+                    </div>
+                `
+            };
+
+            this.adminService.sendAdminEmail(payload).subscribe({
+                next: () => {
+                    this.isSendingEmail.set(false);
+                    this.showEmailModal.set(false);
+                    this.message.set({ type: 'success', text: 'Email sent successfully via automation!' });
+                    setTimeout(() => this.message.set({ type: '', text: '' }), 3000);
+                },
+                error: (err) => {
+                    this.isSendingEmail.set(false);
+                    this.message.set({ type: 'error', text: 'Failed to trigger email automation.' });
+                }
             });
         }
     }

@@ -56,4 +56,9 @@ export class AdminService {
     getUnifiedPayments(): Observable<any[]> {
         return this.http.get<any[]>(`https://localhost:7140/api/Report/unified-payments`);
     }
+
+    sendAdminEmail(payload: { toEmail: string, subject: string, htmlBody: string }): Observable<any> {
+        const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/agent-send-email";
+        return this.http.post(webhookUrl, payload);
+    }
 }
