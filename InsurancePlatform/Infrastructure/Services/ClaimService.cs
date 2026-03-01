@@ -7,16 +7,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Linq; // for queries
+using System.Threading.Tasks; // async support
 
 namespace Infrastructure.Services
 {
+    // this class manages all the logic for insurance claims
     public class ClaimService : IClaimService
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IFileStorageService _fileStorage;
+        private readonly IFileStorageService _fileStorage; // for documents
 
         public ClaimService(
             ApplicationDbContext context, 
@@ -28,17 +29,18 @@ namespace Infrastructure.Services
             _fileStorage = fileStorage;
         }
 
+        // code for customer to tell about a problem and ask for money
         public async Task<object> RaiseClaimAsync(string userId, RaiseClaimRequest request)
         {
-            // 1. Validate Policy
+            // check if policy is real and belongs to user
             var policy = await _context.PolicyApplications
                 .FirstOrDefaultAsync(pa => pa.Id == request.PolicyApplicationId && pa.UserId == userId);
 
-            if (policy == null) throw new Exception("Policy not found.");
+            if (policy == null) throw new Exception("Policy not found."); // check exist
             if (policy.Status != "Active") throw new Exception("Claims can only be raised for Active policies.");
             if (policy.ExpiryDate < DateTime.UtcNow) throw new Exception("Policy has expired.");
 
-            // 2. Create Claim
+            // create a new claim record
             var claim = new InsuranceClaim
             {
                 PolicyApplicationId = request.PolicyApplicationId,
@@ -52,13 +54,13 @@ namespace Infrastructure.Services
                 RequestedAmount = request.RequestedAmount,
                 AffectedMemberName = request.AffectedMemberName,
                 AffectedMemberRelation = request.AffectedMemberRelation,
-                Status = "Pending"
+                Status = "Pending" // initial status
             };
 
             _context.InsuranceClaims.Add(claim);
-            await _context.SaveChangesAsync(); // Save to get ClaimId
+            await _context.SaveChangesAsync(); // save record
 
-            // 3. Upload Documents
+            // save uploaded documents if any
             if (request.Documents != null && request.Documents.Any())
             {
                 foreach (var file in request.Documents)
@@ -81,7 +83,7 @@ namespace Infrastructure.Services
                 await _context.SaveChangesAsync();
             }
 
-            return new { Status = "Success", ClaimId = claim.Id };
+            return new { Status = "Success", ClaimId = claim.Id }; // done
         }
 
         public async Task<IEnumerable<InsuranceClaim>> GetCustomerClaimsAsync(string userId)

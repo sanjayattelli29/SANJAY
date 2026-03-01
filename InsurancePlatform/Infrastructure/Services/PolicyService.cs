@@ -4,12 +4,13 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using Domain.Enums;
-using System.Text.Json;
+using Domain.Enums; // role names
+using System.Text.Json; // json handling
 
 namespace Infrastructure.Services
 {
-    public class PolicyService : IPolicyService
+    // this class manages everything about policies like plans and premiums
+    public class PolicyService : IPolicyService // core logic class
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -22,26 +23,27 @@ namespace Infrastructure.Services
             _userManager = userManager;
         }
 
+        // code to read the configuration from json file
         public async Task<PolicyConfiguration> GetConfigurationAsync()
         {
-            if (_cachedConfig != null) return _cachedConfig;
+            if (_cachedConfig != null) return _cachedConfig; // return if ready
 
-            // In a real app, this might come from a DB table or a distributed cache
-            // For now, we load from the JSON file created in the Data folder
+            // find the path to policy-config.json
             var path = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Data", "policy-config.json");
             
             if (!File.Exists(path))
             {
-                // Fallback for different environments
                 path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "policy-config.json");
             }
 
             var json = await File.ReadAllTextAsync(path);
+            // turn json text into c# object
             _cachedConfig = JsonSerializer.Deserialize<PolicyConfiguration>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             
-            return _cachedConfig!;
+            return _cachedConfig!; // return the config
         }
 
+        // math to find how much money policy costs
         public async Task<decimal> CalculatePremiumAsync(PolicyApplicationRequest request)
         {
             var config = await GetConfigurationAsync();
@@ -49,7 +51,7 @@ namespace Infrastructure.Services
             if (category == null) throw new Exception("Invalid category");
 
             var tier = category.Tiers.FirstOrDefault(t => t.TierId == request.TierId);
-            if (tier == null) throw new Exception("Invalid tier");
+            if (tier == null) throw new Exception("Invalid tier"); // error case
 
             var applicant = request.PolicyCategory == "INDIVIDUAL" ? request.Applicant : request.PrimaryApplicant;
             if (applicant == null) throw new Exception("Applicant details missing");
@@ -98,7 +100,7 @@ namespace Infrastructure.Services
                 _ => 1.0
             };
 
-            return tier.BasePremiumAmount * (decimal)multiplier;
+            return tier.BasePremiumAmount * (decimal)multiplier; // final math
         }
 
         public async Task<object> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request)

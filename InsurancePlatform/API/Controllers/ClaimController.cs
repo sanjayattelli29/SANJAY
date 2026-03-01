@@ -1,29 +1,31 @@
 using Application.Interfaces;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc; // api tools
+using System.Security.Claims; // identity claims
+using System.Threading.Tasks; // async support
 
 namespace API.Controllers
 {
+    // this handles everything related to insurance claims
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
-    public class ClaimController : ControllerBase
+    [Authorize] // login required
+    public class ClaimController : ControllerBase // claim web api
     {
         private readonly IClaimService _claimService;
 
         public ClaimController(IClaimService claimService)
         {
-            _claimService = claimService;
+            _claimService = claimService; // set claim logic
         }
 
         // --- Customer Endpoints ---
 
-        [HttpPost("raise")]
-        [Authorize(Roles = UserRoles.Customer)]
-        public async Task<IActionResult> RaiseClaim([FromForm] RaiseClaimRequest request)
+        // customer uses this to ask for money after an accident
+        [HttpPost("raise")] // post request for new claim
+        [Authorize(Roles = UserRoles.Customer)] // only customers can ask
+        public async Task<IActionResult> RaiseClaim([FromForm] RaiseClaimRequest request) // receives form data
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
@@ -39,9 +41,10 @@ namespace API.Controllers
             }
         }
 
-        [HttpGet("my-claims")]
-        [Authorize(Roles = UserRoles.Customer)]
-        public async Task<IActionResult> GetMyClaims()
+        // customer sees all claims they have made
+        [HttpGet("my-claims")] // get request for my history
+        [Authorize(Roles = UserRoles.Customer)] // for customer role
+        public async Task<IActionResult> GetMyClaims() // fetch my claims
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
@@ -52,14 +55,16 @@ namespace API.Controllers
 
         // --- Admin Endpoints ---
 
-        [HttpGet("admin/pending")]
-        [Authorize(Roles = UserRoles.Admin)]
-        public async Task<IActionResult> GetPendingClaims()
+        // admin sees claims that nobody is working on yet
+        [HttpGet("admin/pending")] // see new claims
+        [Authorize(Roles = UserRoles.Admin)] // boss view
+        public async Task<IActionResult> GetPendingClaims() // fetch pending
         {
             var claims = await _claimService.GetPendingClaimsAsync();
             return Ok(claims);
         }
 
+        // admin gets list of people who check claims
         [HttpGet("admin/officers")]
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> GetClaimOfficers()
@@ -68,6 +73,7 @@ namespace API.Controllers
             return Ok(officers);
         }
 
+        // admin gives a claim to an officer to check
         [HttpPost("admin/assign")]
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> AssignOfficer([FromBody] AssignOfficerRequest request)
@@ -79,9 +85,10 @@ namespace API.Controllers
 
         // --- Claim Officer Endpoints ---
 
-        [HttpGet("officer/my-requests")]
-        [Authorize(Roles = UserRoles.ClaimOfficer)]
-        public async Task<IActionResult> GetOfficerRequests()
+        // officer sees the claims they need to check
+        [HttpGet("officer/my-requests")] // seen by officer
+        [Authorize(Roles = UserRoles.ClaimOfficer)] // officer role check
+        public async Task<IActionResult> GetOfficerRequests() // fetch assignments
         {
             var officerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (officerId == null) return Unauthorized();
@@ -90,6 +97,7 @@ namespace API.Controllers
             return Ok(requests);
         }
 
+        // officer says yes or no to the claim
         [HttpPost("officer/review")]
         [Authorize(Roles = UserRoles.ClaimOfficer)]
         public async Task<IActionResult> ReviewClaim([FromBody] ReviewClaimRequest request)
@@ -104,6 +112,7 @@ namespace API.Controllers
 
         // --- Agent Endpoints ---
 
+        // agent sees claims from their own customers
         [HttpGet("agent/customer-claims")]
         [Authorize(Roles = UserRoles.Agent)]
         public async Task<IActionResult> GetAgentCustomerClaims()
@@ -115,6 +124,7 @@ namespace API.Controllers
             return Ok(claims);
         }
 
+        // find claim details for a specific policy
         [HttpGet("policy/{policyId}")]
         public async Task<IActionResult> GetClaimByPolicyId(string policyId)
         {
@@ -122,7 +132,7 @@ namespace API.Controllers
             return Ok(claim);
         }
     }
-
+// claim controller logic ends
     public class AssignOfficerRequest
     {
         public string ClaimId { get; set; } = string.Empty;

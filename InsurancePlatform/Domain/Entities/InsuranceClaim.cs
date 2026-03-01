@@ -1,40 +1,58 @@
-using System;
+using System; // basic namespace
 
-namespace Domain.Entities;
+namespace Domain.Entities; // database models
 
+// this class handles insurance claims filed by customers
 public class InsuranceClaim
 {
+    // unique id for the claim
     public string Id { get; set; } = Guid.NewGuid().ToString();
+    // the policy this claim is against
     public string PolicyApplicationId { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    // the user who is filing the claim
+    public string UserId { get; set; } = string.Empty; // customer id
     
+    // how much money the user wants
     public decimal RequestedAmount { get; set; }
-    public decimal ApprovedAmount { get; set; }
+    // how much money the officer approved
+    public decimal ApprovedAmount { get; set; } // how much bank pays
+    // details of what happened
     public string Description { get; set; } = string.Empty;
-    public DateTime IncidentDate { get; set; }
+    // when the incident happened
+    public DateTime IncidentDate { get; set; } // day of accident
+    // when they submitted the claim
     public DateTime SubmissionDate { get; set; } = DateTime.UtcNow;
     
-    // Detailed Incident Info
+    // why they are claiming like accident or sickness
     public string IncidentType { get; set; } = string.Empty;
+    // where it happened
     public string IncidentLocation { get; set; } = string.Empty;
+    // name of hospital if they went there
     public string HospitalName { get; set; } = string.Empty;
-    public bool HospitalizationRequired { get; set; }
+    // check if they were admitted to hospital
+    public bool HospitalizationRequired { get; set; } // yes or no
 
-    // Family Info (if applicable)
+    // name of the family member who is hurt
     public string? AffectedMemberName { get; set; }
+    // relation like wife or son
     public string? AffectedMemberRelation { get; set; }
     
-    public string Status { get; set; } = "Pending"; // Pending, Assigned, Approved, Rejected, Paid
+    // status like pending or approved
+    public string Status { get; set; } = "Pending"; 
     
-    // Assignment & Processing
-    public string? Remarks { get; set; }
+    // notes from the officer
+    public string? Remarks { get; set; } // officer feedback
+    // who is checking this claim
     public string? AssignedClaimOfficerId { get; set; }
+    // who finally approved it
     public string? ApprovedByOfficerId { get; set; }
+    // when it was finished processing
     public DateTime? ProcessedAt { get; set; }
 
-    // Relations
+    // links to other objects
     public PolicyApplication? Policy { get; set; }
     public ApplicationUser? User { get; set; }
     public ApplicationUser? AssignedOfficer { get; set; }
-    public ICollection<ClaimDocument> Documents { get; set; } = new List<ClaimDocument>();
+    public ICollection<ClaimDocument> Documents { get; set; } = new List<ClaimDocument>(); // files list
 }
+// insurance claim model end

@@ -1,29 +1,23 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity; // identity library for users
+using System.ComponentModel.DataAnnotations; // for validation rules
 
-namespace Domain.Entities
+namespace Domain.Entities // where our database objects live
 {
-    /// <summary>
-    /// Represents the custom application user which extends the default IdentityUser.
-    /// Includes additional properties for full name, Aadhaar number, and bank account details.
-    /// </summary>
+    // This is the main user class and we use this for all users in the system
     public class ApplicationUser : IdentityUser
     {
-        [Required]
-        [MaxLength(100)]
+        // This is for the full name of the user
+        [Required] // must not be empty
+        [MaxLength(100)] // can't be more than 100 characters
         public string FullName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Aadhaar Number is only required for Customer users. optional for others.
-        /// </summary>
+        // This is aadhar card number for customer verification
         [MaxLength(12)]
         public string? AadhaarNumber { get; set; }
 
-        /// <summary>
-        /// Bank Account Number is required for Agent and ClaimOfficer.
-        /// Must support 16 digits.
-        /// </summary>
-        [MaxLength(16)]
-        public string? BankAccountNumber { get; set; }
+        // This is bank account for agents and officers to get payments
+        [MaxLength(16)] // max 16 digits
+        public string? BankAccountNumber { get; set; } // for payments
     }
 }
+// finished adding user details here

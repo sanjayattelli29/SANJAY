@@ -1,15 +1,16 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Domain.Enums;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization; // for security roles
+using Microsoft.AspNetCore.Mvc; // for web api tools
 
 namespace API.Controllers
 {
+    // this controller is only for the big boss (admin)
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = UserRoles.Admin)]
-    public class AdminController : ControllerBase
+    [Authorize(Roles = UserRoles.Admin)] // only admin allowed
+    public class AdminController : ControllerBase // admin web api
     {
         private readonly IAuthService _authService;
         private readonly IPolicyService _policyService;
@@ -19,32 +20,26 @@ namespace API.Controllers
         {
             _authService = authService;
             _policyService = policyService;
-            _claimService = claimService;
+            _claimService = claimService; // set claim service
         }
 
-        /// <summary>
-        /// Creates a new Agent. Restricted to Admin role.
-        /// </summary>
-        [HttpPost("create-agent")]
-        public async Task<IActionResult> CreateAgent([FromBody] CreateAgentDto agentDto)
+        // adds a new agent to the system
+        [HttpPost("create-agent")] // post request to add agent
+        public async Task<IActionResult> CreateAgent([FromBody] CreateAgentDto agentDto) // receives agent json
         {
             var result = await _authService.CreateAgentAsync(agentDto);
             return Ok(result);
         }
 
-        /// <summary>
-        /// Creates a new Claim Officer. Restricted to Admin role.
-        /// </summary>
-        [HttpPost("create-claim-officer")]
-        public async Task<IActionResult> CreateClaimOfficer([FromBody] CreateClaimOfficerDto claimOfficerDto)
+        // adds a new claim officer to the system
+        [HttpPost("create-claim-officer")] // post request to add officer
+        public async Task<IActionResult> CreateClaimOfficer([FromBody] CreateClaimOfficerDto claimOfficerDto) // receives officer json
         {
             var result = await _authService.CreateClaimOfficerAsync(claimOfficerDto);
             return Ok(result);
         }
 
-        /// <summary>
-        /// Retrieves all Agents.
-        /// </summary>
+        // get list of all agents we have
         [HttpGet("agents")]
         public async Task<IActionResult> GetAgents()
         {
@@ -52,9 +47,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Retrieves all Claim Officers.
-        /// </summary>
+        // get list of all claim officers
         [HttpGet("claim-officers")]
         public async Task<IActionResult> GetClaimOfficers()
         {
@@ -62,16 +55,15 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Deletes a user by ID.
-        /// </summary>
-        [HttpDelete("delete-user/{id}")]
-        public async Task<IActionResult> DeleteUser(string id)
+        // remove a user from database using their id
+        [HttpDelete("delete-user/{id}")] // delete request for user
+        public async Task<IActionResult> DeleteUser(string id) // receives user id string
         {
             var result = await _authService.DeleteUserAsync(id);
             return Ok(result);
         }
 
+        // see all policy applications from everyone
         [HttpGet("policy-requests")]
         public async Task<IActionResult> GetAllPolicyRequests()
         {
@@ -79,6 +71,7 @@ namespace API.Controllers
             return Ok(requests);
         }
 
+        // see which agent has how much work
         [HttpGet("agents-with-load")]
         public async Task<IActionResult> GetAgentsWithLoad()
         {
@@ -86,14 +79,16 @@ namespace API.Controllers
             return Ok(agents);
         }
 
-        [HttpPost("assign-agent")]
-        public async Task<IActionResult> AssignAgent([FromBody] AssignAgentRequest request)
+        // give a policy application to a specific agent
+        [HttpPost("assign-agent")] // post request for assignment
+        public async Task<IActionResult> AssignAgent([FromBody] AssignAgentRequest request) // receives assignment data
         {
             var success = await _policyService.AssignAgentAsync(request.ApplicationId, request.AgentId);
             if (!success) return BadRequest(new { Message = "Assignment failed" });
             return Ok(new { Message = "Agent assigned successfully" });
         }
 
+        // get every single user in the system
         [HttpGet("all-users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -101,6 +96,7 @@ namespace API.Controllers
             return Ok(users);
         }
 
+        // get every single insurance claim ever made
         [HttpGet("all-claims")]
         public async Task<IActionResult> GetAllClaimsMaster()
         {
@@ -108,6 +104,7 @@ namespace API.Controllers
             return Ok(claims);
         }
 
+        // get some numbers for the admin dashboard
         [HttpGet("admin-stats")]
         public async Task<IActionResult> GetAdminStats()
         {
@@ -115,7 +112,7 @@ namespace API.Controllers
             return Ok(stats);
         }
     }
-
+// admin controller ends here
     public class AssignAgentRequest
     {
         public string ApplicationId { get; set; } = string.Empty;

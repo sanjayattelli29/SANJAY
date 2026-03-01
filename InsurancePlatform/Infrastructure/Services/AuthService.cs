@@ -6,20 +6,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System.Security.Claims; // for identity claims
+using System.Text; // for string encoding
 
 namespace Infrastructure.Services
 {
-    /// <summary>
-    /// Service for handling authentication, user registration, and role-based user creation.
-    /// Implements JWT token generation and ASP.NET Core Identity integration.
-    /// </summary>
+    // this class does the actual work for login and registering users
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration; // for settings access
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
@@ -28,45 +25,48 @@ namespace Infrastructure.Services
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _configuration = configuration;
+            _configuration = configuration; // set configuration
         }
 
-        /// <summary>
-        /// Registers a new customer with the 'Customer' role.
-        /// </summary>
+        // code to create a new customer account
         public async Task<AuthResponseDto> RegisterCustomerAsync(RegisterCustomerDto registerDto)
         {
+            // check if someone already uses this email
             var userExists = await _userManager.FindByEmailAsync(registerDto.EmailId);
             if (userExists != null)
-                return new AuthResponseDto { Status = "Error", Message = "User already exists!" };
+                return new AuthResponseDto { Status = "Error", Message = "User already exists!" }; // email taken
 
+            // mapping dto to user object
             ApplicationUser user = new()
             {
                 Email = registerDto.EmailId,
                 SecurityStamp = Guid.NewGuid().ToString(),
                 UserName = registerDto.EmailId,
-                FullName = registerDto.Name,
-                PhoneNumber = registerDto.MobileNumber
+                FullName = registerDto.Name, // set name
+                PhoneNumber = registerDto.MobileNumber // set phone
             };
 
+            // try to save user to database
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
                 return new AuthResponseDto { Status = "Error", Message = "User creation failed! Please check user details and try again." };
 
+            // making sure customer role exists
             if (!await _roleManager.RoleExistsAsync(UserRoles.Customer))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Customer));
 
+            // add user to customer role
             await _userManager.AddToRoleAsync(user, UserRoles.Customer);
 
             return new AuthResponseDto { Status = "Success", Message = "Customer created successfully!" };
         }
 
-        /// <summary>
-        /// Authenticates a user and generates a JWT token containing UserId, Email, and Role claims.
-        /// </summary>
+        // code to check login info and give token
         public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
         {
+            // find user by email
             var user = await _userManager.FindByEmailAsync(loginDto.EmailId);
+            // check if user exists and password is correct
             if (user != null && await _userManager.CheckPasswordAsync(user, loginDto.Password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
@@ -75,7 +75,7 @@ namespace Infrastructure.Services
                 {
                     new Claim(ClaimTypes.Name, user.Email!),
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // unique token id
                 };
 
                 foreach (var userRole in userRoles)
@@ -83,7 +83,7 @@ namespace Infrastructure.Services
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                 }
 
-                var token = CreateToken(authClaims);
+                var token = CreateToken(authClaims); // build the token
 
                 return new AuthResponseDto
                 {
@@ -97,7 +97,7 @@ namespace Infrastructure.Services
                     PhoneNumber = user.PhoneNumber
                 };
             }
-            return new AuthResponseDto { Status = "Error", Message = "Invalid login attempt." };
+            return new AuthResponseDto { Status = "Error", Message = "Invalid login attempt." }; // wrong password or email
         }
 
         /// <summary>

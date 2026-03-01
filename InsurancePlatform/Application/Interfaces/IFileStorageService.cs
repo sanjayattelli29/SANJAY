@@ -1,30 +1,29 @@
-using System.IO;
-using System.Threading.Tasks;
+using System.IO; // for stream handling
+using System.Threading.Tasks; // for async support
 
-namespace Application.Interfaces
+namespace Application.Interfaces // interface folder
 {
-    public interface IFileStorageService
+    // this interface is for saving and deleting files like medical bills
+    public interface IFileStorageService // storage service contract
     {
-        /// <summary>
-        /// Uploads a file to secure storage.
-        /// </summary>
-        /// <param name="fileStream">Stream of the file content.</param>
-        /// <param name="fileName">Original name of the file.</param>
-        /// <param name="folderPath">Path/folder where to store the file.</param>
-        /// <returns>A result containing FileId, FileName, and FileUrl.</returns>
-        Task<FileUploadResult> UploadFileAsync(Stream fileStream, string fileName, string folderPath);
+        // upload a new file to the cloud storage
+        Task<FileUploadResult> UploadFileAsync(Stream fileStream, string fileName, string folderPath); // send to cloud
         
-        /// <summary>
-        /// Deletes a file from secure storage.
-        /// </summary>
-        Task<bool> DeleteFileAsync(string fileId);
+        // delete an old file from storage
+        Task<bool> DeleteFileAsync(string fileId); // remove from cloud
     }
 
-    public class FileUploadResult
+    // this class gives the result of file upload
+    public class FileUploadResult // response from storage
     {
+        // unique id of file from cloud service
         public string FileId { get; set; } = string.Empty;
+        // name of the file saved
         public string FileName { get; set; } = string.Empty;
+        // web link to download or see file
         public string FileUrl { get; set; } = string.Empty;
-        public long FileSize { get; set; }
+        // how big the file is
+        public long FileSize { get; set; } // byte count
     }
 }
+// file storage interface ends

@@ -1,32 +1,37 @@
 using Application.Interfaces;
 using Domain.Entities;
-using Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using Infrastructure.Data; // db context
+using Microsoft.EntityFrameworkCore; // ef core tools
 
 namespace Infrastructure.Services;
 
+// this class manages chatting between people
 public class ChatService : IChatService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context; // db access
 
     public ChatService(ApplicationDbContext context)
     {
         _context = context;
     }
 
+    // find a chat session or join it if not there
     public async Task<Chat> GetOrCreateChatAsync(string policyId, string customerId, string agentId)
     {
+        // try to find by policy id
         var chat = await _context.Chats
-            .Include(c => c.Messages)
-            .FirstOrDefaultAsync(c => c.PolicyId == policyId);
+            .Include(c => c.Messages) // load messages
+            .FirstOrDefaultAsync(c => c.PolicyId == policyId); // find by id
 
         if (chat == null)
         {
+            // if not found get policy details
             var policy = await _context.PolicyApplications
                 .Include(p => p.User)
                 .Include(p => p.AssignedAgent)
                 .FirstOrDefaultAsync(p => p.Id == policyId);
 
+            // create a new chat record
             chat = new Chat
             {
                 PolicyId = policyId,
@@ -34,7 +39,7 @@ public class ChatService : IChatService
                 AgentId = agentId,
                 CustomerEmail = policy?.User?.Email,
                 AgentEmail = policy?.AssignedAgent?.Email,
-                PolicyName = policy?.TierId, // Simplification, could be more detailed
+                PolicyName = policy?.TierId, 
                 Category = policy?.PolicyCategory,
                 CoverageAmount = policy?.TotalCoverageAmount ?? 0,
                 DateActivated = policy?.StartDate ?? DateTime.UtcNow
@@ -47,10 +52,12 @@ public class ChatService : IChatService
         return chat;
     }
 
+    // save a text message sent by user or agent
     public async Task<ChatMessage> SaveMessageAsync(string policyId, string senderId, string senderRole, string message)
     {
+        // find which chat session this message belongs to
         var chat = await _context.Chats.FirstOrDefaultAsync(c => c.PolicyId == policyId);
-        if (chat == null) throw new Exception("Chat not found");
+        if (chat == null) throw new Exception("Chat not found"); // error if missing
 
         var chatMessage = new ChatMessage
         {
@@ -68,7 +75,7 @@ public class ChatService : IChatService
         _context.ChatMessages.Add(chatMessage);
         await _context.SaveChangesAsync();
 
-        return chatMessage;
+        return chatMessage; // return new message
     }
 
     public async Task<IEnumerable<Chat>> GetUserChatListAsync(string userId, string role)

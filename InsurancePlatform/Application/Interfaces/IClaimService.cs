@@ -1,35 +1,47 @@
 using Application.DTOs;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Collections.Generic; // standard list
+using System.Threading.Tasks; // async tasks
 
-namespace Application.Interfaces
+namespace Application.Interfaces // folder path
 {
-    public interface IClaimService
+    // this interface is for everything about insurance claims
+    public interface IClaimService // claim management interface
     {
-        // Customer
+        // customer wants money for an issue
         Task<object> RaiseClaimAsync(string userId, RaiseClaimRequest request);
+        // get a list of all claims for one customer
         Task<IEnumerable<InsuranceClaim>> GetCustomerClaimsAsync(string userId);
 
-        // Admin
-        Task<IEnumerable<InsuranceClaim>> GetPendingClaimsAsync();
+        // admin functions
+        // list all claims that nobody is checking yet
+        Task<IEnumerable<InsuranceClaim>> GetPendingClaimsAsync(); // new claims list
+        // see which officers are busy and who is free
         Task<IEnumerable<object>> GetClaimOfficersWithWorkloadAsync();
-        Task<bool> AssignClaimOfficerAsync(string claimId, string officerId);
+        // give a claim to a specific officer to check
+        Task<bool> AssignClaimOfficerAsync(string claimId, string officerId); // admin task
 
-        // Claim Officer
-        Task<IEnumerable<InsuranceClaim>> GetOfficerClaimsAsync(string officerId);
+        // officer functions
+        // list of claims given to this officer
+        Task<IEnumerable<InsuranceClaim>> GetOfficerClaimsAsync(string officerId); // officer's work
+        // officer gives decision on a claim
         Task<bool> ReviewClaimAsync(string claimId, string status, string officerId, string remarks, decimal approvedAmount = 0);
 
-        // Agent
-        Task<IEnumerable<InsuranceClaim>> GetAgentClaimsAsync(string agentId);
+        // agent functions
+        // list of claims for policies sold by this agent
+        Task<IEnumerable<InsuranceClaim>> GetAgentClaimsAsync(string agentId); // agent's customer claims
 
-        // General / Admin
+        // overall functions
+        // list every claim in the system
         Task<IEnumerable<InsuranceClaim>> GetAllClaimsAsync();
+        // get the numbers for admin dashboard
         Task<AdminDashboardStatsDto> GetAdminStatsAsync();
-        Task<InsuranceClaim?> GetClaimByPolicyIdAsync(string policyId);
+        // find a claim by policy id
+        Task<InsuranceClaim?> GetClaimByPolicyIdAsync(string policyId); // find by policy
     }
-
+}
+// claim service contract end
     public class RaiseClaimRequest
     {
         public string PolicyApplicationId { get; set; } = string.Empty;

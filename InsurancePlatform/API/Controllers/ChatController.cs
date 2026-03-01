@@ -1,11 +1,12 @@
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc; // web toolkit
+using System.Security.Claims; // identity toolkit
 
 namespace API.Controllers;
 
-[Authorize]
+// this handles the live chat between customer and agent
+[Authorize] // must be logged in
 [ApiController]
 [Route("api/[controller]")]
 public class ChatController : ControllerBase
@@ -14,11 +15,12 @@ public class ChatController : ControllerBase
 
     public ChatController(IChatService chatService)
     {
-        _chatService = chatService;
+        _chatService = chatService; // set chat logic
     }
 
-    [HttpGet("list")]
-    public async Task<IActionResult> GetChatList()
+    // get all active chats for the logged in person
+    [HttpGet("list")] // get request for chats
+    public async Task<IActionResult> GetChatList() // my conversations
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var role = User.FindFirstValue(ClaimTypes.Role);
@@ -30,8 +32,9 @@ public class ChatController : ControllerBase
         return Ok(chats);
     }
 
-    [HttpGet("{policyId}")]
-    public async Task<IActionResult> GetChatHistory(string policyId)
+    // see old messages for a specific policy
+    [HttpGet("{policyId}")] // get specific chat
+    public async Task<IActionResult> GetChatHistory(string policyId) // policy based history
     {
         var chat = await _chatService.GetChatHistoryAsync(policyId);
         if (chat == null) return NotFound();
@@ -50,20 +53,20 @@ public class ChatController : ControllerBase
         });
     }
 
-    [HttpPost("init")]
-    public async Task<IActionResult> InitializeChat([FromBody] ChatInitRequest request)
+    // start a chat if it is new
+    [HttpPost("init")] // start new connection
+    public async Task<IActionResult> InitializeChat([FromBody] ChatInitRequest request) // setup chat link
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        // Customer initializes, or Agent joins. 
-        // We expect policyId, customerId, agentId to be provided or resolved.
         var chat = await _chatService.GetOrCreateChatAsync(request.PolicyId, request.CustomerId, request.AgentId);
         return Ok(chat);
     }
 
-    [HttpPost("{policyId}/read")]
-    public async Task<IActionResult> MarkRead(string policyId)
+    // tell the system i have seen the messages
+    [HttpPost("{policyId}/read")] // mark seen
+    public async Task<IActionResult> MarkRead(string policyId) // read receipt
     {
         var role = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(role)) return Unauthorized();
@@ -72,6 +75,7 @@ public class ChatController : ControllerBase
         return Ok();
     }
 }
+// chat endpoint logic ends
 
 public class ChatInitRequest
 {

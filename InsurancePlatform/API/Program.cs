@@ -1,28 +1,29 @@
 using API.Hubs;
 using Application.Interfaces;
-using Domain.Entities;
-using Infrastructure.Data;
+using Domain.Entities; // table classes
+using Infrastructure.Data; // db setup
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
+using Microsoft.OpenApi.Models; // swagger docs
+using System.Text; // text encoding
 
 namespace API
 {
+    // this is the main entry point where website setup happens
     public class Program
     {
         public static async Task Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            var builder = WebApplication.CreateBuilder(args); // start builder
 
-            // 1. Add DbContext
+            // 1. connect to the sql database
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))); // sql server
 
-            // 2. Configure Identity
+            // 2. setup user login settings
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 6;
@@ -33,7 +34,7 @@ namespace API
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-            // 3. Configure Authentication & JWT
+            // 3. configure jwt tokens for security
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -56,30 +57,30 @@ namespace API
                 };
             });
 
-            // 4. Add Authorization
+            // 4. enable authorization
             builder.Services.AddAuthorization();
 
-            // 5. Register Application Services
+            // 5. register our custom services with the system
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IPolicyService, PolicyService>();
             builder.Services.AddScoped<IFileStorageService, ImageKitFileStorageService>();
             builder.Services.AddScoped<IClaimService, ClaimService>();
             builder.Services.AddScoped<IChatService, ChatService>();
             
+            // setup signalr for real-time chat
             builder.Services.AddSignalR();
 
-            // 6. Configure CORS
+            // 6. allow frontend (angular/react) to talk to this api
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
                     builder => builder.WithOrigins("http://localhost:4200")
                                       .AllowAnyMethod()
                                       .AllowAnyHeader()
-                                      .AllowCredentials());
+                                      .AllowCredentials()); // cors ends
             });
 
-            // Add services to the container.
-
+            // add controller support
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
@@ -87,13 +88,12 @@ namespace API
                     options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
                 });
             
-            // 7. Configure Swagger with JWT Support
+            // 7. setup swagger page to test api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Insurance Platform API", Version = "v1" });
                 
-                // Updated to SecuritySchemeType.Http so Swagger handles "Bearer " prefix automatically
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -116,9 +116,9 @@ namespace API
                 });
             });
 
-            var app = builder.Build();
+            var app = builder.Build(); // build the app
 
-            // 8. Seed Database
+            // 8. setup roles and default data in database
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -127,9 +127,6 @@ namespace API
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                     var context = services.GetRequiredService<ApplicationDbContext>();
-                    
-                    // Apply migrations automatically (optional but helpful for local setup)
-                    // await context.Database.MigrateAsync();
                     
                     await DbInitializer.SeedAsync(userManager, roleManager);
                 }
@@ -140,7 +137,7 @@ namespace API
                 }
             }
 
-            // Configure the HTTP request pipeline.
+            // use swagger in development mode
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -151,14 +148,17 @@ namespace API
 
             app.UseCors("AllowAll");
 
-            app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseAuthentication(); // check login
+            app.UseAuthorization(); // check roles
 
 
+            // map endpoints
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
 
+            // run the app!
             app.Run();
         }
     }
 }
+// main program file ends

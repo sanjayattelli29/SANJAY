@@ -1,46 +1,30 @@
-﻿using Application.DTOs;
+﻿using Application.DTOs; // import data objects
 
-namespace Application.Interfaces
+namespace Application.Interfaces // interface folder
 {
-    /// <summary>
-    /// Interface for authentication and authorization services.
-    /// Defines methods for user registration, login, and administrative user creation.
-    /// </summary>
-    public interface IAuthService
+    // this interface lists all the things about user account management
+    public interface IAuthService // authentication service interface
     {
-        /// <summary>
-        /// Registers a new customer in the system.
-        /// </summary>
+        // register a new customer in system
         Task<AuthResponseDto> RegisterCustomerAsync(RegisterCustomerDto registerDto);
 
-        /// <summary>
-        /// Authenticates a user and returns a JWT token if successful.
-        /// </summary>
-        Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
+        // check user password and login
+        Task<AuthResponseDto> LoginAsync(LoginDto loginDto); // returns jwt token
 
-        /// <summary>
-        /// Creates a new Agent. Restricted to Admin users.
-        /// </summary>
-        Task<object> CreateAgentAsync(CreateAgentDto agentDto);
+        // create a new agent login (only for admin)
+        Task<object> CreateAgentAsync(CreateAgentDto agentDto); // admin only task
 
-        /// <summary>
-        /// Creates a new Claim Officer. Restricted to Admin users.
-        /// </summary>
-        Task<object> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto);
+        // create a new claim officer (only for admin)
+        Task<object> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto); // admin only task
 
-        /// <summary>
-        /// Returns a list of users in a specified role.
-        /// </summary>
-        Task<IEnumerable<object>> GetUsersByRoleAsync(string role);
+        // get all users who have a specific role
+        Task<IEnumerable<object>> GetUsersByRoleAsync(string role); // filter users
 
-        /// <summary>
-        /// Returns a list of all users in the system.
-        /// </summary>
+        // get every single user in system
         Task<IEnumerable<object>> GetAllUsersAsync();
 
-        /// <summary>
-        /// Deletes a user by their unique identifier.
-        /// </summary>
-        Task<object> DeleteUserAsync(string userId);
+        // delete a user from system
+        Task<object> DeleteUserAsync(string userId); // remove user account
     }
 }
+// auth service interface ends
