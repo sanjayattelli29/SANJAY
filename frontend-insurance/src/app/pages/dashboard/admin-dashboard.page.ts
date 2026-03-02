@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
 import { ClaimService } from '../../services/claim.service';
 import { PolicyService } from '../../services/policy.service';
+import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 import { Chart, registerables } from 'chart.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -14,7 +15,7 @@ Chart.register(...registerables);
 @Component({
     selector: 'app-admin-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [CommonModule, ReactiveFormsModule, NotificationPanelComponent],
     templateUrl: './admin-dashboard.page.html'
 })
 export class AdminDashboardPage implements OnInit {

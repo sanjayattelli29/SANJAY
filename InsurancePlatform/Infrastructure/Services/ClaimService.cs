@@ -18,15 +18,18 @@ namespace Infrastructure.Services
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IFileStorageService _fileStorage;
+        private readonly INotificationService _notificationService;
 
         public ClaimService(
             ApplicationDbContext context, 
             UserManager<ApplicationUser> userManager,
-            IFileStorageService fileStorage)
+            IFileStorageService fileStorage,
+            INotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
             _fileStorage = fileStorage;
+            _notificationService = notificationService;
         }
 
         // code for customer to tell about a problem and ask for money
@@ -59,6 +62,22 @@ namespace Infrastructure.Services
 
             _context.InsuranceClaims.Add(claim);
             await _context.SaveChangesAsync(); 
+
+            // Notify user about claim submission
+            await _notificationService.SendNotificationAsync(userId, "Claim Raised", 
+                $"Your claim for {request.IncidentType} has been raised successfully.", $"Claim:{claim.Id}");
+
+            // Notify all Admins and Claim Officers to assign/review
+            var admins = await _userManager.GetUsersInRoleAsync(UserRoles.Admin);
+            var officers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer);
+            
+            var staffToNotify = admins.Concat(officers).DistinctBy(u => u.Id);
+
+            foreach (var staff in staffToNotify)
+            {
+                await _notificationService.SendNotificationAsync(staff.Id, "New Claim Raised 🏥", 
+                    $"A new claim for {request.IncidentType} has been raised by {userId}. (ID: {claim.Id.Substring(0, 3).ToUpper()}...)", "Claim");
+            }
 
             // save uploaded documents if any
             if (request.Documents != null && request.Documents.Any())
@@ -134,6 +153,25 @@ namespace Infrastructure.Services
             claim.AssignedClaimOfficerId = officerId;
             claim.Status = "Assigned";
             await _context.SaveChangesAsync();
+
+            // Notify user about assignment
+            var claimDetails = await _context.InsuranceClaims
+                .Include(c => c.Policy)
+                .FirstOrDefaultAsync(c => c.Id == claimId);
+            
+            if (claimDetails != null)
+            {
+                var officer = await _userManager.FindByIdAsync(officerId);
+                var officerName = officer?.Email ?? "A claim officer";
+
+                await _notificationService.SendNotificationAsync(claimDetails.UserId, "Claim Officer Assigned", 
+                    $"{officerName} has been assigned to review your claim for {claimDetails.IncidentType}.", $"Claim:{claimId}");
+                
+                // Notify officer about new assignment
+                await _notificationService.SendNotificationAsync(officerId, "New Claim Assignment", 
+                    $"You have been assigned a new claim from {claimDetails.User?.Email ?? claimDetails.UserId} for {claimDetails.IncidentType}.", "Claim");
+            }
+
             return true;
         }
 
@@ -180,6 +218,16 @@ namespace Infrastructure.Services
             claim.ProcessedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            // Notify user about review result
+            string title = status == "Approved" ? "Claim Approved ✅" : "Claim Rejected ❌";
+            string displayId = claimId.Substring(0, 3).ToUpper();
+            string message = status == "Approved" ? 
+                $"Your claim for {claim.IncidentType} (ID: {displayId}...) has been approved for {approvedAmount:C}." : 
+                $"Your claim for {claim.IncidentType} (ID: {displayId}...) has been rejected.";
+            
+            await _notificationService.SendNotificationAsync(claim.UserId, title, message, $"Claim:{claimId}");
+
             return true;
         }
 

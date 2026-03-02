@@ -14,13 +14,15 @@ namespace Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
         private static PolicyConfiguration? _cachedConfig;
         private readonly string _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "policy-config.json");
 
-        public PolicyService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public PolicyService(ApplicationDbContext context, UserManager<ApplicationUser> userManager, INotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         // code to read the configuration from json file
@@ -116,6 +118,12 @@ namespace Infrastructure.Services
                 throw new Exception("You already have an active policy in this category.");
             }
 
+            var config = await GetConfigurationAsync();
+            var category = config.PolicyCategories.FirstOrDefault(c => c.CategoryId == request.PolicyCategory);
+            var tier = category?.Tiers.FirstOrDefault(t => t.TierId == request.TierId);
+
+            if (tier == null) throw new Exception("Invalid policy tier.");
+
             var premium = await CalculatePremiumAsync(request);
 
             var application = new PolicyApplication
@@ -131,6 +139,18 @@ namespace Infrastructure.Services
 
             _context.PolicyApplications.Add(application);
             await _context.SaveChangesAsync();
+
+            // Send notification to user
+            await _notificationService.SendNotificationAsync(userId, "Application Submitted", 
+                $"Your {request.TierId} policy application has been submitted successfully.", $"Policy:{application.Id}");
+
+            // Notify all Admins to assign an agent
+            var admins = await _userManager.GetUsersInRoleAsync(UserRoles.Admin);
+            foreach (var admin in admins)
+            {
+                await _notificationService.SendNotificationAsync(admin.Id, "New Policy Application", 
+                    $"New application from {userId} for {request.TierId} ({tier.BaseCoverageAmount:C}). Please assign an agent.", "Policy");
+            }
 
             return new { Status = "Success", ApplicationId = application.Id, Premium = premium };
         }
@@ -176,10 +196,22 @@ namespace Infrastructure.Services
             var app = await _context.PolicyApplications.FindAsync(applicationId);
             if (app == null) return false;
 
+            var agent = await _userManager.FindByIdAsync(agentId);
+            if (agent == null) return false;
+
             app.AssignedAgentId = agentId;
             app.Status = "Assigned";
             
             await _context.SaveChangesAsync();
+
+            // Notify user about agent assignment
+            await _notificationService.SendNotificationAsync(app.UserId, "Agent Assigned", 
+                $"Agent {agent.Email} has been assigned to your {app.TierId} policy application.", "Policy");
+            
+            // Notify agent about new assignment
+            await _notificationService.SendNotificationAsync(agentId, "New Application Assigned", 
+                $"You have been assigned a new application for {app.TierId}.", "Policy");
+
             return true;
         }
 
@@ -209,6 +241,16 @@ namespace Infrastructure.Services
             }
 
             await _context.SaveChangesAsync();
+
+            // Notify user about review result
+            string title = status == "Approved" ? "Payment Required 💳" : "Application Rejected ❌";
+            string displayId = applicationId.Substring(0, 3).ToUpper();
+            string message = status == "Approved" ? 
+                $"Please complete your payment of {app.CalculatedPremium:C} for {app.TierId}. ID: {displayId}..." : 
+                $"Your application for {app.TierId} (ID: {displayId}...) has been rejected.";
+            
+            await _notificationService.SendNotificationAsync(app.UserId, title, message, $"Policy:{applicationId}");
+
             return true;
         }
 
@@ -259,6 +301,11 @@ namespace Infrastructure.Services
             app.TotalApprovedClaimsAmount = 0;
 
             await _context.SaveChangesAsync();
+
+            // Notify user about activation
+            await _notificationService.SendNotificationAsync(app.UserId, "Policy Activated", 
+                $"Your {app.TierId} policy is now ACTIVE. Coverage starts from today.", $"Policy:{applicationId}");
+
             return true;
         }
 

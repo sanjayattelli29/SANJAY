@@ -11,6 +11,15 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
+  /**
+   * Returns the current user data if authenticated, otherwise null.
+   */
+  getCurrentUser() {
+    if (this.isLoggedIn()) {
+      return this.getUser();
+    }
+    return null;
+  }
   private http = inject(HttpClient);
   private router = inject(Router);
   private apiUrl = 'https://localhost:7140/api';

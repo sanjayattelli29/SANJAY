@@ -8,11 +8,12 @@ import { ClaimService } from '../../services/claim.service';
 import { ChatService } from '../../services/chat.service';
 
 import { RouterModule } from '@angular/router';
+import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })

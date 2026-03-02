@@ -1,4 +1,5 @@
 using API.Hubs;
+using Infrastructure.Hubs;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Data;
@@ -55,6 +56,22 @@ namespace API
                     ValidIssuer = builder.Configuration["JWT:Issuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]!))
                 };
+
+                // Added for SignalR Authentication
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && 
+                            (path.StartsWithSegments("/chathub") || path.StartsWithSegments("/notificationhub")))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
             // 4. enable authorization
@@ -66,6 +83,7 @@ namespace API
             builder.Services.AddScoped<IFileStorageService, ImageKitFileStorageService>();
             builder.Services.AddScoped<IClaimService, ClaimService>();
             builder.Services.AddScoped<IChatService, ChatService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
             
             // setup signalr for real-time chat
             builder.Services.AddSignalR();
@@ -155,6 +173,7 @@ namespace API
             // map endpoints
             app.MapControllers();
             app.MapHub<ChatHub>("/chathub");
+            app.MapHub<NotificationHub>("/notificationhub");
 
             // run the app!
             app.Run();

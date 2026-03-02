@@ -9,13 +9,14 @@ import { AdminService } from '../../services/admin.service';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { UserOptions } from 'jspdf-autotable';
+import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 
 Chart.register(...registerables);
 
 @Component({
     selector: 'app-claims-officer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, NotificationPanelComponent],
     templateUrl: './claims-officer-dashboard.page.html'
 })
 export class ClaimsOfficerDashboardPage implements OnInit {

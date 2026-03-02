@@ -83,19 +83,26 @@
 
     <!-- Main Content -->
     <main class="grow flex flex-col h-screen overflow-hidden">
-        <header class="bg-white/50 backdrop-blur-md px-10 py-6 shrink-0 z-10">
-            <h1 class="text-3xl font-black text-brand-navy tracking-tighter">
-                {{ activeView() === 'dashboard' ? 'Welcome Back!' :
-                activeView() === 'my-policies' ? 'My Portfolio' :
-                activeView() === 'raise-claim' ? 'Raise a Claim' :
-                activeView() === 'my-claims' ? 'Claim History' :
-                activeView() === 'chat' ? 'Customer Support Chat' :
-                'Find Your Plan' }}
-            </h1>
-            <p class="text-sm text-slate-400 font-medium">
-                {{ activeView() === 'raise-claim' ? 'Submit your incident details and documents for review.' : 'Manage
-                your protection and peace of mind.' }}
-            </p>
+        <header class="bg-white/50 backdrop-blur-md px-10 py-6 shrink-0 z-20 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-black text-brand-navy tracking-tighter">
+                    {{ activeView() === 'dashboard' ? 'Welcome Back!' :
+                    activeView() === 'my-policies' ? 'My Portfolio' :
+                    activeView() === 'raise-claim' ? 'Raise a Claim' :
+                    activeView() === 'my-claims' ? 'Claim History' :
+                    activeView() === 'chat' ? 'Customer Support Chat' :
+                    'Find Your Plan' }}
+                </h1>
+                <p class="text-sm text-slate-400 font-medium">
+                    {{ activeView() === 'raise-claim' ? 'Submit your incident details and documents for review.' :
+                    'Manage
+                    your protection and peace of mind.' }}
+                </p>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <app-notification-panel></app-notification-panel>
+            </div>
         </header>
 
         <div class="grow overflow-y-auto px-10 pb-10">

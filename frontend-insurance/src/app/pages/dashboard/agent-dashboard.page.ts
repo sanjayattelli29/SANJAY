@@ -9,6 +9,7 @@ import { ClaimService } from '../../services/claim.service';
 import { PolicyService } from '../../services/policy.service';
 import { ChatService } from '../../services/chat.service';
 import { AdminService } from '../../services/admin.service';
+import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 import { Chart, registerables } from 'chart.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -18,7 +19,7 @@ Chart.register(...registerables);
 @Component({
     selector: 'app-agent-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent],
     templateUrl: './agent-dashboard.page.html'
 })
 export class AgentDashboardPage implements OnInit {
