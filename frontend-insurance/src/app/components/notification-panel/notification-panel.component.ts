@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, HostListener, effect } from '@angular/core';
+import { Component, OnInit, inject, signal, HostListener, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService, Notification } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
@@ -16,13 +16,16 @@ export class NotificationPanelComponent implements OnInit {
     private authService = inject(AuthService);
     private router = inject(Router);
 
+    @Input() portalRole?: string;
     isOpen = signal(false);
 
     ngOnInit() {
-        // Start connection if user is logged in
-        const user = this.authService.getCurrentUser();
-        if (user) {
-            this.notificationService.startConnection();
+        // Start connection with portal-specific role or fallback to user role
+        const user = this.authService.getUser();
+        const roleToUse = this.portalRole || user.role;
+
+        if (roleToUse) {
+            this.notificationService.startConnection(roleToUse);
         }
     }
 
@@ -52,15 +55,24 @@ export class NotificationPanelComponent implements OnInit {
         }
 
         // 2. Parse target and navigate
-        const type = notification.notificationType || '';
+        const rawType = notification.notificationType || '';
+        // Remove role prefix if present (e.g., ADM:Policy:ID -> Policy:ID)
+        const type = rawType.includes(':') && ['ADM', 'AGENT', 'CUST', 'OFF'].includes(rawType.split(':')[0])
+            ? rawType.substring(rawType.indexOf(':') + 1)
+            : rawType;
+
         if (type.startsWith('Policy:')) {
             const policyId = type.split(':')[1];
-            this.router.navigate(['/customer/policy', policyId]);
-            this.isOpen.set(false);
+            if (policyId && policyId !== 'undefined') {
+                this.router.navigate(['/customer/policy', policyId]);
+                this.isOpen.set(false);
+            }
         } else if (type.startsWith('Claim:')) {
             const claimId = type.split(':')[1];
-            this.router.navigate(['/customer/claim', claimId]);
-            this.isOpen.set(false);
+            if (claimId && claimId !== 'undefined') {
+                this.router.navigate(['/customer/claim', claimId]);
+                this.isOpen.set(false);
+            }
         }
     }
 
@@ -81,9 +93,11 @@ export class NotificationPanelComponent implements OnInit {
 
     getFormattedHeader(type: string): string {
         if (!type) return 'NOTIFICATION';
-        if (type.startsWith('Policy:')) return 'POLICY UPDATE';
-        if (type.startsWith('Claim:')) return 'CLAIM ALERT';
-        if (type === 'PolicyApplication') return 'APPLICATION UPDATE';
-        return type.toUpperCase();
+        const t = type.toUpperCase();
+        if (t.includes('POLICY:')) return 'POLICY UPDATE';
+        if (t.includes('CLAIM:')) return 'CLAIM ALERT';
+        if (t.includes('POLICYAPPLICATION')) return 'APPLICATION UPDATE';
+        if (t.includes('COMMISSION')) return 'COMMISSION EARNED 💰';
+        return type.includes(':') ? type.split(':').pop()!.toUpperCase() : type.toUpperCase();
     }
 }

@@ -20,7 +20,7 @@
         </div>
         <div class="ml-auto flex items-center gap-8">
             <!-- Notifications -->
-            <app-notification-panel></app-notification-panel>
+            <app-notification-panel portalRole="Admin"></app-notification-panel>
 
             <div class="flex flex-col items-end">
                 <p class="text-sm font-black text-white italic">{{ user.email }}</p>
@@ -74,7 +74,8 @@
             </div>
 
             <div class="px-6 mb-8">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Complete Analysis</p>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Complete Analysis
+                </p>
                 <nav class="space-y-2">
                     <button (click)="setSection('analysis-users')"
                         [class]="'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ' + 
@@ -173,7 +174,8 @@
                 <div class="animate-in fade-in duration-700">
                     <div class="mb-10">
                         <h1 class="text-4xl font-black text-brand-navy tracking-tight">Executive Dashboard</h1>
-                        <p class="text-slate-400 font-bold mt-2">Real-time enterprise metrics & operational health.</p>
+                        <p class="text-slate-400 font-bold mt-2">Real-time enterprise metrics & operational health.
+                        </p>
                     </div>
 
                     <!-- Analytics Cards -->
@@ -258,7 +260,8 @@
                                 <div>
                                     <h3 class="font-black text-brand-navy uppercase tracking-tight italic">Policy
                                         Distribution</h3>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Best
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                                        Best
                                         performing categories</p>
                                 </div>
                                 <div
@@ -282,7 +285,8 @@
                                 <div>
                                     <h3 class="font-black text-brand-navy uppercase tracking-tight italic">Agent
                                         Performance</h3>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Top
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                                        Top
                                         assigned workload</p>
                                 </div>
                                 <div
@@ -346,10 +350,12 @@
                     <!-- Dashboard Activity Quick View -->
                     <div
                         class="card p-8 border-none shadow-2xl shadow-slate-200/40 bg-indigo-600 text-white relative overflow-hidden">
-                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl">
+                        </div>
                         <div class="relative z-10 flex justify-between items-center">
                             <div>
-                                <h3 class="font-black text-xl italic tracking-tighter mb-1">System Health Optimized</h3>
+                                <h3 class="font-black text-xl italic tracking-tighter mb-1">System Health Optimized
+                                </h3>
                                 <p class="text-[10px] uppercase font-bold text-indigo-100 tracking-widest">Global
                                     command log moved to dedicated console</p>
                             </div>
@@ -480,7 +486,8 @@
                                 <tbody class="divide-y divide-slate-100">
                                     @for (request of policyRequests(); track request.id) {
                                     <tr class="hover:bg-slate-50/50 transition-colors">
-                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ request.user?.email }}</td>
+                                        <td class="px-6 py-4 font-bold text-brand-navy">{{ request.user?.email }}
+                                        </td>
                                         <td class="px-6 py-4">
                                             <span
                                                 class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-bold uppercase text-[9px]">
@@ -538,7 +545,8 @@
                             <form [formGroup]="officerForm" (ngSubmit)="registerOfficer()"
                                 class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-2">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Officer Name</label>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Officer
+                                        Name</label>
                                     <input type="text" formControlName="name" placeholder="Full legal name"
                                         class="input-field py-3 text-sm focus:border-indigo-500">
                                 </div>
@@ -592,7 +600,8 @@
                                     <tr class="hover:bg-slate-50/50 transition-colors">
                                         <td class="px-6 py-4 font-bold text-brand-navy">{{ off.fullName }}</td>
                                         <td class="px-6 py-4">{{ off.email }}</td>
-                                        <td class="px-6 py-4 font-mono text-slate-500">{{ off.bankAccountNumber }}</td>
+                                        <td class="px-6 py-4 font-mono text-slate-500">{{ off.bankAccountNumber }}
+                                        </td>
                                         <td class="px-6 py-4 text-right">
                                             <button (click)="deleteUser(off.id)"
                                                 class="text-rose-500 hover:text-rose-700 font-bold uppercase tracking-tighter">Revoke
@@ -643,7 +652,8 @@
                                     <tr class="hover:bg-slate-50/50 transition-colors">
                                         <td class="px-6 py-4">
                                             <p class="font-bold text-brand-navy">{{ claim.user?.email }}</p>
-                                            <p class="text-[9px] text-slate-400">Policy: {{ claim.policy?.tierId }}</p>
+                                            <p class="text-[9px] text-slate-400">Policy: {{ claim.policy?.tierId }}
+                                            </p>
                                         </td>
                                         <td class="px-6 py-4">
                                             <span
@@ -651,7 +661,8 @@
                                                 {{ claim.incidentType }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 font-black">₹{{ claim.estimatedClaimAmount | number:'1.0-0'
+                                        <td class="px-6 py-4 font-black">₹{{ claim.requestedAmount |
+                                            number:'1.0-0'
                                             }}</td>
                                         <td class="px-6 py-4">
                                             <span class="badge badge-warning">● {{ claim.status }}</span>
@@ -678,7 +689,8 @@
                 @if (activeSection() === 'analysis-users') {
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <div>
-                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Registry: Identity Master
+                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Registry: Identity
+                            Master
                         </h1>
                         <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Total system
                             users including Agents, Officers and Customers.</p>
@@ -686,7 +698,8 @@
 
                     <div class="card p-0 overflow-hidden border-none shadow-2xl shadow-slate-200/50">
                         <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
-                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Master User List
+                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Master User
+                                List
                             </h3>
                         </div>
                         <div class="overflow-x-auto">
@@ -719,7 +732,8 @@
                                             }
                                         </td>
                                         <td class="px-8 py-6">
-                                            <p class="text-xs font-bold text-slate-600">{{ u.phoneNumber || 'N/A' }}</p>
+                                            <p class="text-xs font-bold text-slate-600">{{ u.phoneNumber || 'N/A' }}
+                                            </p>
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
                                                 Verified Phone</p>
                                         </td>
@@ -740,13 +754,15 @@
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <div>
                         <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Active Policies</h1>
-                        <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Complete history
+                        <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Complete
+                            history
                             of all policy applications and active underwritings.</p>
                     </div>
 
                     <div class="card p-0 overflow-hidden border-none shadow-2xl shadow-slate-200/50">
                         <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
-                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Consolidated Assets
+                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Consolidated
+                                Assets
                             </h3>
                         </div>
                         <div class="overflow-x-auto">
@@ -777,7 +793,8 @@
                                                 p.policyCategory }}</p>
                                         </td>
                                         <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-brand-navy italic">₹{{ p.calculatedPremium
+                                            <p class="text-xs font-black text-brand-navy italic">₹{{
+                                                p.calculatedPremium
                                                 | number }} /yr</p>
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
                                                 Premium</p>
@@ -811,8 +828,10 @@
                 @if (activeSection() === 'analysis-commands') {
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <div>
-                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Global Command Log</h1>
-                        <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">End-to-end audit
+                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Global Command Log
+                        </h1>
+                        <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">End-to-end
+                            audit
                             trail of every claim requested, processed and settled across the enterprise.</p>
                     </div>
 
@@ -849,11 +868,13 @@
                                         <td class="px-8 py-6">
                                             <p class="text-xs font-black text-brand-navy">{{ c.user?.fullName ||
                                                 'Registry ID: ' + c.userId.substring(0,8) }}</p>
-                                            <p class="text-[10px] text-slate-400 font-bold italic">{{ c.user?.email ||
+                                            <p class="text-[10px] text-slate-400 font-bold italic">{{ c.user?.email
+                                                ||
                                                 'Authenticated User' }}</p>
                                         </td>
                                         <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-indigo-600 uppercase tracking-tight">{{
+                                            <p class="text-xs font-black text-indigo-600 uppercase tracking-tight">
+                                                {{
                                                 c.incidentType }}</p>
                                             <p
                                                 class="text-[9px] text-slate-400 font-bold mt-1 inline-flex items-center gap-1">
@@ -868,11 +889,13 @@
                                         </td>
                                         <td class="px-8 py-6">
                                             <div class="flex flex-col">
-                                                <span class="text-xs font-black text-emerald-600">₹{{ (c.approvedAmount
+                                                <span class="text-xs font-black text-emerald-600">₹{{
+                                                    (c.approvedAmount
                                                     || 0) | number }} Approved</span>
                                                 <span
                                                     class="text-[9px] text-slate-400 font-bold italic line-through">Requested:
-                                                    ₹{{ (c.requestedAmount || c.estimatedClaimAmount) | number }}</span>
+                                                    ₹{{ (c.requestedAmount || c.estimatedClaimAmount) | number
+                                                    }}</span>
                                             </div>
                                         </td>
                                         <td class="px-8 py-6">
@@ -884,7 +907,8 @@
                                                 </span>
                                                 <p
                                                     class="text-[9px] text-slate-400 font-black uppercase tracking-tighter italic">
-                                                    Officer: {{ c.assignedOfficer?.email?.split('@')[0] || 'Unassigned'
+                                                    Officer: {{ c.assignedOfficer?.email?.split('@')[0] ||
+                                                    'Unassigned'
                                                     }}</p>
                                             </div>
                                         </td>
@@ -927,14 +951,16 @@
                 @if (activeSection() === 'analysis-payments') {
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <div>
-                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Enterprise Payments</h1>
+                        <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Enterprise Payments
+                        </h1>
                         <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Consolidated
                             premium collection and financial settlement audit.</p>
                     </div>
 
                     <div class="card p-0 overflow-hidden border-none shadow-2xl shadow-slate-200/50">
                         <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
-                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Premium Ledger</h3>
+                            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-slate-500">Premium Ledger
+                            </h3>
                             <button (click)="loadUnifiedPayments()"
                                 class="text-brand-orange hover:underline font-black text-[10px] uppercase tracking-widest">Refresh
                                 Payments</button>
@@ -956,7 +982,8 @@
                                     @for (pay of unifiedPayments(); track pay.transactionId) {
                                     <tr class="hover:bg-slate-50/30 transition-colors">
                                         <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-brand-navy">{{ pay.customerEmail }}</p>
+                                            <p class="text-xs font-black text-brand-navy">{{ pay.customerEmail }}
+                                            </p>
                                             <p
                                                 class="text-[9px] text-slate-400 font-bold uppercase tracking-tight italic">
                                                 {{ pay.transactionId || 'Awaiting Payment' }}</p>
@@ -964,7 +991,8 @@
                                         <td class="px-8 py-6">
                                             <p class="text-[10px] font-bold text-slate-600">A: {{ pay.agentEmail ||
                                                 'Direct' }}</p>
-                                            <p class="text-[10px] font-bold text-slate-400">O: {{ pay.claimsOfficerEmail
+                                            <p class="text-[10px] font-bold text-slate-400">O: {{
+                                                pay.claimsOfficerEmail
                                                 || 'Unassigned' }}</p>
                                         </td>
                                         <td class="px-8 py-6">
@@ -974,13 +1002,15 @@
                                                 pay.policyCategory }}</p>
                                         </td>
                                         <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-brand-navy">₹{{ pay.totalCoverage | number
+                                            <p class="text-xs font-black text-brand-navy">₹{{ pay.totalCoverage |
+                                                number
                                                 }}</p>
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
                                                 Curr: ₹{{ pay.currentCoverage | number }}</p>
                                         </td>
                                         <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-emerald-600">₹{{ pay.paidAmount | number
+                                            <p class="text-xs font-black text-emerald-600">₹{{ pay.paidAmount |
+                                                number
                                                 }}</p>
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
                                                 Premium: ₹{{ pay.premiumAmount | number }}</p>
@@ -1010,7 +1040,8 @@
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <div class="flex justify-between items-end">
                         <div>
-                            <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Email Automation</h1>
+                            <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">Email Automation
+                            </h1>
                             <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Direct
                                 communication channel to all platform stakeholders.</p>
                         </div>
@@ -1051,7 +1082,8 @@
                                                 <div>
                                                     <p class="text-xs font-black text-brand-navy">{{ u.fullName ||
                                                         u.userName }}</p>
-                                                    <p class="text-[10px] text-slate-400 font-bold italic lowercase">{{
+                                                    <p class="text-[10px] text-slate-400 font-bold italic lowercase">
+                                                        {{
                                                         u.email }}</p>
                                                 </div>
                                             </div>
@@ -1097,7 +1129,8 @@
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div>
                     <h3 class="font-black text-brand-navy uppercase tracking-tight">Select Agent for Assignment</h3>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Application ID: {{
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Application ID:
+                        {{
                         selectedApplicationId() }}</p>
                 </div>
                 <button (click)="showAssignModal.set(false)"
@@ -1134,7 +1167,8 @@
                         </tr>
                         } @empty {
                         <tr>
-                            <td colspan="3" class="p-10 text-center text-slate-400 italic font-bold">No active agents
+                            <td colspan="3" class="p-10 text-center text-slate-400 italic font-bold">No active
+                                agents
                                 found in system.</td>
                         </tr>
                         }
@@ -1192,7 +1226,8 @@
                         </tr>
                         } @empty {
                         <tr>
-                            <td colspan="3" class="p-10 text-center text-slate-400 italic font-bold">No claims officers
+                            <td colspan="3" class="p-10 text-center text-slate-400 italic font-bold">No claims
+                                officers
                                 found in system.</td>
                         </tr>
                         }
@@ -1228,11 +1263,13 @@
                                 Audit</span>
                             <span class="text-slate-400 text-[10px] font-mono">REC_{{
                                 (selectedUnifiedDetail().policy?.id
-                                || selectedUnifiedDetail().claim?.id || '000').substring(0,8).toUpperCase() }}</span>
+                                || selectedUnifiedDetail().claim?.id || '000').substring(0,8).toUpperCase()
+                                }}</span>
                         </div>
                         <h2 class="text-4xl text-white tracking-tighter italic">Unified <span
                                 class="text-brand-orange">Enterprise</span> Ledger</h2>
-                        <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">End-to-end data
+                        <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">End-to-end
+                            data
                             reconciliation protocol</p>
                     </div>
                     <button (click)="showUnifiedDetail.set(false)"
@@ -1257,7 +1294,8 @@
                             {{ selectedUnifiedDetail().customer?.email?.[0]?.toUpperCase() || 'C' }}
                         </div>
                         <div>
-                            <h3 class="font-black text-brand-navy uppercase tracking-[0.1em] italic">Customer Integrity
+                            <h3 class="font-black text-brand-navy uppercase tracking-[0.1em] italic">Customer
+                                Integrity
                             </h3>
                             <p
                                 class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] leading-none mt-1">
@@ -1267,9 +1305,11 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm col-span-2">
-                            <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-3">Electronic
+                            <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-3">
+                                Electronic
                                 Identity</p>
-                            <p class="text-sm font-black text-brand-navy">{{ selectedUnifiedDetail().customer?.email }}
+                            <p class="text-sm font-black text-brand-navy">{{ selectedUnifiedDetail().customer?.email
+                                }}
                             </p>
                             <div class="mt-4 pt-4 border-t border-slate-50 grid grid-cols-2 gap-4">
                                 <div>
@@ -1332,16 +1372,19 @@
                         <hr class="border-slate-50">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="p-4 bg-slate-50 rounded-2xl">
-                                <p class="text-[8px] text-slate-400 font-black uppercase mb-1">Professional Vertical</p>
+                                <p class="text-[8px] text-slate-400 font-black uppercase mb-1">Professional Vertical
+                                </p>
                                 <p class="text-xs font-black text-slate-700">{{
                                     selectedUnifiedDetail().policy?.fullDetails?.applicant?.profession || 'Standard
                                     Employment' }}</p>
                             </div>
                             <div class="p-4 bg-slate-50 rounded-2xl">
-                                <p class="text-[8px] text-slate-400 font-black uppercase mb-1">Risk Exposure (KM/Month)
+                                <p class="text-[8px] text-slate-400 font-black uppercase mb-1">Risk Exposure
+                                    (KM/Month)
                                 </p>
                                 <p class="text-xs font-black text-slate-700">{{
-                                    selectedUnifiedDetail().policy?.fullDetails?.applicant?.travelKmPerMonth || '0' }}
+                                    selectedUnifiedDetail().policy?.fullDetails?.applicant?.travelKmPerMonth || '0'
+                                    }}
                                     Kilometers</p>
                             </div>
                         </div>
@@ -1359,7 +1402,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-black text-brand-navy uppercase tracking-[0.1em] italic">Nominee Information
+                            <h3 class="font-black text-brand-navy uppercase tracking-[0.1em] italic">Nominee
+                                Information
                             </h3>
                             <p
                                 class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] leading-none mt-1">
@@ -1389,7 +1433,8 @@
                             <div class="p-4 bg-emerald-50/30 rounded-2xl border border-emerald-50">
                                 <p class="text-[8px] text-slate-400 font-bold uppercase mb-1">Settlement A/C</p>
                                 <p class="text-xs font-mono font-black text-brand-navy uppercase">{{
-                                    selectedUnifiedDetail().policy.fullDetails?.nominee?.nomineeBankAccountNumber }}</p>
+                                    selectedUnifiedDetail().policy.fullDetails?.nominee?.nomineeBankAccountNumber }}
+                                </p>
                             </div>
                             <div class="p-4 bg-emerald-50/30 rounded-2xl border border-emerald-50">
                                 <p class="text-[8px] text-slate-400 font-bold uppercase mb-1">Contact Anchor</p>
@@ -1400,7 +1445,8 @@
                     </div>
                     } @else {
                     <div class="p-10 text-center bg-white rounded-[2rem] border border-slate-100 border-dashed">
-                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest italic">No nominee records
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest italic">No nominee
+                            records
                             detected in application</p>
                     </div>
                     }
@@ -1417,7 +1463,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-black text-brand-navy uppercase tracking-[0.1em] italic">Servicing Personnel
+                            <h3 class="font-black text-brand-navy uppercase tracking-[0.1em] italic">Servicing
+                                Personnel
                             </h3>
                             <p
                                 class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] leading-none mt-1">
@@ -1429,12 +1476,15 @@
                         <div
                             class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center gap-4 shadow-sm group hover:border-indigo-200 transition-all">
                             <div>
-                                <p class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Verification
+                                <p class="text-[8px] text-slate-400 font-black uppercase tracking-widest">
+                                    Verification
                                     Agent</p>
-                                <p class="text-xs font-black text-brand-navy">{{ selectedUnifiedDetail().agent?.email ||
+                                <p class="text-xs font-black text-brand-navy">{{
+                                    selectedUnifiedDetail().agent?.email ||
                                     'UNASSIGNED' }}</p>
                                 <p class="text-[10px] font-bold text-indigo-500 mt-1 uppercase">{{
-                                    selectedUnifiedDetail().agent?.email ? 'Certified Partner' : 'Awaiting Allocation'
+                                    selectedUnifiedDetail().agent?.email ? 'Certified Partner' : 'Awaiting
+                                    Allocation'
                                     }}</p>
                             </div>
                         </div>
@@ -1447,7 +1497,8 @@
                                 <p class="text-xs font-black text-brand-navy">{{
                                     selectedUnifiedDetail().claimOfficer?.userName || 'UNASSIGNED' }}</p>
                                 <p class="text-[10px] font-bold text-brand-orange mt-1 uppercase">{{
-                                    selectedUnifiedDetail().claimOfficer?.userName ? 'Senior Assessor' : 'Audit Pending'
+                                    selectedUnifiedDetail().claimOfficer?.userName ? 'Senior Assessor' : 'Audit
+                                    Pending'
                                     }}
                                 </p>
                             </div>
@@ -1527,13 +1578,15 @@
                                     Logistics Forensics</p>
                                 <div class="space-y-4">
                                     <div>
-                                        <p class="text-[8px] text-slate-400 font-black uppercase">Incident Geo-Location
+                                        <p class="text-[8px] text-slate-400 font-black uppercase">Incident
+                                            Geo-Location
                                         </p>
                                         <p class="text-sm font-black text-brand-navy italic">{{
                                             selectedUnifiedDetail().claim.incidentLocation }}</p>
                                     </div>
                                     <div>
-                                        <p class="text-[8px] text-slate-400 font-black uppercase">Facility Admitted</p>
+                                        <p class="text-[8px] text-slate-400 font-black uppercase">Facility Admitted
+                                        </p>
                                         <p class="text-xs font-bold text-slate-600">{{
                                             selectedUnifiedDetail().claim.hospitalName }}</p>
                                     </div>
@@ -1606,7 +1659,8 @@
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest italic">Asset Lifecycle
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest italic">Asset
+                            Lifecycle
                             Clear • No Active Claims Documented</p>
                     </div>
                     }
@@ -1635,7 +1689,8 @@
                         <span
                             class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-black">Verified</span>
                     </h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Transaction Ledger
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Transaction
+                        Ledger
                         Record</p>
                 </div>
                 <button (click)="showInvoiceModal.set(false)"
@@ -1651,9 +1706,11 @@
                 <!-- Compact Settlement Box -->
                 <div class="bg-indigo-50/50 border border-indigo-100 p-6 rounded-2xl flex justify-between items-center">
                     <div>
-                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Settlement Amount
+                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Settlement
+                            Amount
                         </p>
-                        <h4 class="text-2xl font-black text-indigo-600 mt-1">₹{{ selectedPayment().paidAmount | number
+                        <h4 class="text-2xl font-black text-indigo-600 mt-1">₹{{ selectedPayment().paidAmount |
+                            number
                             }}</h4>
                     </div>
                     <div class="text-right">
@@ -1666,7 +1723,8 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Policyholder</p>
-                        <p class="text-xs font-bold text-slate-700 truncate">{{ selectedPayment().customerEmail }}</p>
+                        <p class="text-xs font-bold text-slate-700 truncate">{{ selectedPayment().customerEmail }}
+                        </p>
                     </div>
                     <div class="space-y-1 text-right">
                         <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Transaction ID</p>
@@ -1683,14 +1741,17 @@
                             selectedPayment().policyCategory }}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Plan Tier</span>
-                        <span class="text-[10px] font-black text-slate-700 uppercase italic">{{ selectedPayment().tierId
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Plan
+                            Tier</span>
+                        <span class="text-[10px] font-black text-slate-700 uppercase italic">{{
+                            selectedPayment().tierId
                             }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active
                             Coverage</span>
-                        <span class="text-[10px] font-black text-emerald-600">₹{{ selectedPayment().currentCoverage |
+                        <span class="text-[10px] font-black text-emerald-600">₹{{ selectedPayment().currentCoverage
+                            |
                             number }}</span>
                     </div>
                 </div>
@@ -1718,7 +1779,8 @@
                     <h3 class="font-black text-brand-navy uppercase tracking-tight text-xl italic">Email Automation
                         <span class="text-brand-orange">Protocol</span>
                     </h3>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Secure transmission
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Secure
+                        transmission
                         to: {{ selectedUserForEmail()?.email }}</p>
                 </div>
                 <button (click)="showEmailModal.set(false)"
@@ -1748,7 +1810,8 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Message Payload
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Message
+                        Payload
                         (HTML Content Support)</label>
                     <textarea formControlName="message" rows="8"
                         placeholder="Compose your secure communication message..."

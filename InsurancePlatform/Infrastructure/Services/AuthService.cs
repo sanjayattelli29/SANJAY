@@ -100,15 +100,15 @@ namespace Infrastructure.Services
             return new AuthResponseDto { Status = "Error", Message = "Invalid login attempt." };
         }
 
-        /// <summary>
-        /// Creates a new Agent. Restricted to Admin via controller.
-        /// </summary>
+        // code to create a new agent with login access
         public async Task<object> CreateAgentAsync(CreateAgentDto agentDto)
         {
+            // check if this email is already taken by someone else
             var userExists = await _userManager.FindByEmailAsync(agentDto.EmailId);
             if (userExists != null)
                 return new { Status = "Error", Message = "Agent already exists!" };
 
+            // create the agent user object
             ApplicationUser user = new()
             {
                 Email = agentDto.EmailId,
@@ -118,27 +118,30 @@ namespace Infrastructure.Services
                 BankAccountNumber = agentDto.BankAccountNumber
             };
 
+            // try to save to database with password
             var result = await _userManager.CreateAsync(user, agentDto.Password);
             if (!result.Succeeded)
                 return new { Status = "Error", Message = "Agent creation failed!" };
 
+            // make sure agent role exists in the system
             if (!await _roleManager.RoleExistsAsync(UserRoles.Agent))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Agent));
 
+            // assign agent role to this user
             await _userManager.AddToRoleAsync(user, UserRoles.Agent);
 
             return new { Status = "Success", Message = "Agent created successfully!" };
         }
 
-        /// <summary>
-        /// Creates a new Claim Officer. Restricted to Admin via controller.
-        /// </summary>
+        // code to create a new claim officer with login access
         public async Task<object> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto)
         {
+            // check if this email is already registered
             var userExists = await _userManager.FindByEmailAsync(claimOfficerDto.EmailId);
             if (userExists != null)
                 return new { Status = "Error", Message = "Claim Officer already exists!" };
 
+            // build the claim officer user object
             ApplicationUser user = new()
             {
                 Email = claimOfficerDto.EmailId,
@@ -148,24 +151,27 @@ namespace Infrastructure.Services
                 BankAccountNumber = claimOfficerDto.BankAccountNumber
             };
 
+            // save user with password to database
             var result = await _userManager.CreateAsync(user, claimOfficerDto.Password);
             if (!result.Succeeded)
                 return new { Status = "Error", Message = "Claim Officer creation failed!" };
 
+            // create claim officer role if it doesn't exist yet
             if (!await _roleManager.RoleExistsAsync(UserRoles.ClaimOfficer))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.ClaimOfficer));
 
+            // give claim officer permissions to this user
             await _userManager.AddToRoleAsync(user, UserRoles.ClaimOfficer);
 
             return new { Status = "Success", Message = "Claim Officer created successfully!" };
         }
 
-        /// <summary>
-        /// Returns a list of users belonging to a specific role.
-        /// </summary>
+        // get a list of all users who have a specific role like agent or officer
         public async Task<IEnumerable<object>> GetUsersByRoleAsync(string role)
         {
+            // fetch users from database who have this role
             var users = await _userManager.GetUsersInRoleAsync(role);
+            // return only the information we need
             return users.Select(u => new
             {
                 u.Id,
@@ -175,14 +181,14 @@ namespace Infrastructure.Services
             });
         }
 
-        /// <summary>
-        /// Returns a list of all users in the system with their roles.
-        /// </summary>
+        // get a full list of everyone registered in the system with their jobs
         public async Task<IEnumerable<object>> GetAllUsersAsync()
         {
+            // get all users from the database
             var users = _userManager.Users.ToList();
             var result = new List<object>();
 
+            // for each user also find what role they have
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
@@ -200,15 +206,15 @@ namespace Infrastructure.Services
             return result;
         }
 
-        /// <summary>
-        /// Deletes a user from the system.
-        /// </summary>
+        // completely remove a user from our database
         public async Task<object> DeleteUserAsync(string userId)
         {
+            // first check if user exists
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 return new { Status = "Error", Message = "User not found!" };
 
+            // try to delete from database
             var result = await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
                 return new { Status = "Error", Message = "User deletion failed!" };
@@ -216,13 +222,13 @@ namespace Infrastructure.Services
             return new { Status = "Success", Message = "User deleted successfully!" };
         }
 
-        /// <summary>
-        /// Generates a JWT token based on user claims and settings in appsettings.json.
-        /// </summary>
+        // this creates the security token that proves user is logged in
         private JwtSecurityToken CreateToken(List<System.Security.Claims.Claim> authClaims)
         {
+            // get the secret key from settings file
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]!));
 
+            // build the token with expiry time and user info
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],

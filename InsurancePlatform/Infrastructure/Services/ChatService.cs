@@ -78,30 +78,32 @@ public class ChatService : IChatService
         return chatMessage;
     }
 
-    public async Task<IEnumerable<Chat>> GetUserChatListAsync(string userId, string role)
-    {
-        // 1. Get all policies relevant to this user
-        var policiesQuery = _context.PolicyApplications
-            .Include(p => p.User)
-            .Include(p => p.AssignedAgent)
-            .AsQueryable();
+// gets all policies and chats for the user based on their role
+        public async Task<IEnumerable<Chat>> GetUserChatListAsync(string userId, string role)
+        {
+            // step 1: find all insurance policies this user is involved with
+            var policiesQuery = _context.PolicyApplications
+                .Include(p => p.User)  // customer details
+                .Include(p => p.AssignedAgent)  // agent details
+                .AsQueryable();
 
-        if (role == "Customer")
-        {
-            policiesQuery = policiesQuery.Where(p => p.UserId == userId);
-        }
-        else if (role == "Agent")
-        {
-            policiesQuery = policiesQuery.Where(p => p.AssignedAgentId == userId);
-        }
-        else
-        {
-            return new List<Chat>();
+            // filter based on who is logged in
+            if (role == "Customer")
+            {
+                policiesQuery = policiesQuery.Where(p => p.UserId == userId);  // customer sees their own policies
+            }
+            else if (role == "Agent")
+            {
+                policiesQuery = policiesQuery.Where(p => p.AssignedAgentId == userId);  // agent sees assigned policies
+            }
+            else
+            {
+                return new List<Chat>();  // other roles don't have chats
         }
 
         var policies = await policiesQuery.ToListAsync();
 
-        // 2. Get existing chats safely
+        // step 2: get existing chat records from database
         List<Chat> existingChats = new();
         try 
         {
@@ -111,14 +113,15 @@ public class ChatService : IChatService
         }
         catch (Exception)
         {
-            // If tables don't exist yet, we only have policies
+            // if chat table doesn't exist yet just use policies
         }
 
-        // 3. Merge: Return all policies as Chat objects
+        // step 3: combine policies with chat data for the list
         var result = policies.Select(p => {
+            // try to find existing chat for this policy
             var chat = existingChats.FirstOrDefault(c => c.PolicyId == p.Id);
             
-            // Calculate unread count if chat exists
+            // count how many unread messages they have
             int unreadCount = 0;
             if (chat != null)
             {
@@ -126,16 +129,17 @@ public class ChatService : IChatService
                     .Count(m => m.ChatId == chat.Id && !m.IsRead && m.SenderRole != role);
             }
 
+            // if chat exists return it with unread count
             if (chat != null) 
             {
                 chat.UnreadCount = unreadCount;
                 return chat;
             }
 
-            // Return a transient Chat object for the UI
+            // if chat doesn't exist create a temporary object for display
             return new Chat
             {
-                Id = "new_" + p.Id, // Signal to frontend that it's not yet in DB
+                Id = "new_" + p.Id,  // special id to show it's new
                 PolicyId = p.Id,
                 CustomerId = p.UserId,
                 AgentId = p.AssignedAgentId ?? string.Empty,
@@ -150,25 +154,30 @@ public class ChatService : IChatService
             };
         });
 
-        return result.OrderByDescending(r => r.UpdatedAt);
+        return result.OrderByDescending(r => r.UpdatedAt);  // most recent chats first
     }
 
+    // loads all previous messages for a specific policy chat
     public async Task<Chat?> GetChatHistoryAsync(string policyId)
     {
         return await _context.Chats
-            .Include(c => c.Messages.OrderBy(m => m.Timestamp))
+            .Include(c => c.Messages.OrderBy(m => m.Timestamp))  // load messages in time order
             .FirstOrDefaultAsync(c => c.PolicyId == policyId);
     }
 
+    // marks all messages as read when user opens the chat
     public async Task MarkMessagesAsReadAsync(string policyId, string readerRole)
     {
+        // find the chat session
         var chat = await _context.Chats.FirstOrDefaultAsync(c => c.PolicyId == policyId);
         if (chat == null) return;
 
+        // find messages user hasn't seen yet (sent by other person)
         var unreadMessages = await _context.ChatMessages
             .Where(m => m.ChatId == chat.Id && !m.IsRead && m.SenderRole != readerRole)
             .ToListAsync();
 
+        // mark them all as read
         if (unreadMessages.Any())
         {
             foreach (var msg in unreadMessages)

@@ -5,6 +5,7 @@ using Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
+// this class handles the bell notification system for users
 namespace Infrastructure.Services
 {
     public class NotificationService : INotificationService
@@ -18,8 +19,10 @@ namespace Infrastructure.Services
             _hubContext = hubContext;
         }
 
+        // creates and sends a new notification to a user
         public async Task SendNotificationAsync(string userId, string title, string message, string type = "General")
         {
+            // create notification record
             var notification = new Notification
             {
                 UserId = userId,
@@ -30,11 +33,11 @@ namespace Infrastructure.Services
                 IsRead = false
             };
 
+            // save to database
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
-            // Broadcast real-time update via SignalR
-            // We use the userId as the SignalR identifier (this assumes Identity is configured appropriately)
+            // send instant alert to user if they're online using signalr
             await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", new
             {
                 id = notification.Id,
@@ -47,21 +50,24 @@ namespace Infrastructure.Services
             });
         }
 
+        // gets all notifications for a specific user
         public async Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId)
         {
             return await _context.Notifications
                 .Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedAt)
-                .Take(50)
+                .OrderByDescending(n => n.CreatedAt)  // newest first
+                .Take(50)  // only last 50 notifications
                 .ToListAsync();
         }
 
+        // counts how many notifications user hasn't opened yet
         public async Task<int> GetUnreadCountAsync(string userId)
         {
             return await _context.Notifications
                 .CountAsync(n => n.UserId == userId && !n.IsRead);
         }
 
+        // marks one notification as seen
         public async Task MarkAsReadAsync(Guid notificationId)
         {
             var notification = await _context.Notifications.FindAsync(notificationId);
@@ -72,6 +78,7 @@ namespace Infrastructure.Services
             }
         }
 
+        // marks all user's notifications as seen at once
         public async Task MarkAllAsReadAsync(string userId)
         {
             var unreadNotifications = await _context.Notifications

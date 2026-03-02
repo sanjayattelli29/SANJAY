@@ -65,18 +65,19 @@ namespace Infrastructure.Services
 
             // Notify user about claim submission
             await _notificationService.SendNotificationAsync(userId, "Claim Raised", 
-                $"Your claim for {request.IncidentType} has been raised successfully.", $"Claim:{claim.Id}");
+                $"Your claim for {request.IncidentType} has been raised successfully.", $"CUST:Claim:{claim.Id}");
 
-            // Notify all Admins and Claim Officers to assign/review
+            // Get user email for display - Use direct query for robustness
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            string userEmail = user?.Email ?? userId;
+
+            // Notify only Admins to assign an officer to this new claim
             var admins = await _userManager.GetUsersInRoleAsync(UserRoles.Admin);
-            var officers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer);
             
-            var staffToNotify = admins.Concat(officers).DistinctBy(u => u.Id);
-
-            foreach (var staff in staffToNotify)
+            foreach (var admin in admins)
             {
-                await _notificationService.SendNotificationAsync(staff.Id, "New Claim Raised 🏥", 
-                    $"A new claim for {request.IncidentType} has been raised by {userId}. (ID: {claim.Id.Substring(0, 3).ToUpper()}...)", "Claim");
+                await _notificationService.SendNotificationAsync(admin.Id, "New Claim Raised 🏥", 
+                    $"A new claim for {request.IncidentType} has been raised by {userEmail}. (ID: {claim.Id.ToString().Substring(0, 3).ToUpper()}...)", $"ADM:Claim:{claim.Id}");
             }
 
             // save uploaded documents if any
@@ -105,32 +106,37 @@ namespace Infrastructure.Services
             return new { Status = "Success", ClaimId = claim.Id };
         }
 
+        // customer sees all their previous and current claims
         public async Task<IEnumerable<InsuranceClaim>> GetCustomerClaimsAsync(string userId)
         {
             return await _context.InsuranceClaims
-                .Include(c => c.Policy)
-                .Include(c => c.Documents)
-                .Include(c => c.AssignedOfficer)
+                .Include(c => c.Policy)  // load policy details
+                .Include(c => c.Documents)  // load uploaded documents
+                .Include(c => c.AssignedOfficer)  // load officer details
                 .Where(c => c.UserId == userId)
-                .OrderByDescending(c => c.SubmissionDate)
+                .OrderByDescending(c => c.SubmissionDate)  // newest first
                 .ToListAsync();
         }
 
+        // admin sees claims that haven't been assigned to anyone yet
         public async Task<IEnumerable<InsuranceClaim>> GetPendingClaimsAsync()
         {
             return await _context.InsuranceClaims
-                .Include(c => c.User)
-                .Include(c => c.Policy)
-                .Where(c => c.Status == "Pending")
+                .Include(c => c.User)  // who filed the claim
+                .Include(c => c.Policy)  // which policy it's for
+                .Where(c => c.Status == "Pending")  // not assigned yet
                 .OrderByDescending(c => c.SubmissionDate)
                 .ToListAsync();
         }
 
+        // shows which officer has how many claims so admin can balance work
         public async Task<IEnumerable<object>> GetClaimOfficersWithWorkloadAsync()
         {
+            // get all users who are claim officers
             var officers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer);
             var result = new List<object>();
 
+            // for each officer count how many claims they're handling
             foreach (var officer in officers)
             {
                 var count = await _context.InsuranceClaims.CountAsync(c => c.AssignedClaimOfficerId == officer.Id);
@@ -145,16 +151,19 @@ namespace Infrastructure.Services
             return result;
         }
 
+        // admin gives a claim to a specific officer to investigate
         public async Task<bool> AssignClaimOfficerAsync(string claimId, string officerId)
         {
+            // find the claim in database
             var claim = await _context.InsuranceClaims.FindAsync(claimId);
             if (claim == null) return false;
 
+            // link officer to this claim
             claim.AssignedClaimOfficerId = officerId;
-            claim.Status = "Assigned";
+            claim.Status = "Assigned";  // update status
             await _context.SaveChangesAsync();
 
-            // Notify user about assignment
+            // get more details for notifications
             var claimDetails = await _context.InsuranceClaims
                 .Include(c => c.Policy)
                 .FirstOrDefaultAsync(c => c.Id == claimId);
@@ -164,42 +173,47 @@ namespace Infrastructure.Services
                 var officer = await _userManager.FindByIdAsync(officerId);
                 var officerName = officer?.Email ?? "A claim officer";
 
+                // tell customer someone is now checking their claim
                 await _notificationService.SendNotificationAsync(claimDetails.UserId, "Claim Officer Assigned", 
-                    $"{officerName} has been assigned to review your claim for {claimDetails.IncidentType}.", $"Claim:{claimId}");
+                    $"{officerName} has been assigned to review your claim for {claimDetails.IncidentType}.", $"CUST:Claim:{claimId}");
                 
-                // Notify officer about new assignment
+                // tell officer they got a new claim to review
                 await _notificationService.SendNotificationAsync(officerId, "New Claim Assignment", 
-                    $"You have been assigned a new claim from {claimDetails.User?.Email ?? claimDetails.UserId} for {claimDetails.IncidentType}.", "Claim");
+                    $"You have been assigned a new claim from {claimDetails.User?.Email ?? claimDetails.UserId} for {claimDetails.IncidentType}.", $"OFF:Claim:{claimId}");
             }
 
             return true;
         }
 
+        // officer sees all claims assigned to them for review
         public async Task<IEnumerable<InsuranceClaim>> GetOfficerClaimsAsync(string officerId)
         {
             return await _context.InsuranceClaims
-                .Include(c => c.User)
-                .Include(c => c.Policy)
-                    .ThenInclude(p => p.AssignedAgent)
-                .Include(c => c.Documents)
+                .Include(c => c.User)  // customer who filed it
+                .Include(c => c.Policy)  // the insurance policy
+                    .ThenInclude(p => p.AssignedAgent)  // the agent who sold it
+                .Include(c => c.Documents)  // uploaded proof documents
                 .Where(c => c.AssignedClaimOfficerId == officerId)
                 .OrderByDescending(c => c.SubmissionDate)
                 .ToListAsync();
         }
 
+        // officer decides whether to approve or reject the claim
         public async Task<bool> ReviewClaimAsync(string claimId, string status, string officerId, string remarks, decimal approvedAmount = 0)
         {
+            // find claim and make sure it's assigned to this officer
             var claim = await _context.InsuranceClaims
                 .Include(c => c.Policy)
                 .FirstOrDefaultAsync(c => c.Id == claimId);
 
             if (claim == null || claim.AssignedClaimOfficerId != officerId) return false;
 
+            // if approving the claim
             if (status == "Approved")
             {
                 if (claim.Policy == null) throw new Exception("Associated policy not found.");
                 
-                // Validate against remaining coverage
+                // make sure approved amount doesn't exceed remaining coverage
                 if (approvedAmount > claim.Policy.RemainingCoverageAmount)
                 {
                     throw new Exception($"Approved amount (₹{approvedAmount}) exceeds remaining coverage (₹{claim.Policy.RemainingCoverageAmount}).");
@@ -207,19 +221,20 @@ namespace Infrastructure.Services
 
                 claim.ApprovedAmount = approvedAmount;
                 
-                // Update Policy Financials
+                // update policy's money tracking
                 claim.Policy.TotalApprovedClaimsAmount += approvedAmount;
-                claim.Policy.RemainingCoverageAmount -= approvedAmount;
+                claim.Policy.RemainingCoverageAmount -= approvedAmount;  // reduce available coverage
             }
 
-            claim.Status = status; // Approved or Rejected
-            claim.Remarks = remarks;
+            // save the decision
+            claim.Status = status;  // Approved or Rejected
+            claim.Remarks = remarks;  // officer's notes
             claim.ApprovedByOfficerId = officerId;
             claim.ProcessedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
-            // Notify user about review result
+            // tell customer about the decision
             string title = status == "Approved" ? "Claim Approved ✅" : "Claim Rejected ❌";
             string displayId = claimId.Substring(0, 3).ToUpper();
             string message = status == "Approved" ? 
@@ -231,38 +246,45 @@ namespace Infrastructure.Services
             return true;
         }
 
+        // agent can see claims filed by their customers
         public async Task<IEnumerable<InsuranceClaim>> GetAgentClaimsAsync(string agentId)
         {
             return await _context.InsuranceClaims
-                .Include(c => c.User)
-                .Include(c => c.Policy)
-                    .ThenInclude(p => p.AssignedAgent)
-                .Include(c => c.Documents)
-                .Include(c => c.AssignedOfficer)
-                .Where(c => c.Policy.AssignedAgentId == agentId)
+                .Include(c => c.User)  // customer details
+                .Include(c => c.Policy)  // policy details
+                    .ThenInclude(p => p.AssignedAgent)  // agent details
+                .Include(c => c.Documents)  // claim documents
+                .Include(c => c.AssignedOfficer)  // who's reviewing it
+                .Where(c => c.Policy.AssignedAgentId == agentId)  // only their customers
                 .OrderByDescending(c => c.SubmissionDate)
                 .ToListAsync();
         }
 
+        // admin can see every single claim in the system
         public async Task<IEnumerable<InsuranceClaim>> GetAllClaimsAsync()
         {
             return await _context.InsuranceClaims
-                .Include(c => c.User)
-                .Include(c => c.Policy)
-                    .ThenInclude(p => p.AssignedAgent)
-                .Include(c => c.Documents)
-                .Include(c => c.AssignedOfficer)
+                .Include(c => c.User)  // who filed it
+                .Include(c => c.Policy)  // which policy
+                    .ThenInclude(p => p.AssignedAgent)  // which agent
+                .Include(c => c.Documents)  // all documents
+                .Include(c => c.AssignedOfficer)  // who's checking it
                 .OrderByDescending(c => c.SubmissionDate)
                 .ToListAsync();
         }
 
+        // calculates overall statistics for admin dashboard
         public async Task<AdminDashboardStatsDto> GetAdminStatsAsync()
         {
             var stats = new AdminDashboardStatsDto
             {
+                // count total customers registered
                 TotalCustomers = await _userManager.GetUsersInRoleAsync(UserRoles.Customer).ContinueWith(t => t.Result.Count),
+                // count total policies sold
                 TotalPolicies = await _context.PolicyApplications.CountAsync(),
+                // count total claims filed
                 TotalClaims = await _context.InsuranceClaims.CountAsync(),
+                // sum of all money paid out for claims
                 TotalClaimedAmount = await _context.InsuranceClaims
                     .Where(c => c.Status == "Approved" || c.Status == "Paid")
                     .SumAsync(c => (decimal?)c.ApprovedAmount) ?? 0
@@ -270,14 +292,15 @@ namespace Infrastructure.Services
             return stats;
         }
 
+        // finds claim details for a specific insurance policy
         public async Task<InsuranceClaim?> GetClaimByPolicyIdAsync(string policyId)
         {
             return await _context.InsuranceClaims
-                .Include(c => c.User)
-                .Include(c => c.Policy)
-                    .ThenInclude(p => p.AssignedAgent)
-                .Include(c => c.Documents)
-                .Include(c => c.AssignedOfficer)
+                .Include(c => c.User)  // customer info
+                .Include(c => c.Policy)  // policy info
+                    .ThenInclude(p => p.AssignedAgent)  // agent info
+                .Include(c => c.Documents)  // claim documents
+                .Include(c => c.AssignedOfficer)  // officer info
                 .FirstOrDefaultAsync(c => c.PolicyApplicationId == policyId);
         }
     }

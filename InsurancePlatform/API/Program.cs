@@ -86,7 +86,10 @@ namespace API
             builder.Services.AddScoped<INotificationService, NotificationService>();
             
             // setup signalr for real-time chat
-            builder.Services.AddSignalR();
+            builder.Services.AddSignalR()
+                .AddJsonProtocol(options => {
+                    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
 
             // 6. allow frontend (angular/react) to talk to this api
             builder.Services.AddCors(options =>
@@ -104,6 +107,7 @@ namespace API
                 {
                     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                     options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 });
             
             // 7. setup swagger page to test api
@@ -145,6 +149,9 @@ namespace API
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                     var context = services.GetRequiredService<ApplicationDbContext>();
+                    
+                    // Automatically apply any pending migrations
+                    await context.Database.MigrateAsync();
                     
                     await DbInitializer.SeedAsync(userManager, roleManager);
                 }

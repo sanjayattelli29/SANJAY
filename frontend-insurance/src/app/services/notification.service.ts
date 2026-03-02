@@ -24,7 +24,7 @@ export class NotificationService {
     private hubUrl = 'https://localhost:7140/notificationhub';
 
     private hubConnection: signalR.HubConnection | null = null;
-    
+
     // Signals for reactive UI
     notifications = signal<Notification[]>([]);
     unreadCount = signal<number>(0);
@@ -32,8 +32,15 @@ export class NotificationService {
     /**
      * Initializes SignalR connection for notifications.
      */
-    async startConnection() {
-        if (this.hubConnection) return;
+    async startConnection(role?: string) {
+        if (role) this.authService.setCurrentRole(role);
+        const currentRole = role || (this.authService.getUser()?.role ?? undefined);
+
+        if (this.hubConnection) {
+            // Restart load to get filtered data
+            this.loadInitialData(currentRole);
+            return;
+        }
 
         this.hubConnection = new signalR.HubConnectionBuilder()
             .withUrl(this.hubUrl, {
@@ -44,23 +51,36 @@ export class NotificationService {
 
         this.hubConnection.on('ReceiveNotification', (notification: Notification) => {
             console.log('New notification received:', notification);
-            this.notifications.update(prev => [notification, ...prev]);
-            this.unreadCount.update(count => count + 1);
-            
-            // Play a subtle sound or trigger a toast if needed
+
+            // Real-time filter: Only add if it matches current role or is general
+            const prefix = this.getRolePrefix(currentRole);
+            if (!prefix || notification.notificationType.startsWith(prefix) || notification.notificationType === 'General') {
+                this.notifications.update(prev => [notification, ...prev]);
+                this.unreadCount.update(count => count + 1);
+            }
         });
 
         try {
             await this.hubConnection.start();
             console.log('SignalR NotificationHub connected');
-            this.loadInitialData();
+            this.loadInitialData(currentRole);
         } catch (err) {
             console.error('Error while starting SignalR NotificationHub:', err);
         }
     }
 
-    private loadInitialData() {
-        this.getNotifications().subscribe(data => {
+    private getRolePrefix(role?: string): string {
+        if (!role) return '';
+        const r = role.toUpperCase();
+        if (r === 'ADMIN') return 'ADM:';
+        if (r === 'AGENT') return 'AGENT:';
+        if (r === 'CUSTOMER') return 'CUST:';
+        if (r === 'CLAIMOFFICER') return 'OFF:';
+        return '';
+    }
+
+    private loadInitialData(role?: string) {
+        this.getNotifications(role).subscribe(data => {
             this.notifications.set(data);
         });
         this.getUnreadCount().subscribe(count => {
@@ -71,8 +91,9 @@ export class NotificationService {
     /**
      * Fetch all notifications for the user.
      */
-    getNotifications(): Observable<Notification[]> {
-        return this.http.get<Notification[]>(this.apiUrl);
+    getNotifications(role?: string): Observable<Notification[]> {
+        const url = role ? `${this.apiUrl}?role=${role}` : this.apiUrl;
+        return this.http.get<Notification[]>(url);
     }
 
     /**
@@ -88,7 +109,7 @@ export class NotificationService {
     markAsRead(id: string): Observable<any> {
         return this.http.post(`${this.apiUrl}/${id}/read`, {}).pipe(
             tap(() => {
-                this.notifications.update(list => 
+                this.notifications.update(list =>
                     list.map(n => n.id === id ? { ...n, isRead: true } : n)
                 );
                 this.unreadCount.update(count => Math.max(0, count - 1));
@@ -102,7 +123,7 @@ export class NotificationService {
     markAllAsRead(): Observable<any> {
         return this.http.post(`${this.apiUrl}/read-all`, {}).pipe(
             tap(() => {
-                this.notifications.update(list => 
+                this.notifications.update(list =>
                     list.map(n => ({ ...n, isRead: true }))
                 );
                 this.unreadCount.set(0);

@@ -110,4 +110,11 @@ export class AuthService {
   getUserRole(): string | null {
     return localStorage.getItem('auth_role');
   }
+
+  /**
+   * Sets the user's current active role.
+   */
+  setCurrentRole(role: string) {
+    localStorage.setItem('auth_role', role);
+  }
 }
