@@ -4,13 +4,13 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using Domain.Enums; // role names
-using System.Text.Json; // json handling
+using Domain.Enums;
+using System.Text.Json;
 
 namespace Infrastructure.Services
 {
     // this class manages everything about policies like plans and premiums
-    public class PolicyService : IPolicyService // core logic class
+    public class PolicyService : IPolicyService
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -26,7 +26,7 @@ namespace Infrastructure.Services
         // code to read the configuration from json file
         public async Task<PolicyConfiguration> GetConfigurationAsync()
         {
-            if (_cachedConfig != null) return _cachedConfig; // return if ready
+            if (_cachedConfig != null) return _cachedConfig;
 
             // find the path to policy-config.json
             var path = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Data", "policy-config.json");
@@ -40,7 +40,7 @@ namespace Infrastructure.Services
             // turn json text into c# object
             _cachedConfig = JsonSerializer.Deserialize<PolicyConfiguration>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             
-            return _cachedConfig!; // return the config
+            return _cachedConfig!;
         }
 
         // math to find how much money policy costs
@@ -51,7 +51,7 @@ namespace Infrastructure.Services
             if (category == null) throw new Exception("Invalid category");
 
             var tier = category.Tiers.FirstOrDefault(t => t.TierId == request.TierId);
-            if (tier == null) throw new Exception("Invalid tier"); // error case
+            if (tier == null) throw new Exception("Invalid tier");
 
             var applicant = request.PolicyCategory == "INDIVIDUAL" ? request.Applicant : request.PrimaryApplicant;
             if (applicant == null) throw new Exception("Applicant details missing");
@@ -100,7 +100,7 @@ namespace Infrastructure.Services
                 _ => 1.0
             };
 
-            return tier.BasePremiumAmount * (decimal)multiplier; // final math
+            return tier.BasePremiumAmount * (decimal)multiplier;
         }
 
         public async Task<object> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request)

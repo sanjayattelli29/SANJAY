@@ -1,30 +1,29 @@
-﻿using Application.DTOs; // import data objects
+﻿using Application.DTOs;
 
-namespace Application.Interfaces // interface folder
+namespace Application.Interfaces
 {
     // this interface lists all the things about user account management
-    public interface IAuthService // authentication service interface
+    public interface IAuthService
     {
         // register a new customer in system
         Task<AuthResponseDto> RegisterCustomerAsync(RegisterCustomerDto registerDto);
 
         // check user password and login
-        Task<AuthResponseDto> LoginAsync(LoginDto loginDto); // returns jwt token
+        Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
 
         // create a new agent login (only for admin)
-        Task<object> CreateAgentAsync(CreateAgentDto agentDto); // admin only task
+        Task<object> CreateAgentAsync(CreateAgentDto agentDto);
 
         // create a new claim officer (only for admin)
-        Task<object> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto); // admin only task
+        Task<object> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto);
 
         // get all users who have a specific role
-        Task<IEnumerable<object>> GetUsersByRoleAsync(string role); // filter users
+        Task<IEnumerable<object>> GetUsersByRoleAsync(string role);
 
         // get every single user in system
         Task<IEnumerable<object>> GetAllUsersAsync();
 
         // delete a user from system
-        Task<object> DeleteUserAsync(string userId); // remove user account
+        Task<object> DeleteUserAsync(string userId);
     }
 }
-// auth service interface ends

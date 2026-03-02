@@ -1,6 +1,6 @@
-using System; // basic namespace
+using System;
 
-namespace Domain.Entities; // database models
+namespace Domain.Entities;
 
 // this class handles insurance claims filed by customers
 public class InsuranceClaim
@@ -10,16 +10,16 @@ public class InsuranceClaim
     // the policy this claim is against
     public string PolicyApplicationId { get; set; } = string.Empty;
     // the user who is filing the claim
-    public string UserId { get; set; } = string.Empty; // customer id
+    public string UserId { get; set; } = string.Empty;
     
     // how much money the user wants
     public decimal RequestedAmount { get; set; }
     // how much money the officer approved
-    public decimal ApprovedAmount { get; set; } // how much bank pays
+    public decimal ApprovedAmount { get; set; }
     // details of what happened
     public string Description { get; set; } = string.Empty;
     // when the incident happened
-    public DateTime IncidentDate { get; set; } // day of accident
+    public DateTime IncidentDate { get; set; }
     // when they submitted the claim
     public DateTime SubmissionDate { get; set; } = DateTime.UtcNow;
     
@@ -30,7 +30,7 @@ public class InsuranceClaim
     // name of hospital if they went there
     public string HospitalName { get; set; } = string.Empty;
     // check if they were admitted to hospital
-    public bool HospitalizationRequired { get; set; } // yes or no
+    public bool HospitalizationRequired { get; set; }
 
     // name of the family member who is hurt
     public string? AffectedMemberName { get; set; }
@@ -41,7 +41,7 @@ public class InsuranceClaim
     public string Status { get; set; } = "Pending"; 
     
     // notes from the officer
-    public string? Remarks { get; set; } // officer feedback
+    public string? Remarks { get; set; }
     // who is checking this claim
     public string? AssignedClaimOfficerId { get; set; }
     // who finally approved it
@@ -53,6 +53,5 @@ public class InsuranceClaim
     public PolicyApplication? Policy { get; set; }
     public ApplicationUser? User { get; set; }
     public ApplicationUser? AssignedOfficer { get; set; }
-    public ICollection<ClaimDocument> Documents { get; set; } = new List<ClaimDocument>(); // files list
+    public ICollection<ClaimDocument> Documents { get; set; } = new List<ClaimDocument>();
 }
-// insurance claim model end

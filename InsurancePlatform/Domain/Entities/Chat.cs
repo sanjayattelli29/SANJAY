@@ -1,8 +1,8 @@
-using System; // basic c# stuff
-using System.Collections.Generic; // for lists
-using System.ComponentModel.DataAnnotations.Schema; // for database mapping
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domain.Entities; // folder name
+namespace Domain.Entities;
 
 // this class is for chat sessions between customer and agent
 public class Chat
@@ -17,8 +17,8 @@ public class Chat
     public string AgentId { get; set; } = string.Empty;
     
     // we keep email here so we don't have to look up user table every time
-    public string? CustomerEmail { get; set; } // stored for fast access
-    public string? AgentEmail { get; set; } // stored for fast access
+    public string? CustomerEmail { get; set; }
+    public string? AgentEmail { get; set; }
     // name of the policy
     public string? PolicyName { get; set; }
     // category like health or life
@@ -38,13 +38,12 @@ public class Chat
     public int UnreadCount { get; set; }
     
     // when the chat was started
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // time of creation
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     // when any change happened
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow; // time of update
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // list of all messages in this chat
     public List<ChatMessage> Messages { get; set; } = new();
     // link to the actual policy object
-    public PolicyApplication? Policy { get; set; } // relationship to policy
+    public PolicyApplication? Policy { get; set; }
 }
-// chat session details end here

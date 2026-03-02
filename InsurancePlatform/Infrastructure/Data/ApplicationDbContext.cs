@@ -1,36 +1,28 @@
-﻿using Domain.Entities; // for table models
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // for identity tables
-using Microsoft.EntityFrameworkCore; // for database tools
+﻿using Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
 {
     /// <summary>
     /// Database context for the application, inheriting from IdentityDbContext to support ASP.NET Core Identity.
     /// </summary>
-namespace Infrastructure.Data
-{
-    // this class is the bridge between our code and the sql database
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) // constructor
-            : base(options) // pass settings to base class
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
         {
         }
 
-        // table for insurance applications
         public DbSet<PolicyApplication> PolicyApplications { get; set; }
-        // table for claims filed
         public DbSet<InsuranceClaim> InsuranceClaims { get; set; }
-        // table for uploaded documents
         public DbSet<ClaimDocument> ClaimDocuments { get; set; }
-        // table for chat sessions
         public DbSet<Chat> Chats { get; set; }
-        // table for separate chat messages
-        public DbSet<ChatMessage> ChatMessages { get; set; } // list of messages
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder builder) // configure relationships
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(builder); // call identity logic
+            base.OnModelCreating(builder);
             
             builder.Entity<PolicyApplication>()
                 .HasOne(pa => pa.User)
@@ -77,4 +69,3 @@ namespace Infrastructure.Data
         }
     }
 }
-// db context definition end

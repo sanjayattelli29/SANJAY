@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims; // for identity claims
-using System.Text; // for string encoding
+using System.Security.Claims;
+using System.Text;
 
 namespace Infrastructure.Services
 {
@@ -16,7 +16,7 @@ namespace Infrastructure.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _configuration; // for settings access
+        private readonly IConfiguration _configuration;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
@@ -25,7 +25,7 @@ namespace Infrastructure.Services
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _configuration = configuration; // set configuration
+            _configuration = configuration;
         }
 
         // code to create a new customer account
@@ -34,7 +34,7 @@ namespace Infrastructure.Services
             // check if someone already uses this email
             var userExists = await _userManager.FindByEmailAsync(registerDto.EmailId);
             if (userExists != null)
-                return new AuthResponseDto { Status = "Error", Message = "User already exists!" }; // email taken
+                return new AuthResponseDto { Status = "Error", Message = "User already exists!" };
 
             // mapping dto to user object
             ApplicationUser user = new()
@@ -42,8 +42,8 @@ namespace Infrastructure.Services
                 Email = registerDto.EmailId,
                 SecurityStamp = Guid.NewGuid().ToString(),
                 UserName = registerDto.EmailId,
-                FullName = registerDto.Name, // set name
-                PhoneNumber = registerDto.MobileNumber // set phone
+                FullName = registerDto.Name,
+                PhoneNumber = registerDto.MobileNumber
             };
 
             // try to save user to database
@@ -75,7 +75,7 @@ namespace Infrastructure.Services
                 {
                     new Claim(ClaimTypes.Name, user.Email!),
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // unique token id
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 
                 foreach (var userRole in userRoles)
@@ -83,7 +83,7 @@ namespace Infrastructure.Services
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                 }
 
-                var token = CreateToken(authClaims); // build the token
+                var token = CreateToken(authClaims);
 
                 return new AuthResponseDto
                 {
@@ -97,7 +97,7 @@ namespace Infrastructure.Services
                     PhoneNumber = user.PhoneNumber
                 };
             }
-            return new AuthResponseDto { Status = "Error", Message = "Invalid login attempt." }; // wrong password or email
+            return new AuthResponseDto { Status = "Error", Message = "Invalid login attempt." };
         }
 
         /// <summary>

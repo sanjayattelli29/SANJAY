@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations; // validation namespace
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTOs // dto directory
+namespace Application.DTOs
 {
     // this class is for new customers to sign up
     public class RegisterCustomerDto
@@ -8,22 +8,21 @@ namespace Application.DTOs // dto directory
         // customer's full name
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } = string.Empty; // customer name
+        public string Name { get; set; } = string.Empty;
 
         // email for login and updates
         [Required]
         [EmailAddress]
-        public string EmailId { get; set; } = string.Empty; // registration email
+        public string EmailId { get; set; } = string.Empty;
 
         // secret password for account
         [Required]
         [MinLength(6)]
-        public string Password { get; set; } = string.Empty; // account password
+        public string Password { get; set; } = string.Empty;
 
         // mobile number for contact
         [Required]
         [Phone]
-        public string MobileNumber { get; set; } = string.Empty; // phone number
+        public string MobileNumber { get; set; } = string.Empty;
     }
 }
-// registration data ends

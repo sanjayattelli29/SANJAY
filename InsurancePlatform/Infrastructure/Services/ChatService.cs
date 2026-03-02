@@ -1,14 +1,14 @@
 using Application.Interfaces;
 using Domain.Entities;
-using Infrastructure.Data; // db context
-using Microsoft.EntityFrameworkCore; // ef core tools
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services;
 
 // this class manages chatting between people
 public class ChatService : IChatService
 {
-    private readonly ApplicationDbContext _context; // db access
+    private readonly ApplicationDbContext _context;
 
     public ChatService(ApplicationDbContext context)
     {
@@ -20,8 +20,8 @@ public class ChatService : IChatService
     {
         // try to find by policy id
         var chat = await _context.Chats
-            .Include(c => c.Messages) // load messages
-            .FirstOrDefaultAsync(c => c.PolicyId == policyId); // find by id
+            .Include(c => c.Messages)
+            .FirstOrDefaultAsync(c => c.PolicyId == policyId);
 
         if (chat == null)
         {
@@ -57,7 +57,7 @@ public class ChatService : IChatService
     {
         // find which chat session this message belongs to
         var chat = await _context.Chats.FirstOrDefaultAsync(c => c.PolicyId == policyId);
-        if (chat == null) throw new Exception("Chat not found"); // error if missing
+        if (chat == null) throw new Exception("Chat not found");
 
         var chatMessage = new ChatMessage
         {
@@ -75,7 +75,7 @@ public class ChatService : IChatService
         _context.ChatMessages.Add(chatMessage);
         await _context.SaveChangesAsync();
 
-        return chatMessage; // return new message
+        return chatMessage;
     }
 
     public async Task<IEnumerable<Chat>> GetUserChatListAsync(string userId, string role)

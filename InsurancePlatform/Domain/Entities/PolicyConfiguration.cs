@@ -1,4 +1,4 @@
-using System.Collections.Generic; // generics namespace
+using System.Collections.Generic;
 
 namespace Domain.Entities;
 
@@ -16,7 +16,6 @@ public class PolicyConfiguration
     // math formula to calculate final price
     public string PremiumFormula { get; set; } = string.Empty;
 }
-// end of main configuration
 
 // this class is for categories like individual or family
 public class PolicyCategory
@@ -30,7 +29,7 @@ public class PolicyCategory
     // how we calculate the price
     public string? PremiumBasedOn { get; set; }
     // tiers like gold or silver
-    public List<PolicyTier> Tiers { get; set; } = new(); // sub types
+    public List<PolicyTier> Tiers { get; set; } = new();
 }
 
 // this class is for policy tiers like gold silver etc
@@ -45,7 +44,7 @@ public class PolicyTier
     // starting price
     public decimal BasePremiumAmount { get; set; }
     // how long it lasts in years
-    public int ValidityInYears { get; set; } // how many years
+    public int ValidityInYears { get; set; }
     // list of things covered
     public List<string> Benefits { get; set; } = new();
 }
@@ -102,8 +101,8 @@ public class SmokingMultiplier
 public class TravelFrequencyMultiplier
 {
     public int MaxKmPerMonth { get; set; }
-    public double Multiplier { get; set; } // price multiplier
-    public string? Label { get; set; } // display label
+    public double Multiplier { get; set; }
+    public string? Label { get; set; }
 }
 
 // extra costs based on payment timing
@@ -118,7 +117,7 @@ public class PaymentModeMultipliers
 public class ApplicationStructure
 {
     public IndividualApplicationStructure Individual { get; set; } = new();
-    public FamilyApplicationStructure Family { get; set; } = new(); // family schema
+    public FamilyApplicationStructure Family { get; set; } = new();
 }
 
 // fields for individual form
@@ -137,4 +136,3 @@ public class FamilyApplicationStructure
     public bool NomineeRequired { get; set; }
     public string PremiumCalculatedUsing { get; set; } = string.Empty;
 }
-// end of policy config classes

@@ -1,44 +1,29 @@
-using Application.DTOs; // data objects
+using Application.DTOs;
 using Domain.Entities;
-using System.Text.Json; // json utility
+using System.Text.Json;
 
-namespace Application.Interfaces // interface namespace
+namespace Application.Interfaces
 {
-    // this interface is for main policy functions like applying and paying
-    public interface IPolicyService // policy logic contract
+    public interface IPolicyService
     {
-        // get the settings for coverage and price from db
-        Task<PolicyConfiguration> GetConfigurationAsync(); // fetch rules
-        // find out how much user has to pay based on habits
+        Task<PolicyConfiguration> GetConfigurationAsync();
         Task<decimal> CalculatePremiumAsync(PolicyApplicationRequest request);
-        // user tries to buy a new policy
         Task<object> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request);
-        // list all policies belonging to one customer
         Task<IEnumerable<PolicyApplication>> GetUserPoliciesAsync(string userId);
-        
-        // list all applications for admin or agent dashboard
-        Task<IEnumerable<PolicyApplication>> GetAllApplicationsAsync(); // list for staff
-        // see which agents are working on how many policies
+
+        // Admin & Agent Management
+        Task<IEnumerable<PolicyApplication>> GetAllApplicationsAsync();
         Task<IEnumerable<AgentWorkloadDto>> GetAgentsWithWorkloadAsync();
-        // give a policy application to an agent to check
         Task<bool> AssignAgentAsync(string applicationId, string agentId);
-        // list of policies an agent has to check
         Task<IEnumerable<PolicyApplication>> GetAgentApplicationsAsync(string agentId);
-        // agent gives status like approved or rejected
         Task<bool> ReviewApplicationAsync(string applicationId, string status, string agentId);
-        // save the payment details once user pays bank
-        Task<bool> ProcessPaymentAsync(string applicationId, decimal amount, string transactionId); // finalize sale
-        // check how much money agent made this month
+        Task<bool> ProcessPaymentAsync(string applicationId, decimal amount, string transactionId);
         Task<AgentCommissionDto> GetAgentCommissionStatsAsync(string agentId);
-        // list all customers an agent is handling
         Task<IEnumerable<PolicyApplication>> GetAgentCustomersAsync(string agentId);
-        // get detailed charts and numbers for agent
         Task<AgentAnalyticsDto> GetAgentAnalyticsAsync(string agentId);
-        // list of all payments made across system
-        Task<IEnumerable<UnifiedPaymentDto>> GetUnifiedPaymentsAsync(); // report data
+        Task<IEnumerable<UnifiedPaymentDto>> GetUnifiedPaymentsAsync();
     }
-}
-// policy service interface ends
+
     public class AgentAnalyticsDto
     {
         public decimal TotalCoverageProvided { get; set; }

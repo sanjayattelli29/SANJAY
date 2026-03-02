@@ -1,16 +1,16 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Domain.Enums;
-using Microsoft.AspNetCore.Authorization; // for security roles
-using Microsoft.AspNetCore.Mvc; // for web api tools
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     // this controller is only for the big boss (admin)
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = UserRoles.Admin)] // only admin allowed
-    public class AdminController : ControllerBase // admin web api
+    [Authorize(Roles = UserRoles.Admin)]
+    public class AdminController : ControllerBase
     {
         private readonly IAuthService _authService;
         private readonly IPolicyService _policyService;
@@ -20,20 +20,20 @@ namespace API.Controllers
         {
             _authService = authService;
             _policyService = policyService;
-            _claimService = claimService; // set claim service
+            _claimService = claimService;
         }
 
         // adds a new agent to the system
-        [HttpPost("create-agent")] // post request to add agent
-        public async Task<IActionResult> CreateAgent([FromBody] CreateAgentDto agentDto) // receives agent json
+        [HttpPost("create-agent")]
+        public async Task<IActionResult> CreateAgent([FromBody] CreateAgentDto agentDto)
         {
             var result = await _authService.CreateAgentAsync(agentDto);
             return Ok(result);
         }
 
         // adds a new claim officer to the system
-        [HttpPost("create-claim-officer")] // post request to add officer
-        public async Task<IActionResult> CreateClaimOfficer([FromBody] CreateClaimOfficerDto claimOfficerDto) // receives officer json
+        [HttpPost("create-claim-officer")]
+        public async Task<IActionResult> CreateClaimOfficer([FromBody] CreateClaimOfficerDto claimOfficerDto)
         {
             var result = await _authService.CreateClaimOfficerAsync(claimOfficerDto);
             return Ok(result);
@@ -56,8 +56,8 @@ namespace API.Controllers
         }
 
         // remove a user from database using their id
-        [HttpDelete("delete-user/{id}")] // delete request for user
-        public async Task<IActionResult> DeleteUser(string id) // receives user id string
+        [HttpDelete("delete-user/{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
         {
             var result = await _authService.DeleteUserAsync(id);
             return Ok(result);
@@ -80,8 +80,8 @@ namespace API.Controllers
         }
 
         // give a policy application to a specific agent
-        [HttpPost("assign-agent")] // post request for assignment
-        public async Task<IActionResult> AssignAgent([FromBody] AssignAgentRequest request) // receives assignment data
+        [HttpPost("assign-agent")]
+        public async Task<IActionResult> AssignAgent([FromBody] AssignAgentRequest request)
         {
             var success = await _policyService.AssignAgentAsync(request.ApplicationId, request.AgentId);
             if (!success) return BadRequest(new { Message = "Assignment failed" });
@@ -112,7 +112,7 @@ namespace API.Controllers
             return Ok(stats);
         }
     }
-// admin controller ends here
+
     public class AssignAgentRequest
     {
         public string ApplicationId { get; set; } = string.Empty;

@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations; // for login validation
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTOs // data objects folder
+namespace Application.DTOs
 {
     // this class is for users when they try to login
     public class LoginDto
@@ -8,11 +8,10 @@ namespace Application.DTOs // data objects folder
         // user's registered email
         [Required]
         [EmailAddress]
-        public string EmailId { get; set; } = string.Empty; // login email
+        public string EmailId { get; set; } = string.Empty;
 
         // user's password
         [Required]
-        public string Password { get; set; } = string.Empty; // user password
+        public string Password { get; set; } = string.Empty;
     }
 }
-// login model ends

@@ -1,30 +1,29 @@
-using Application.Interfaces; // service types
-using Domain.Enums; // staff roles
-using Microsoft.AspNetCore.Authorization; // login security
-using Microsoft.AspNetCore.Mvc; // web api tools
+using Application.Interfaces;
+using Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     // this handles all the money and payment reports
-    [ApiController] // web api
+    [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Agent},{UserRoles.ClaimOfficer}")] // staff roles
-    public class ReportController : ControllerBase // reports web api
+    [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Agent},{UserRoles.ClaimOfficer}")]
+    public class ReportController : ControllerBase
     {
-        private readonly IPolicyService _policyService; // policy logic
+        private readonly IPolicyService _policyService;
 
         public ReportController(IPolicyService policyService)
         {
-            _policyService = policyService; // set policy service
+            _policyService = policyService;
         }
 
         // get the big list of everyone's payments
-        [HttpGet("unified-payments")] // get request for report
-        public async Task<IActionResult> GetUnifiedPayments() // fetch all payments
+        [HttpGet("unified-payments")]
+        public async Task<IActionResult> GetUnifiedPayments()
         {
             var reports = await _policyService.GetUnifiedPaymentsAsync();
             return Ok(reports);
         }
     }
 }
-// report controller end

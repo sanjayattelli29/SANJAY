@@ -1,6 +1,6 @@
-﻿using Domain.Entities; // for user class
-using Domain.Enums; // for role names
-using Microsoft.AspNetCore.Identity; // for identity managers
+﻿using Domain.Entities;
+using Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Data
 {
@@ -11,12 +11,10 @@ namespace Infrastructure.Data
         public static async Task SeedAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             // setup all user roles like Admin and Customer
-            // we loop through these strings
             var roles = new[] { UserRoles.Admin, UserRoles.Customer, UserRoles.Agent, UserRoles.ClaimOfficer };
 
             foreach (var role in roles)
             {
-                // check if role already exists
                 if (!await roleManager.RoleExistsAsync(role))
                 {
                     await roleManager.CreateAsync(new IdentityRole(role));
@@ -24,16 +22,16 @@ namespace Infrastructure.Data
             }
 
             // create a main admin user if not already there
-            var adminEmail = "admin@insurance.com"; // login email
-            var adminUser = await userManager.FindByEmailAsync(adminEmail); // look for admin
+            var adminEmail = "admin@insurance.com";
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
             if (adminUser == null)
             {
                 adminUser = new ApplicationUser
                 {
                     UserName = adminEmail,
-                    Email = adminEmail, // set email
-                    FullName = "System Administrator", // set name
+                    Email = adminEmail,
+                    FullName = "System Administrator",
                     EmailConfirmed = true,
                     SecurityStamp = Guid.NewGuid().ToString()
                 };
@@ -42,10 +40,9 @@ namespace Infrastructure.Data
                 var result = await userManager.CreateAsync(adminUser, "Admin@123");
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, UserRoles.Admin); // set admin role
+                    await userManager.AddToRoleAsync(adminUser, UserRoles.Admin);
                 }
             }
         }
     }
 }
-// end of database seeder

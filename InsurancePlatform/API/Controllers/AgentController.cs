@@ -1,27 +1,27 @@
 using Application.Interfaces;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc; // web tools
-using System.Security.Claims; // identity claims
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
     // this handles what an agent sees and does
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = UserRoles.Agent)] // only for agents
-    public class AgentController : ControllerBase // agent server side
+    [Authorize(Roles = UserRoles.Agent)]
+    public class AgentController : ControllerBase
     {
         private readonly IPolicyService _policyService;
 
         public AgentController(IPolicyService policyService)
         {
-            _policyService = policyService; // set policy logic
+            _policyService = policyService;
         }
 
         // get the insurance applications assigned to me
-        [HttpGet("my-requests")] // get request for work
-        public async Task<IActionResult> GetMyRequests() // fetch my tasks
+        [HttpGet("my-requests")]
+        public async Task<IActionResult> GetMyRequests()
         {
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
@@ -31,8 +31,8 @@ namespace API.Controllers
         }
 
         // approve or reject a customer's application
-        [HttpPost("review-request")] // post request to check policy
-        public async Task<IActionResult> ReviewRequest([FromBody] ReviewApplicationRequest request) // receives review result
+        [HttpPost("review-request")]
+        public async Task<IActionResult> ReviewRequest([FromBody] ReviewApplicationRequest request)
         {
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
@@ -50,8 +50,8 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
 
-            var customers = await _policyService.GetAgentCustomersAsync(agentId); // fetch customers
-            return Ok(customers); // return result
+            var customers = await _policyService.GetAgentCustomersAsync(agentId);
+            return Ok(customers);
         }
 
         // see how much money i made from commissions
@@ -61,8 +61,8 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
 
-            var stats = await _policyService.GetAgentCommissionStatsAsync(agentId); // fetch money stats
-            return Ok(stats); // return result
+            var stats = await _policyService.GetAgentCommissionStatsAsync(agentId);
+            return Ok(stats);
         }
 
         // see charts and data about my performance
@@ -76,7 +76,7 @@ namespace API.Controllers
             return Ok(analytics);
         }
     }
-    // agent logic controller ends
+
     public class ReviewApplicationRequest
     {
         public string ApplicationId { get; set; } = string.Empty;

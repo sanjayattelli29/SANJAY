@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq; // for queries
-using System.Threading.Tasks; // async support
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Services
 {
@@ -17,7 +17,7 @@ namespace Infrastructure.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IFileStorageService _fileStorage; // for documents
+        private readonly IFileStorageService _fileStorage;
 
         public ClaimService(
             ApplicationDbContext context, 
@@ -36,7 +36,7 @@ namespace Infrastructure.Services
             var policy = await _context.PolicyApplications
                 .FirstOrDefaultAsync(pa => pa.Id == request.PolicyApplicationId && pa.UserId == userId);
 
-            if (policy == null) throw new Exception("Policy not found."); // check exist
+            if (policy == null) throw new Exception("Policy not found.");
             if (policy.Status != "Active") throw new Exception("Claims can only be raised for Active policies.");
             if (policy.ExpiryDate < DateTime.UtcNow) throw new Exception("Policy has expired.");
 
@@ -54,11 +54,11 @@ namespace Infrastructure.Services
                 RequestedAmount = request.RequestedAmount,
                 AffectedMemberName = request.AffectedMemberName,
                 AffectedMemberRelation = request.AffectedMemberRelation,
-                Status = "Pending" // initial status
+                Status = "Pending"
             };
 
             _context.InsuranceClaims.Add(claim);
-            await _context.SaveChangesAsync(); // save record
+            await _context.SaveChangesAsync(); 
 
             // save uploaded documents if any
             if (request.Documents != null && request.Documents.Any())
@@ -83,7 +83,7 @@ namespace Infrastructure.Services
                 await _context.SaveChangesAsync();
             }
 
-            return new { Status = "Success", ClaimId = claim.Id }; // done
+            return new { Status = "Success", ClaimId = claim.Id };
         }
 
         public async Task<IEnumerable<InsuranceClaim>> GetCustomerClaimsAsync(string userId)

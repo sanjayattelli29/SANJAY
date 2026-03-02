@@ -5,13 +5,13 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json; // for json parsing
-using System.Threading.Tasks; // async toolkit
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Infrastructure.Services
 {
     // this class is for saving files on the internet using imagekit
-    public class ImageKitFileStorageService : IFileStorageService // implementation class
+    public class ImageKitFileStorageService : IFileStorageService
     {
         private readonly HttpClient _httpClient;
         private readonly string _publicKey;
@@ -22,19 +22,19 @@ namespace Infrastructure.Services
         {
             // read settings from appsettings.json
             _publicKey = configuration["ImageKit:PublicKey"] ?? throw new Exception("ImageKit:PublicKey missing");
-            _privateKey = configuration["ImageKit:PrivateKey"] ?? throw new Exception("ImageKit:PrivateKey missing"); // secret key
+            _privateKey = configuration["ImageKit:PrivateKey"] ?? throw new Exception("ImageKit:PrivateKey missing");
             _urlEndpoint = configuration["ImageKit:UrlEndpoint"] ?? throw new Exception("ImageKit:UrlEndpoint missing");
 
             _httpClient = new HttpClient();
             // setup authorization for imagekit
             var authHeaderValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_privateKey}:"));
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue); // set auth
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
         }
 
         // code to upload a file
         public async Task<FileUploadResult> UploadFileAsync(Stream fileStream, string fileName, string folderPath)
         {
-            using var content = new MultipartFormDataContent(); // form data
+            using var content = new MultipartFormDataContent();
             
             byte[] bytes;
             using (var memoryStream = new MemoryStream())
@@ -49,7 +49,7 @@ namespace Infrastructure.Services
             content.Add(new StringContent(folderPath), "folder");
             content.Add(new StringContent("true"), "useUniqueFileName");
 
-            var response = await _httpClient.PostAsync("https://upload.imagekit.io/api/v1/files/upload", content); // api call
+            var response = await _httpClient.PostAsync("https://upload.imagekit.io/api/v1/files/upload", content);
             var responseString = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -71,9 +71,8 @@ namespace Infrastructure.Services
 
         public async Task<bool> DeleteFileAsync(string fileId)
         {
-            var response = await _httpClient.DeleteAsync($"https://api.imagekit.io/v1/files/{fileId}"); // api call
+            var response = await _httpClient.DeleteAsync($"https://api.imagekit.io/v1/files/{fileId}");
             return response.IsSuccessStatusCode;
         }
     }
 }
-// imagekit storage service end

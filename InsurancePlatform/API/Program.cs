@@ -1,14 +1,14 @@
 using API.Hubs;
 using Application.Interfaces;
-using Domain.Entities; // table classes
-using Infrastructure.Data; // db setup
+using Domain.Entities;
+using Infrastructure.Data;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models; // swagger docs
-using System.Text; // text encoding
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace API
 {
@@ -17,11 +17,11 @@ namespace API
     {
         public static async Task Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args); // start builder
+            var builder = WebApplication.CreateBuilder(args);
 
             // 1. connect to the sql database
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))); // sql server
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // 2. setup user login settings
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -77,7 +77,7 @@ namespace API
                     builder => builder.WithOrigins("http://localhost:4200")
                                       .AllowAnyMethod()
                                       .AllowAnyHeader()
-                                      .AllowCredentials()); // cors ends
+                                      .AllowCredentials());
             });
 
             // add controller support
@@ -116,7 +116,7 @@ namespace API
                 });
             });
 
-            var app = builder.Build(); // build the app
+            var app = builder.Build();
 
             // 8. setup roles and default data in database
             using (var scope = app.Services.CreateScope())
@@ -148,8 +148,8 @@ namespace API
 
             app.UseCors("AllowAll");
 
-            app.UseAuthentication(); // check login
-            app.UseAuthorization(); // check roles
+            app.UseAuthentication();
+            app.UseAuthorization();
 
 
             // map endpoints
@@ -161,4 +161,3 @@ namespace API
         }
     }
 }
-// main program file ends

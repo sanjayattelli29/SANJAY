@@ -1,20 +1,20 @@
-using System.IO; // for stream handling
-using System.Threading.Tasks; // for async support
+using System.IO;
+using System.Threading.Tasks;
 
-namespace Application.Interfaces // interface folder
+namespace Application.Interfaces
 {
     // this interface is for saving and deleting files like medical bills
-    public interface IFileStorageService // storage service contract
+    public interface IFileStorageService
     {
         // upload a new file to the cloud storage
-        Task<FileUploadResult> UploadFileAsync(Stream fileStream, string fileName, string folderPath); // send to cloud
+        Task<FileUploadResult> UploadFileAsync(Stream fileStream, string fileName, string folderPath);
         
         // delete an old file from storage
-        Task<bool> DeleteFileAsync(string fileId); // remove from cloud
+        Task<bool> DeleteFileAsync(string fileId);
     }
 
     // this class gives the result of file upload
-    public class FileUploadResult // response from storage
+    public class FileUploadResult
     {
         // unique id of file from cloud service
         public string FileId { get; set; } = string.Empty;
@@ -23,7 +23,6 @@ namespace Application.Interfaces // interface folder
         // web link to download or see file
         public string FileUrl { get; set; } = string.Empty;
         // how big the file is
-        public long FileSize { get; set; } // byte count
+        public long FileSize { get; set; }
     }
 }
-// file storage interface ends
