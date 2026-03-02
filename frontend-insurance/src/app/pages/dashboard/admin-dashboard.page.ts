@@ -520,49 +520,166 @@ export class AdminDashboardPage implements OnInit {
 
     generateInvoicePDF(payment: any) {
         const doc = new jsPDF();
-        doc.setFontSize(22);
-        doc.setTextColor(15, 23, 42);
-        doc.text('ACCISURE INSURANCE', 105, 20, { align: 'center' });
-        doc.setFontSize(10);
-        doc.setTextColor(100, 116, 139);
-        doc.text('PREMIUM PAYMENT INVOICE', 105, 28, { align: 'center' });
-        doc.setFontSize(12);
-        doc.setTextColor(15, 23, 42);
-        doc.text(`Invoice ID: INV-${payment.transactionId?.substring(0, 8) || 'N/A'}`, 20, 45);
-        doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 52);
-        doc.text(`Transaction ID: ${payment.transactionId || 'Pending'}`, 20, 59);
-        doc.setDrawColor(226, 232, 240);
-        doc.line(20, 65, 190, 65);
-        autoTable(doc, {
-            startY: 75,
-            head: [['Description', 'Detail']],
-            body: [
-                ['Customer Email', payment.customerEmail],
-                ['Agent Email', payment.agentEmail || 'N/A'],
-                ['Claim Officer', payment.claimsOfficerEmail || 'N/A'],
-                ['Plan Type', payment.tierId],
-                ['Category', payment.policyCategory],
-                ['Premium Amount', `INR ${payment.premiumAmount.toLocaleString()}`],
-                ['Paid Amount', `INR ${payment.paidAmount?.toLocaleString() || '0'}`],
-                ['Payment Mode', payment.paymentMode?.toUpperCase() || 'N/A'],
-                ['Total Coverage', `INR ${payment.totalCoverage.toLocaleString()}`],
-                ['Current Coverage', `INR ${payment.currentCoverage.toLocaleString()}`],
-                ['Next Payment Date', payment.nextPaymentDate ? new Date(payment.nextPaymentDate).toLocaleDateString() : 'N/A'],
-            ],
-            theme: 'striped',
-            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
-            styles: { fontSize: 10, cellPadding: 5 }
-        });
-        const finalY = (doc as any).lastAutoTable.finalY + 20;
-        doc.setFontSize(10);
-        doc.setTextColor(15, 23, 42);
+        const primaryColor = [34, 197, 94]; // #22c55e
+        const secondaryColor = [15, 23, 42]; // #0f172a
+        const accentColor = [74, 222, 128]; // #4ade80
+
+        // 1. ADD CUSTOM LOGO (Diamonds)
+        const drawDiamond = (x: number, y: number, size: number, color: number[]) => {
+            doc.setFillColor(color[0], color[1], color[2]);
+            doc.setDrawColor(color[0], color[1], color[2]);
+            doc.lines(
+                [[size, size], [size, -size], [-size, -size]],
+                x, y - size, [1, 1], 'FD', true
+            );
+        };
+
+        // Draw the two overlapping diamonds from the landing page logo
+        drawDiamond(25, 20, 4, primaryColor);
+        drawDiamond(29, 24, 4, accentColor);
+
+        // 2. HEADER BRANDING
         doc.setFont('helvetica', 'bold');
-        doc.text('Thank you for choosing AcciSure!', 105, finalY, { align: 'center' });
-        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(24);
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.text('AcciSure', 38, 23);
         doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        doc.text('PROTECT TODAY. BRIGHTER TOMORROW.', 38, 28);
+
+        // Right-aligned Invoice Label
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('INVOICE', 190, 25, { align: 'right' });
+
+        // Decorative Line
+        doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setLineWidth(1.5);
+        doc.line(20, 35, 190, 35);
+
+        // 3. INVOICE INFO & BILL TO
+        doc.setFontSize(10);
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+
+        // Left Side: Bill To
+        doc.setFont('helvetica', 'bold');
+        doc.text('BILL TO:', 20, 50);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text(`${payment.customerEmail || 'Valued Customer'}`, 20, 56);
+        doc.text('India', 20, 61);
+
+        // Right Side: Invoice Details
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.text('INVOICE DETAILS:', 130, 50);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Invoice ID:`, 130, 56);
+        doc.text(`Date:`, 130, 61);
+        doc.text(`Status:`, 130, 66);
+        doc.text(`Transaction ID:`, 130, 72);
+
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`INV-${payment.transactionId?.substring(0, 8).toUpperCase() || 'N/A'}`, 160, 56);
+        doc.text(`${new Date().toLocaleDateString()}`, 160, 61);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('PAID', 160, 66);
+
+        doc.setTextColor(71, 85, 105);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${payment.transactionId || 'Pending'}`, 130, 77); // Shifted down and smaller to avoid overlap
+        doc.setFontSize(10); // Reset for table
+
+        // 4. MAIN TABLE
+        autoTable(doc, {
+            startY: 85,
+            head: [['DESCRIPTION', 'POLICY DETAILS', 'AMOUNT']],
+            body: [
+                ['Insurance Premium', `${payment.policyCategory} - ${payment.tierId}`, `INR ${payment.premiumAmount.toLocaleString()}`],
+                ['Plan Coverage', `Individual / Family Group`, `INR ${payment.totalCoverage.toLocaleString()}`],
+                ['Current Status', `Active / Distributed`, payment.paymentMode?.toUpperCase() || 'DIGITAL'],
+                ['Agent Commission', 'Processing Fee Included', 'INCL.'],
+            ],
+            theme: 'grid',
+            headStyles: {
+                fillColor: [15, 23, 42],
+                textColor: [255, 255, 255],
+                fontSize: 10,
+                fontStyle: 'bold',
+                halign: 'center',
+                cellPadding: 5
+            },
+            bodyStyles: {
+                fontSize: 9,
+                cellPadding: 4,
+                textColor: [51, 65, 85]
+            },
+            columnStyles: {
+                0: { fontStyle: 'bold', cellWidth: 50 },
+                2: { halign: 'right', fontStyle: 'bold', textColor: [15, 23, 42] }
+            },
+            alternateRowStyles: {
+                fillColor: [248, 250, 252]
+            }
+        });
+
+        const tableEndY = (doc as any).lastAutoTable.finalY + 15;
+
+        // 5. SUMMARY & TOTAL
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(120, tableEndY, 190, tableEndY);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.text('Total Amount Paid:', 120, tableEndY + 10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text(`INR ${payment.paidAmount?.toLocaleString() || payment.premiumAmount.toLocaleString()}`, 190, tableEndY + 10, { align: 'right' });
+
+        // 6. TERMS & CONDITIONS (Norms)
+        const footerY = 230;
+        doc.setDrawColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.setLineWidth(0.5);
+        doc.line(20, footerY, 190, footerY);
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.text('TERMS AND CONDITIONS:', 20, footerY + 8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        const terms = [
+            '1. This invoice is a valid legal document for premium payment acknowledgement.',
+            '2. All insurance coverage is subject to the successful realization of the premium amount.',
+            '3. Please refer to your policy document for detailed coverage, exclusions, and claim procedures.',
+            '4. AcciSure Insurance is not liable for any delays caused by third-party payment gateways.',
+            '5. For any disputes or support, please contact us at support@accisure.com quoting your Transaction ID.'
+        ];
+        terms.forEach((term, index) => {
+            doc.text(term, 20, footerY + 14 + (index * 4));
+        });
+
+        // 7. FOOTER & SIGNATURE
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
         doc.setTextColor(148, 163, 184);
-        doc.text('This is a computer-generated invoice and requires no signature.', 105, finalY + 10, { align: 'center' });
-        doc.save(`Invoice_${payment.transactionId || 'Pending'}.pdf`);
+        doc.text('This is a computer-generated invoice and requires no physical signature.', 105, 275, { align: 'center' });
+
+        // Brand Footer
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text('AcciSure Insurance - Protecting Your Brighter Tomorrow', 105, 285, { align: 'center' });
+
+        doc.save(`AcciSure_Invoice_${payment.transactionId?.substring(0, 8) || 'Doc'}.pdf`);
     }
 
     deleteUser(userId: string) {
