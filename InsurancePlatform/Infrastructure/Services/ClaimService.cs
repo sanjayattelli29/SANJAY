@@ -278,16 +278,26 @@ namespace Infrastructure.Services
         {
             var stats = new AdminDashboardStatsDto
             {
-                // count total customers registered
+                // count total users by role
                 TotalCustomers = await _userManager.GetUsersInRoleAsync(UserRoles.Customer).ContinueWith(t => t.Result.Count),
-                // count total policies sold
+                TotalAgents = await _userManager.GetUsersInRoleAsync(UserRoles.Agent).ContinueWith(t => t.Result.Count),
+                TotalClaimOfficers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer).ContinueWith(t => t.Result.Count),
+                
+                // system wide volume
                 TotalPolicies = await _context.PolicyApplications.CountAsync(),
-                // count total claims filed
                 TotalClaims = await _context.InsuranceClaims.CountAsync(),
-                // sum of all money paid out for claims
+                
+                // financial audit numbers
                 TotalClaimedAmount = await _context.InsuranceClaims
                     .Where(c => c.Status == "Approved" || c.Status == "Paid")
-                    .SumAsync(c => (decimal?)c.ApprovedAmount) ?? 0
+                    .SumAsync(c => (decimal?)c.ApprovedAmount) ?? 0,
+                    
+                TotalCoverageRaised = await _context.PolicyApplications
+                    .SumAsync(pa => (decimal?)pa.TotalCoverageAmount) ?? 0,
+                    
+                TotalPremiumCollected = await _context.PolicyApplications
+                    .Where(pa => pa.Status == "Active" || pa.Status == "AwaitingPayment")
+                    .SumAsync(pa => (decimal?)pa.PaidAmount) ?? 0
             };
             return stats;
         }

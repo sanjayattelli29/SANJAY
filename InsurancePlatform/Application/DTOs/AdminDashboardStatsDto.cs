@@ -11,5 +11,13 @@ namespace Application.DTOs
         public int TotalClaims { get; set; }
         // total money given for all claims
         public decimal TotalClaimedAmount { get; set; }
+        // NEW: total system agents
+        public int TotalAgents { get; set; }
+        // NEW: total system officers
+        public int TotalClaimOfficers { get; set; }
+        // NEW: total coverage amount raised across all policies
+        public decimal TotalCoverageRaised { get; set; }
+        // NEW: total premium collection sum
+        public decimal TotalPremiumCollected { get; set; }
     }
 }
