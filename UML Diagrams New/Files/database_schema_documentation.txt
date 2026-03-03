@@ -1,0 +1,561 @@
+================================================================================
+        INSURANCE PLATFORM - DATABASE SCHEMA DOCUMENTATION
+================================================================================
+                    Generated: March 3, 2026
+================================================================================
+
+This document contains all database tables with their actual SQL column names
+from the Insurance Platform database.
+
+================================================================================
+
+TABLE 1: AspNetUsers (User Model - Customers, Agents, Claim Officers, Admin)
+================================================================================
+- Id                        : nvarchar(450), PRIMARY KEY
+- FullName                  : nvarchar(100), NOT NULL
+- AadhaarNumber             : nvarchar(12), nullable
+- BankAccountNumber         : nvarchar(16), nullable
+- CreatedAt                 : datetime2, NOT NULL
+- InitialPassword           : nvarchar(max), nullable
+- UserName                  : nvarchar(256), nullable
+- NormalizedUserName        : nvarchar(256), nullable, UNIQUE INDEX
+- Email                     : nvarchar(256), nullable
+- NormalizedEmail           : nvarchar(256), nullable, INDEX
+- EmailConfirmed            : bit, NOT NULL
+- PasswordHash              : nvarchar(max), nullable
+- SecurityStamp             : nvarchar(max), nullable
+- ConcurrencyStamp          : nvarchar(max), nullable
+- PhoneNumber               : nvarchar(max), nullable
+- PhoneNumberConfirmed      : bit, NOT NULL
+- TwoFactorEnabled          : bit, NOT NULL
+- LockoutEnd                : datetimeoffset, nullable
+- LockoutEnabled            : bit, NOT NULL
+- AccessFailedCount         : int, NOT NULL
+
+Notes:
+- This table stores ALL users (Customers, Agents, Claim Officers, Admin)
+- Role differentiation is handled through AspNetUserRoles table
+- Inherits from ASP.NET Core Identity framework
+
+
+================================================================================
+
+TABLE 2: AspNetRoles (User Roles)
+================================================================================
+- Id                        : nvarchar(450), PRIMARY KEY
+- Name                      : nvarchar(256), nullable
+- NormalizedName            : nvarchar(256), nullable, UNIQUE INDEX
+- ConcurrencyStamp          : nvarchar(max), nullable
+
+Notes:
+- Common roles: Admin, Agent, Customer, ClaimOfficer
+
+
+================================================================================
+
+TABLE 3: AspNetUserRoles (User-Role Mapping)
+================================================================================
+- UserId                    : nvarchar(450), PRIMARY KEY (composite)
+- RoleId                    : nvarchar(450), PRIMARY KEY (composite)
+
+Foreign Keys:
+- UserId -> AspNetUsers.Id
+- RoleId -> AspNetRoles.Id
+
+Notes:
+- Many-to-many relationship between users and roles
+
+
+================================================================================
+
+TABLE 4: AspNetUserClaims (User Claims)
+================================================================================
+- Id                        : int, PRIMARY KEY, IDENTITY(1,1)
+- UserId                    : nvarchar(450), NOT NULL, INDEX
+- ClaimType                 : nvarchar(max), nullable
+- ClaimValue                : nvarchar(max), nullable
+
+Foreign Keys:
+- UserId -> AspNetUsers.Id (CASCADE DELETE)
+
+
+================================================================================
+
+TABLE 5: AspNetUserLogins (External Login Providers)
+================================================================================
+- LoginProvider             : nvarchar(450), PRIMARY KEY (composite)
+- ProviderKey               : nvarchar(450), PRIMARY KEY (composite)
+- ProviderDisplayName       : nvarchar(max), nullable
+- UserId                    : nvarchar(450), NOT NULL, INDEX
+
+Foreign Keys:
+- UserId -> AspNetUsers.Id (CASCADE DELETE)
+
+
+================================================================================
+
+TABLE 6: AspNetUserTokens (Authentication Tokens)
+================================================================================
+- UserId                    : nvarchar(450), PRIMARY KEY (composite)
+- LoginProvider             : nvarchar(450), PRIMARY KEY (composite)
+- Name                      : nvarchar(450), PRIMARY KEY (composite)
+- Value                     : nvarchar(max), nullable
+
+Foreign Keys:
+- UserId -> AspNetUsers.Id (CASCADE DELETE)
+
+
+================================================================================
+
+TABLE 7: AspNetRoleClaims (Role Claims)
+================================================================================
+- Id                        : int, PRIMARY KEY, IDENTITY(1,1)
+- RoleId                    : nvarchar(450), NOT NULL, INDEX
+- ClaimType                 : nvarchar(max), nullable
+- ClaimValue                : nvarchar(max), nullable
+
+Foreign Keys:
+- RoleId -> AspNetRoles.Id (CASCADE DELETE)
+
+
+================================================================================
+
+TABLE 8: PolicyApplications (Policy Model)
+================================================================================
+- Id                        : nvarchar(450), PRIMARY KEY
+- UserId                    : nvarchar(450), NOT NULL, INDEX
+- PolicyCategory            : nvarchar(max), NOT NULL
+- TierId                    : nvarchar(max), NOT NULL
+- CalculatedPremium         : decimal(18,2), NOT NULL
+- SubmissionDate            : datetime2, NOT NULL
+- Status                    : nvarchar(max), NOT NULL
+- ApplicationDataJson       : nvarchar(max), NOT NULL
+- AssignedAgentId           : nvarchar(450), nullable, INDEX
+- ApprovedByAgentId         : nvarchar(max), nullable
+- ApprovedAt                : datetime2, nullable
+- TotalCoverageAmount       : decimal(18,2), NOT NULL
+- RemainingCoverageAmount   : decimal(18,2), NOT NULL
+- TotalApprovedClaimsAmount : decimal(18,2), NOT NULL
+- PaymentMode               : nvarchar(max), nullable
+- NextPaymentDate           : datetime2, nullable
+- StartDate                 : datetime2, nullable
+- ExpiryDate                : datetime2, nullable
+- PaidAmount                : decimal(18,2), nullable
+- PaymentDate               : datetime2, nullable
+- TransactionId             : nvarchar(max), nullable
+
+Foreign Keys:
+- UserId -> AspNetUsers.Id (CASCADE DELETE)
+- AssignedAgentId -> AspNetUsers.Id (NO ACTION)
+
+Notes:
+- Stores customer policy applications
+- Status values: Pending, Approved, Rejected
+- PolicyCategory: Individual, Family, etc.
+
+
+================================================================================
+
+TABLE 9: InsuranceClaims (Claim Model)
+================================================================================
+- Id                        : nvarchar(450), PRIMARY KEY
+- PolicyApplicationId       : nvarchar(450), NOT NULL, INDEX
+- UserId                    : nvarchar(450), NOT NULL, INDEX
+- RequestedAmount           : decimal(18,2), NOT NULL
+- ApprovedAmount            : decimal(18,2), NOT NULL
+- Description               : nvarchar(max), NOT NULL
+- IncidentDate              : datetime2, NOT NULL
+- SubmissionDate            : datetime2, NOT NULL
+- IncidentType              : nvarchar(max), NOT NULL
+- IncidentLocation          : nvarchar(max), NOT NULL
+- HospitalName              : nvarchar(max), NOT NULL
+- HospitalizationRequired   : bit, NOT NULL
+- AffectedMemberName        : nvarchar(max), nullable
+- AffectedMemberRelation    : nvarchar(max), nullable
+- Status                    : nvarchar(max), NOT NULL
+- Remarks                   : nvarchar(max), nullable
+- AssignedClaimOfficerId    : nvarchar(450), nullable, INDEX
+- ApprovedByOfficerId       : nvarchar(max), nullable
+- ProcessedAt               : datetime2, nullable
+
+Foreign Keys:
+- PolicyApplicationId -> PolicyApplications.Id (NO ACTION)
+- UserId -> AspNetUsers.Id (CASCADE DELETE)
+- AssignedClaimOfficerId -> AspNetUsers.Id (NO ACTION)
+
+Notes:
+- Stores insurance claims filed by customers
+- Status values: Pending, Approved, Rejected, UnderReview
+- IncidentType: Accident, Sickness, etc.
+
+
+================================================================================
+
+TABLE 10: ClaimDocuments (Claim Document Model)
+================================================================================
+- Id                        : nvarchar(450), PRIMARY KEY
+- ClaimId                   : nvarchar(450), NOT NULL, INDEX
+- FileId                    : nvarchar(max), NOT NULL
+- FileName                  : nvarchar(max), NOT NULL
+- FileUrl                   : nvarchar(max), NOT NULL
+- FileSize                  : bigint, NOT NULL
+- UploadedAt                : datetime2, NOT NULL
+
+Foreign Keys:
+- ClaimId -> InsuranceClaims.Id (CASCADE DELETE)
+
+Notes:
+- Stores documents uploaded for insurance claims
+- FileId is from ImageKit service
+- FileSize is in bytes
+
+
+================================================================================
+
+TABLE 11: Chats (Chat Session Model)
+================================================================================
+- Id                        : nvarchar(450), PRIMARY KEY
+- PolicyId                  : nvarchar(450), NOT NULL, INDEX
+- CustomerId                : nvarchar(max), NOT NULL
+- AgentId                   : nvarchar(max), NOT NULL
+- CustomerEmail             : nvarchar(max), nullable
+- AgentEmail                : nvarchar(max), nullable
+- PolicyName                : nvarchar(max), nullable
+- Category                  : nvarchar(max), nullable
+- CoverageAmount            : decimal(18,2), NOT NULL
+- DateActivated             : datetime2, NOT NULL
+- LastMessage               : nvarchar(max), nullable
+- LastMessageTime           : datetime2, nullable
+- CreatedAt                 : datetime2, NOT NULL
+- UpdatedAt                 : datetime2, NOT NULL
+
+Foreign Keys:
+- PolicyId -> PolicyApplications.Id (CASCADE DELETE)
+
+Notes:
+- Stores chat sessions between customers and agents
+- UnreadCount is NOT MAPPED (not in database, calculated at runtime)
+- CustomerId and AgentId reference AspNetUsers.Id but not as foreign keys
+
+
+================================================================================
+
+TABLE 12: ChatMessages (Chat Message Model)
+================================================================================
+- Id                        : nvarchar(450), PRIMARY KEY
+- ChatId                    : nvarchar(450), NOT NULL, INDEX
+- SenderId                  : nvarchar(max), NOT NULL
+- SenderRole                : nvarchar(max), NOT NULL
+- Message                   : nvarchar(max), NOT NULL
+- Timestamp                 : datetime2, NOT NULL
+- IsRead                    : bit, NOT NULL
+
+Foreign Keys:
+- ChatId -> Chats.Id (CASCADE DELETE)
+
+Notes:
+- Stores individual messages in chat sessions
+- SenderRole: Customer, Agent
+- SenderId references AspNetUsers.Id but not as foreign key
+
+
+================================================================================
+
+TABLE 13: Notifications (Notification Model)
+================================================================================
+- Id                        : uniqueidentifier, PRIMARY KEY
+- UserId                    : nvarchar(450), NOT NULL, INDEX
+- Title                     : nvarchar(200), NOT NULL
+- Message                   : nvarchar(max), NOT NULL
+- CreatedAt                 : datetime2, NOT NULL
+- IsRead                    : bit, NOT NULL
+- NotificationType          : nvarchar(50), NOT NULL
+
+Foreign Keys:
+- UserId -> AspNetUsers.Id (CASCADE DELETE)
+
+Notes:
+- Stores notifications for users
+- NotificationType: General, Policy, Claim, Payment, etc.
+
+
+================================================================================
+                            SUMMARY
+================================================================================
+
+Total Tables: 13
+
+Core Business Tables:
+1. AspNetUsers              - All users (customers, agents, officers, admin)
+2. PolicyApplications       - Insurance policy applications
+3. InsuranceClaims          - Claims filed by customers
+4. ClaimDocuments           - Documents attached to claims
+5. Chats                    - Chat sessions between customers and agents
+6. ChatMessages             - Individual messages in chats
+7. Notifications            - System notifications for users
+
+Identity Framework Tables (ASP.NET Core Identity):
+8. AspNetRoles              - User roles definitions
+9. AspNetUserRoles          - User-role mappings
+10. AspNetUserClaims        - Additional user claims
+11. AspNetUserLogins        - External login providers
+12. AspNetUserTokens        - Authentication tokens
+13. AspNetRoleClaims        - Role-based claims
+
+
+================================================================================
+                        COMMON DATA TYPES
+================================================================================
+
+- nvarchar(450)     : Used for IDs and indexed string fields
+- nvarchar(max)     : Used for long text fields
+- nvarchar(n)       : Used for limited length strings (with specified length)
+- datetime2         : Used for all date/time fields
+- decimal(18,2)     : Used for all monetary amounts
+- bit               : Used for boolean fields (true/false)
+- int               : Used for integer fields
+- bigint            : Used for large numbers (like file sizes)
+- uniqueidentifier  : Used for GUID fields
+
+
+================================================================================
+                    KEY RELATIONSHIPS
+================================================================================
+
+1. AspNetUsers (1) -> (Many) PolicyApplications
+   - One user can have multiple policy applications
+
+2. AspNetUsers (1) -> (Many) InsuranceClaims
+   - One user can file multiple claims
+
+3. PolicyApplications (1) -> (Many) InsuranceClaims
+   - One policy can have multiple claims
+
+4. InsuranceClaims (1) -> (Many) ClaimDocuments
+   - One claim can have multiple documents
+
+5. PolicyApplications (1) -> (Many) Chats
+   - One policy can have multiple chat sessions
+
+6. Chats (1) -> (Many) ChatMessages
+   - One chat can have multiple messages
+
+7. AspNetUsers (1) -> (Many) Notifications
+   - One user can have multiple notifications
+
+8. AspNetUsers (Agent) (1) -> (Many) PolicyApplications
+   - One agent can handle multiple policy applications
+
+9. AspNetUsers (ClaimOfficer) (1) -> (Many) InsuranceClaims
+   - One claim officer can handle multiple claims
+
+
+
+================================================================================
+                    USE CASE DESCRIPTIONS (DATABASE MAPPED)
+================================================================================
+
+UC01: Register Account
+- Actor: Customer
+- Tables: AspNetUsers
+- Description: New customer registers with FullName, Email, PhoneNumber, AadhaarNumber
+- Columns Used: Id, FullName, Email, PhoneNumber, AadhaarNumber, PasswordHash, CreatedAt
+
+UC02: Login
+- Actor: All (Customer, Agent, Claim Officer, Admin)
+- Tables: AspNetUsers, AspNetUserRoles, AspNetRoles
+- Description: User logs in with email and password
+- Columns Used: Email, PasswordHash, SecurityStamp
+
+UC05: Apply for Insurance Policy
+- Actor: Customer
+- Tables: PolicyApplications
+- Description: Customer submits policy application
+- Columns Used: Id, UserId, PolicyCategory, TierId, CalculatedPremium, 
+                SubmissionDate, Status, ApplicationDataJson, TotalCoverageAmount
+
+UC06: View My Policies
+- Actor: Customer
+- Tables: PolicyApplications
+- Description: Customer views all their policies
+- Columns Used: Id, UserId, PolicyCategory, Status, StartDate, ExpiryDate, 
+                TotalCoverageAmount, RemainingCoverageAmount
+
+UC08: Make Policy Payment
+- Actor: Customer
+- Tables: PolicyApplications
+- Description: Customer makes premium payment
+- Columns Used: Id, PaidAmount, PaymentDate, TransactionId, PaymentMode, NextPaymentDate
+
+UC11: File Insurance Claim
+- Actor: Customer
+- Tables: InsuranceClaims
+- Description: Customer files a claim for their policy
+- Columns Used: Id, PolicyApplicationId, UserId, RequestedAmount, Description,
+                IncidentDate, IncidentType, IncidentLocation, HospitalName,
+                HospitalizationRequired, AffectedMemberName, SubmissionDate, Status
+
+UC12: Upload Claim Documents
+- Actor: Customer
+- Tables: ClaimDocuments
+- Description: Customer uploads supporting documents for claim
+- Columns Used: Id, ClaimId, FileId, FileName, FileUrl, FileSize, UploadedAt
+
+UC13: View My Claims
+- Actor: Customer
+- Tables: InsuranceClaims
+- Description: Customer views all their filed claims
+- Columns Used: Id, PolicyApplicationId, Status, RequestedAmount, ApprovedAmount,
+                SubmissionDate, ProcessedAt
+
+UC16: Initiate Chat with Agent
+- Actor: Customer
+- Tables: Chats
+- Description: Customer starts a chat session about their policy
+- Columns Used: Id, PolicyId, CustomerId, AgentId, CustomerEmail, AgentEmail,
+                CreatedAt, UpdatedAt
+
+UC17: Send Message
+- Actor: Customer, Agent
+- Tables: ChatMessages
+- Description: Send a message in chat
+- Columns Used: Id, ChatId, SenderId, SenderRole, Message, Timestamp, IsRead
+
+UC20: View Notifications
+- Actor: All
+- Tables: Notifications
+- Description: User views their notifications
+- Columns Used: Id, UserId, Title, Message, CreatedAt, IsRead, NotificationType
+
+UC23: View Assigned Policy Applications
+- Actor: Agent
+- Tables: PolicyApplications
+- Description: Agent views policies assigned to them
+- Columns Used: Id, AssignedAgentId, UserId, PolicyCategory, Status, SubmissionDate
+
+UC25: Approve Policy Application
+- Actor: Agent
+- Tables: PolicyApplications
+- Description: Agent approves a policy application
+- Columns Used: Id, Status, ApprovedByAgentId, ApprovedAt, StartDate, ExpiryDate
+
+UC30: View Assigned Claims
+- Actor: Claim Officer
+- Tables: InsuranceClaims
+- Description: Officer views claims assigned to them
+- Columns Used: Id, AssignedClaimOfficerId, PolicyApplicationId, UserId, Status,
+                RequestedAmount, SubmissionDate
+
+UC31: Review Claim Details
+- Actor: Claim Officer
+- Tables: InsuranceClaims
+- Description: Officer reviews claim information
+- Columns Used: Id, Description, IncidentDate, IncidentType, IncidentLocation,
+                HospitalName, AffectedMemberName, RequestedAmount
+
+UC32: Review Claim Documents
+- Actor: Claim Officer
+- Tables: ClaimDocuments
+- Description: Officer reviews uploaded documents
+- Columns Used: Id, ClaimId, FileName, FileUrl, FileSize, UploadedAt
+
+UC33: Approve Claim
+- Actor: Claim Officer
+- Tables: InsuranceClaims, PolicyApplications
+- Description: Officer approves claim and updates coverage amounts
+- Columns Used: InsuranceClaims (Status, ApprovedAmount, ApprovedByOfficerId, ProcessedAt)
+                PolicyApplications (RemainingCoverageAmount, TotalApprovedClaimsAmount)
+
+UC35: Add Remarks to Claim
+- Actor: Claim Officer
+- Tables: InsuranceClaims
+- Description: Officer adds remarks/notes to claim
+- Columns Used: Id, Remarks
+
+UC38: Create Agent Account
+- Actor: Admin
+- Tables: AspNetUsers, AspNetUserRoles
+- Description: Admin creates new agent account
+- Columns Used: Id, FullName, Email, PhoneNumber, BankAccountNumber, InitialPassword,
+                CreatedAt (AspNetUsers), UserId, RoleId (AspNetUserRoles)
+
+UC39: Create Claim Officer Account
+- Actor: Admin
+- Tables: AspNetUsers, AspNetUserRoles
+- Description: Admin creates new claim officer account
+- Columns Used: Id, FullName, Email, PhoneNumber, BankAccountNumber, InitialPassword,
+                CreatedAt (AspNetUsers), UserId, RoleId (AspNetUserRoles)
+
+UC41: View Dashboard Statistics
+- Actor: Admin
+- Tables: AspNetUsers, PolicyApplications, InsuranceClaims
+- Description: Admin views system statistics and metrics
+- Columns Used: Count aggregations from multiple tables
+
+UC45: Assign Policy to Agent
+- Actor: Admin
+- Tables: PolicyApplications
+- Description: Admin assigns policy application to an agent
+- Columns Used: Id, AssignedAgentId
+
+UC46: Assign Claim to Officer
+- Actor: Admin
+- Tables: InsuranceClaims
+- Description: Admin assigns claim to a claim officer
+- Columns Used: Id, AssignedClaimOfficerId
+
+
+================================================================================
+                    ACTORS AND THEIR ROLES (FROM DATABASE)
+================================================================================
+
+CUSTOMER (Role: Customer in AspNetRoles)
+- Primary User: Person who wants to buy insurance
+- Database Columns: Id, FullName, Email, PhoneNumber, AadhaarNumber
+- Can: Register, Apply for policies, File claims, Chat with agents, View notifications
+
+AGENT (Role: Agent in AspNetRoles)
+- Primary User: Employee who approves policy applications
+- Database Columns: Id, FullName, Email, PhoneNumber, BankAccountNumber, InitialPassword
+- Can: Review applications, Approve/reject policies, Chat with customers, View analytics
+
+CLAIM OFFICER (Role: ClaimOfficer in AspNetRoles)
+- Primary User: Employee who processes insurance claims
+- Database Columns: Id, FullName, Email, PhoneNumber, BankAccountNumber, InitialPassword
+- Can: Review claims, Approve/reject claims, Review documents, Add remarks
+
+ADMIN (Role: Admin in AspNetRoles)
+- Primary User: System administrator
+- Database Columns: Id, FullName, Email, PhoneNumber
+- Can: Create agents/officers, Manage users, View dashboard, Generate reports, Assign tasks
+
+
+================================================================================
+                    USE CASE PRIORITIES (BASED ON DATABASE RELATIONSHIPS)
+================================================================================
+
+HIGH PRIORITY (Core Business Functions):
+- UC02: Login (All users need authentication)
+- UC05: Apply for Insurance Policy (Primary revenue driver)
+- UC11: File Insurance Claim (Primary service delivery)
+- UC25: Approve Policy Application (Revenue enabler)
+- UC33: Approve Claim (Service delivery fulfillment)
+
+MEDIUM PRIORITY (Support Functions):
+- UC08: Make Policy Payment (Revenue collection)
+- UC16: Initiate Chat with Agent (Customer support)
+- UC23: View Assigned Policy Applications (Agent workflow)
+- UC30: View Assigned Claims (Officer workflow)
+- UC38: Create Agent Account (Resource management)
+- UC39: Create Claim Officer Account (Resource management)
+
+LOW PRIORITY (Enhancement Functions):
+- UC20: View Notifications (User engagement)
+- UC41: View Dashboard Statistics (Management insights)
+- UC42: Generate Reports (Analytics)
+- UC47: View Profile (User management)
+
+
+================================================================================
+                    END OF DOCUMENTATION
+================================================================================
