@@ -115,7 +115,8 @@ namespace Infrastructure.Services
                 SecurityStamp = Guid.NewGuid().ToString(),
                 UserName = agentDto.EmailId,
                 FullName = agentDto.Name,
-                BankAccountNumber = agentDto.BankAccountNumber
+                BankAccountNumber = agentDto.BankAccountNumber,
+                InitialPassword = agentDto.Password
             };
 
             // try to save to database with password
@@ -148,7 +149,8 @@ namespace Infrastructure.Services
                 SecurityStamp = Guid.NewGuid().ToString(),
                 UserName = claimOfficerDto.EmailId,
                 FullName = claimOfficerDto.Name,
-                BankAccountNumber = claimOfficerDto.BankAccountNumber
+                BankAccountNumber = claimOfficerDto.BankAccountNumber,
+                InitialPassword = claimOfficerDto.Password
             };
 
             // save user with password to database
@@ -199,7 +201,10 @@ namespace Infrastructure.Services
                     user.Email,
                     user.PhoneNumber,
                     user.BankAccountNumber,
-                    Roles = roles
+                    Roles = roles,
+                    Role = roles.FirstOrDefault() ?? "Partner", // Fallback for display
+                    CreatedDate = user.CreatedAt,
+                    InitialPassword = user.InitialPassword
                 });
             }
 

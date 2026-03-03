@@ -18,5 +18,11 @@ namespace Domain.Entities
         // This is bank account for agents and officers to get payments
         [MaxLength(16)]
         public string? BankAccountNumber { get; set; }
+
+        // This is when the user was created
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // This stores the plain-text password created by admin for onboarding
+        public string? InitialPassword { get; set; }
     }
 }
