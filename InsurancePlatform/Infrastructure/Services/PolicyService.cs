@@ -106,7 +106,7 @@ namespace Infrastructure.Services
         }
 
         // customer uses this when they want to buy a policy
-        public async Task<object> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request)
+        public async Task<AuthResponseDto> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request)
         {
             // make sure customer doesn't already have active policy in same category
             var alreadyHasActivePolicy = await _context.PolicyApplications
@@ -161,7 +161,7 @@ namespace Infrastructure.Services
                     $"New {request.TierId} application from {userEmail} needs agent assignment.", $"ADM:Policy:{application.Id}");
             }
 
-            return new { Status = "Success", ApplicationId = application.Id, Premium = premium };
+            return new AuthResponseDto { Status = "Success", Message = application.Id };
         }
 
         // shows all policies that a customer has bought or applied for

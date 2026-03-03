@@ -8,7 +8,7 @@ namespace Application.Interfaces
     {
         Task<PolicyConfiguration> GetConfigurationAsync();
         Task<decimal> CalculatePremiumAsync(PolicyApplicationRequest request);
-        Task<object> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request);
+        Task<AuthResponseDto> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request);
         Task<IEnumerable<PolicyApplication>> GetUserPoliciesAsync(string userId);
 
         // Admin & Agent Management

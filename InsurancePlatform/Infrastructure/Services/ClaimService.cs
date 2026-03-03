@@ -33,7 +33,7 @@ namespace Infrastructure.Services
         }
 
         // code for customer to tell about a problem and ask for money
-        public async Task<object> RaiseClaimAsync(string userId, RaiseClaimRequest request)
+        public async Task<AuthResponseDto> RaiseClaimAsync(string userId, RaiseClaimRequest request)
         {
             // check if policy is real and belongs to user
             var policy = await _context.PolicyApplications
@@ -67,8 +67,8 @@ namespace Infrastructure.Services
             await _notificationService.SendNotificationAsync(userId, "Claim Raised", 
                 $"Your claim for {request.IncidentType} has been raised successfully.", $"CUST:Claim:{claim.Id}");
 
-            // Get user email for display - Use direct query for robustness
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            // Get user email for display
+            var user = await _userManager.FindByIdAsync(userId);
             string userEmail = user?.Email ?? userId;
 
             // Notify only Admins to assign an officer to this new claim
@@ -103,7 +103,7 @@ namespace Infrastructure.Services
                 await _context.SaveChangesAsync();
             }
 
-            return new { Status = "Success", ClaimId = claim.Id };
+            return new AuthResponseDto { Status = "Success", Message = claim.Id.ToString() };
         }
 
         // customer sees all their previous and current claims
@@ -130,17 +130,17 @@ namespace Infrastructure.Services
         }
 
         // shows which officer has how many claims so admin can balance work
-        public async Task<IEnumerable<object>> GetClaimOfficersWithWorkloadAsync()
+        public async Task<IEnumerable<ClaimOfficerWorkloadDto>> GetClaimOfficersWithWorkloadAsync()
         {
             // get all users who are claim officers
             var officers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer);
-            var result = new List<object>();
+            var result = new List<ClaimOfficerWorkloadDto>();
 
             // for each officer count how many claims they're handling
             foreach (var officer in officers)
             {
                 var count = await _context.InsuranceClaims.CountAsync(c => c.AssignedClaimOfficerId == officer.Id);
-                result.Add(new
+                result.Add(new ClaimOfficerWorkloadDto
                 {
                     ClaimOfficerId = officer.Id,
                     Email = officer.Email,

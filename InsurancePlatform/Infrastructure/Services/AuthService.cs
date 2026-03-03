@@ -101,12 +101,12 @@ namespace Infrastructure.Services
         }
 
         // code to create a new agent with login access
-        public async Task<object> CreateAgentAsync(CreateAgentDto agentDto)
+        public async Task<AuthResponseDto> CreateAgentAsync(CreateAgentDto agentDto)
         {
             // check if this email is already taken by someone else
             var userExists = await _userManager.FindByEmailAsync(agentDto.EmailId);
             if (userExists != null)
-                return new { Status = "Error", Message = "Agent already exists!" };
+                return new AuthResponseDto { Status = "Error", Message = "Agent already exists!" };
 
             // create the agent user object
             ApplicationUser user = new()
@@ -122,7 +122,7 @@ namespace Infrastructure.Services
             // try to save to database with password
             var result = await _userManager.CreateAsync(user, agentDto.Password);
             if (!result.Succeeded)
-                return new { Status = "Error", Message = "Agent creation failed!" };
+                return new AuthResponseDto { Status = "Error", Message = "Agent creation failed!" };
 
             // make sure agent role exists in the system
             if (!await _roleManager.RoleExistsAsync(UserRoles.Agent))
@@ -131,16 +131,16 @@ namespace Infrastructure.Services
             // assign agent role to this user
             await _userManager.AddToRoleAsync(user, UserRoles.Agent);
 
-            return new { Status = "Success", Message = "Agent created successfully!" };
+            return new AuthResponseDto { Status = "Success", Message = "Agent created successfully!" };
         }
 
         // code to create a new claim officer with login access
-        public async Task<object> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto)
+        public async Task<AuthResponseDto> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto)
         {
             // check if this email is already registered
             var userExists = await _userManager.FindByEmailAsync(claimOfficerDto.EmailId);
             if (userExists != null)
-                return new { Status = "Error", Message = "Claim Officer already exists!" };
+                return new AuthResponseDto { Status = "Error", Message = "Claim Officer already exists!" };
 
             // build the claim officer user object
             ApplicationUser user = new()
@@ -156,7 +156,7 @@ namespace Infrastructure.Services
             // save user with password to database
             var result = await _userManager.CreateAsync(user, claimOfficerDto.Password);
             if (!result.Succeeded)
-                return new { Status = "Error", Message = "Claim Officer creation failed!" };
+                return new AuthResponseDto { Status = "Error", Message = "Claim Officer creation failed!" };
 
             // create claim officer role if it doesn't exist yet
             if (!await _roleManager.RoleExistsAsync(UserRoles.ClaimOfficer))
@@ -165,42 +165,42 @@ namespace Infrastructure.Services
             // give claim officer permissions to this user
             await _userManager.AddToRoleAsync(user, UserRoles.ClaimOfficer);
 
-            return new { Status = "Success", Message = "Claim Officer created successfully!" };
+            return new AuthResponseDto { Status = "Success", Message = "Claim Officer created successfully!" };
         }
 
         // get a list of all users who have a specific role like agent or officer
-        public async Task<IEnumerable<object>> GetUsersByRoleAsync(string role)
+        public async Task<IEnumerable<UserListingDto>> GetUsersByRoleAsync(string role)
         {
             // fetch users from database who have this role
             var users = await _userManager.GetUsersInRoleAsync(role);
             // return only the information we need
-            return users.Select(u => new
+            return users.Select(u => new UserListingDto
             {
-                u.Id,
-                u.FullName,
-                u.Email,
-                u.BankAccountNumber
+                Id = u.Id,
+                FullName = u.FullName,
+                Email = u.Email,
+                BankAccountNumber = u.BankAccountNumber
             });
         }
 
         // get a full list of everyone registered in the system with their jobs
-        public async Task<IEnumerable<object>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserListingDto>> GetAllUsersAsync()
         {
             // get all users from the database
             var users = _userManager.Users.ToList();
-            var result = new List<object>();
+            var result = new List<UserListingDto>();
 
             // for each user also find what role they have
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                result.Add(new
+                result.Add(new UserListingDto
                 {
-                    user.Id,
-                    user.FullName,
-                    user.Email,
-                    user.PhoneNumber,
-                    user.BankAccountNumber,
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    BankAccountNumber = user.BankAccountNumber,
                     Roles = roles,
                     Role = roles.FirstOrDefault() ?? "Partner", // Fallback for display
                     CreatedDate = user.CreatedAt,
@@ -212,19 +212,19 @@ namespace Infrastructure.Services
         }
 
         // completely remove a user from our database
-        public async Task<object> DeleteUserAsync(string userId)
+        public async Task<AuthResponseDto> DeleteUserAsync(string userId)
         {
             // first check if user exists
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-                return new { Status = "Error", Message = "User not found!" };
+                return new AuthResponseDto { Status = "Error", Message = "User not found!" };
 
             // try to delete from database
             var result = await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
-                return new { Status = "Error", Message = "User deletion failed!" };
+                return new AuthResponseDto { Status = "Error", Message = "User deletion failed!" };
 
-            return new { Status = "Success", Message = "User deleted successfully!" };
+            return new AuthResponseDto { Status = "Success", Message = "User deleted successfully!" };
         }
 
         // this creates the security token that proves user is logged in

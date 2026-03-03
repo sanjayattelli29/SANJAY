@@ -9,12 +9,12 @@ namespace Application.Interfaces
     public interface IClaimService
     {
         // Customer
-        Task<object> RaiseClaimAsync(string userId, RaiseClaimRequest request);
+        Task<AuthResponseDto> RaiseClaimAsync(string userId, RaiseClaimRequest request);
         Task<IEnumerable<InsuranceClaim>> GetCustomerClaimsAsync(string userId);
 
         // Admin
         Task<IEnumerable<InsuranceClaim>> GetPendingClaimsAsync();
-        Task<IEnumerable<object>> GetClaimOfficersWithWorkloadAsync();
+        Task<IEnumerable<ClaimOfficerWorkloadDto>> GetClaimOfficersWithWorkloadAsync();
         Task<bool> AssignClaimOfficerAsync(string claimId, string officerId);
 
         // Claim Officer
@@ -46,5 +46,12 @@ namespace Application.Interfaces
         public string? AffectedMemberRelation { get; set; }
 
         public List<IFormFile>? Documents { get; set; }
+    }
+
+    public class ClaimOfficerWorkloadDto
+    {
+        public string ClaimOfficerId { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public int AssignedClaimsCount { get; set; }
     }
 }

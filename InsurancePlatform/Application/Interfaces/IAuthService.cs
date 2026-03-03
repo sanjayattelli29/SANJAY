@@ -12,18 +12,31 @@ namespace Application.Interfaces
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
 
         // create a new agent login (only for admin)
-        Task<object> CreateAgentAsync(CreateAgentDto agentDto);
+        Task<AuthResponseDto> CreateAgentAsync(CreateAgentDto agentDto);
 
         // create a new claim officer (only for admin)
-        Task<object> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto);
+        Task<AuthResponseDto> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto);
 
         // get all users who have a specific role
-        Task<IEnumerable<object>> GetUsersByRoleAsync(string role);
+        Task<IEnumerable<UserListingDto>> GetUsersByRoleAsync(string role);
 
         // get every single user in system
-        Task<IEnumerable<object>> GetAllUsersAsync();
+        Task<IEnumerable<UserListingDto>> GetAllUsersAsync();
 
         // delete a user from system
-        Task<object> DeleteUserAsync(string userId);
+        Task<AuthResponseDto> DeleteUserAsync(string userId);
+    }
+
+    public class UserListingDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string? FullName { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? BankAccountNumber { get; set; }
+        public string? Role { get; set; }
+        public IEnumerable<string>? Roles { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public string? InitialPassword { get; set; }
     }
 }
