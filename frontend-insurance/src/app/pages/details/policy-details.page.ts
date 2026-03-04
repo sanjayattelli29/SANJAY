@@ -6,13 +6,14 @@ import { ClaimService } from '../../services/claim.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { GooglePlacesInputComponent } from '../../components/incident-location/incident-location.component';
+import { LocationMapComponent } from '../../components/location-map/location-map.component';
 
 // policy details page for customers
 // shows policy info claims and payment history
 @Component({
     selector: 'app-policy-details',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, GooglePlacesInputComponent],
+    imports: [CommonModule, RouterModule, FormsModule, GooglePlacesInputComponent, LocationMapComponent],
     templateUrl: './policy-details.page.html',
     styleUrls: ['./details.page.css']
 })
@@ -47,6 +48,7 @@ export class PolicyDetailsPage implements OnInit {
         affectedMemberRelation: ''
     };
     claimFiles: File[] = [];
+    selectedLocationCoords = signal<{ lat: number, lng: number } | null>(null);
 
     // load policy on init
     ngOnInit() {
@@ -97,6 +99,7 @@ export class PolicyDetailsPage implements OnInit {
 
     // show modal to raise new claim
     openClaimModal() {
+        this.selectedLocationCoords.set(null);
         this.showClaimModal.set(true);
     }
 
@@ -151,9 +154,14 @@ export class PolicyDetailsPage implements OnInit {
     }
 
     // handle google places location selection
-    onLocationSelected(address: string) {
-        this.claimForm.incidentLocation = address;
-        console.log('Location updated in form:', address);
+    onLocationSelected(data: any) {
+        if (typeof data === 'string') {
+            this.claimForm.incidentLocation = data;
+        } else {
+            this.claimForm.incidentLocation = data.address;
+            this.selectedLocationCoords.set({ lat: data.lat, lng: data.lng });
+        }
+        console.log('Location updated in form:', data);
     }
 
     // handle hospital name input

@@ -34,6 +34,8 @@ export class GooglePlacesInputComponent implements AfterViewInit {
 
     // emit selected value to parent
     valueSelected = output<string>();
+    // NEW: emit full location data with coordinates
+    locationSelected = output<{ address: string, lat: number, lng: number }>();
 
     // setup google places autocomplete after view inits
     ngAfterViewInit() {
@@ -48,20 +50,33 @@ export class GooglePlacesInputComponent implements AfterViewInit {
             this.searchInput.nativeElement,
             {
                 types: this.types(), // geocode or establishment
-                componentRestrictions: { country: 'in' } // restrict to india
+                componentRestrictions: { country: 'in' }, // restrict to india
+                fields: ['formatted_address', 'geometry', 'name'] // specify required fields
             }
         );
 
         // listen for place selection from dropdown
         autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace();
-            if (!place.formatted_address && !place.name) return;
+
+            if (!place.geometry || !place.geometry.location) {
+                const manualValue = this.searchInput.nativeElement.value;
+                this.valueSelected.emit(manualValue);
+                return;
+            }
 
             // get selected location string
-            const selectedValue = place.formatted_address || place.name;
-            this.searchInput.nativeElement.value = selectedValue;
-            // emit to parent component
-            this.valueSelected.emit(selectedValue);
+            const address = place.formatted_address || place.name;
+            const lat = place.geometry.location.lat();
+            const lng = place.geometry.location.lng();
+
+            this.searchInput.nativeElement.value = address;
+
+            // emit both legacy and new detailed event
+            this.valueSelected.emit(address);
+            this.locationSelected.emit({ address, lat, lng });
+
+            console.log('Location selected via Google Places:', { address, lat, lng });
         });
 
         // also emit on manual typing without selection

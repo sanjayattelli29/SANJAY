@@ -138,7 +138,7 @@ namespace API
                     }
                 });
             });
-
+            // add middleware for global exception handling and standardized error responses
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();
 

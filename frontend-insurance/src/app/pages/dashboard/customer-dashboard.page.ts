@@ -10,6 +10,7 @@ import { ChatService } from '../../services/chat.service';
 import { RouterModule } from '@angular/router';
 import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 import { GooglePlacesInputComponent } from '../../components/incident-location/incident-location.component';
+import { LocationMapComponent } from '../../components/location-map/location-map.component';
 
 // customer dashboard main page component
 // handles policy buying, claim raising, viewing policies and claims
@@ -17,7 +18,7 @@ import { GooglePlacesInputComponent } from '../../components/incident-location/i
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, GooglePlacesInputComponent],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, GooglePlacesInputComponent, LocationMapComponent],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })
@@ -376,6 +377,7 @@ export class CustomerDashboardPage implements OnInit {
         affectedMemberRelation: ''
     };
     claimFiles: File[] = []; // uploaded documents
+    selectedLocationCoords = signal<{ lat: number, lng: number } | null>(null);
 
     // init claim form for selected policy
     initiateClaim(pol: any) {
@@ -383,6 +385,7 @@ export class CustomerDashboardPage implements OnInit {
         this.claimForm.affectedMemberName = '';
         this.claimForm.affectedMemberRelation = '';
         this.claimFiles = [];
+        this.selectedLocationCoords.set(null);
         this.switchView('raise-claim');
     }
 
@@ -435,9 +438,14 @@ export class CustomerDashboardPage implements OnInit {
         });
     }
 
-    onLocationSelected(address: string) {
-        this.claimForm.incidentLocation = address;
-        console.log('Location updated in dashboard form:', address);
+    onLocationSelected(data: any) {
+        if (typeof data === 'string') {
+            this.claimForm.incidentLocation = data;
+        } else {
+            this.claimForm.incidentLocation = data.address;
+            this.selectedLocationCoords.set({ lat: data.lat, lng: data.lng });
+        }
+        console.log('Location updated in dashboard form:', data);
     }
 
     onHospitalChanged(name: string) {
