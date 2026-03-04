@@ -29,8 +29,8 @@ describe('AuthService', () => {
     });
 
     it('should clear storage on logout', () => {
-        const spy = vi.spyOn(localStorage, 'removeItem');
+        localStorage.setItem('auth_token', 'mock-token');
         service.logout();
-        expect(spy).toHaveBeenCalledWith('auth_token');
+        expect(localStorage.getItem('auth_token')).toBeNull();
     });
 });

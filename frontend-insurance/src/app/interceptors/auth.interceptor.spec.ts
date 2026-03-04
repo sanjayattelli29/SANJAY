@@ -5,7 +5,7 @@ import { vi, describe, it, expect } from 'vitest';
 
 describe('authInterceptor', () => {
     it('should add authorization header if token exists', async () => {
-        vi.spyOn(localStorage, 'getItem').mockReturnValue('mock-token');
+        localStorage.setItem('auth_token', 'mock-token');
         const req = new HttpRequest('GET', '/api/test');
         const next: HttpHandlerFn = (request) => {
             expect(request.headers.has('Authorization')).toBe(true);
@@ -17,7 +17,7 @@ describe('authInterceptor', () => {
     });
 
     it('should not add header if token is missing', async () => {
-        vi.spyOn(localStorage, 'getItem').mockReturnValue(null);
+        localStorage.removeItem('auth_token');
         const req = new HttpRequest('GET', '/api/test');
         const next: HttpHandlerFn = (request) => {
             expect(request.headers.has('Authorization')).toBe(false);
