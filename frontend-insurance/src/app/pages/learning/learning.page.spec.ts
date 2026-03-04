@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { LearningPage } from './learning.page';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 describe('LearningPage', () => {
     let component: LearningPage;

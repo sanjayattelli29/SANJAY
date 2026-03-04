@@ -1,7 +1,6 @@
 import { HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { authInterceptor } from './auth.interceptor';
 import { of, firstValueFrom } from 'rxjs';
-import { vi, describe, it, expect } from 'vitest';
 
 describe('authInterceptor', () => {
     it('should add authorization header if token exists', async () => {

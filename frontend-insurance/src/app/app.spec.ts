@@ -3,7 +3,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { App } from './app';
 import { ChatbotComponent } from './components/chatbot/chatbot';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 describe('App', () => {
   beforeEach(async () => {

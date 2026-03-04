@@ -25,7 +25,39 @@ describe('AgentService', () => {
         expect(service.reviewRequest).toBeDefined();
     });
 
-    it('should fetch commission stats', () => {
+    it('should have getCommissionStats method', () => {
         expect(service.getCommissionStats).toBeDefined();
+    });
+
+    it('should have getAnalytics method', () => {
+        expect(service.getAnalytics).toBeDefined();
+    });
+
+    it('should have sendAgentEmail method', () => {
+        expect(service.sendAgentEmail).toBeDefined();
+    });
+
+    it('should use the correct base API URL', () => {
+        expect((service as any).apiUrl).toBe('https://localhost:7140/api/Agent');
+    });
+
+    it('should return an observable from getMyRequests', () => {
+        const result = service.getMyRequests();
+        expect(result).toBeTruthy();
+    });
+
+    it('should return an observable from getAnalytics', () => {
+        const result = service.getAnalytics();
+        expect(result).toBeTruthy();
+    });
+
+    it('should return an observable from getCommissionStats', () => {
+        const result = service.getCommissionStats();
+        expect(result).toBeTruthy();
+    });
+
+    it('should return an observable from reviewRequest', () => {
+        const result = service.reviewRequest('1', 'Approved');
+        expect(result).toBeTruthy();
     });
 });
