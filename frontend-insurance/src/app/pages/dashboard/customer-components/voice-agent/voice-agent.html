@@ -1,0 +1,56 @@
+<div class="h-48 rounded-xl bg-slate-900 border border-slate-800 shadow-inner flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300">
+    
+    <!-- Animated background based on state -->
+    <div class="absolute inset-0 opacity-20 transition-all duration-700" 
+         [class.bg-brand-orange]="isListening()" 
+         [class.bg-emerald-500]="isProcessing"
+         [class.pulse-bg]="isProcessing || isListening()"></div>
+
+    @if (isListening()) {
+        <!-- Listening Visualizer -->
+        <p class="text-[10px] font-black uppercase tracking-widest text-brand-orange mb-4 relative z-10 animate-pulse">
+            Listening... Speak Now
+        </p>
+        
+        <!-- Simple Orb Visualizer representing volume -->
+        <div class="relative w-20 h-20 flex items-center justify-center z-10">
+            <!-- Core -->
+            <div class="w-10 h-10 bg-brand-orange rounded-full z-10 shadow-[0_0_15px_#ff6b00]"></div>
+            
+            <!-- Reacting Rings -->
+            <div class="absolute inset-0 border border-brand-orange/50 rounded-full transition-transform duration-100 ease-out"
+                 [style.transform]="'scale(' + (1 + volumeLevel() / 50) + ')'"></div>
+            <div class="absolute inset-2 border-2 border-brand-orange/20 rounded-full transition-transform duration-100 ease-out"
+                 [style.transform]="'scale(' + (1 + volumeLevel() / 30) + ')'"></div>
+        </div>
+        
+        <p class="text-[9px] text-slate-500 mt-6 relative z-10 italic">Pause for 2s to submit</p>
+    } @else if (isProcessing) {
+        <!-- Processing Visualizer -->
+        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-4 relative z-10 animate-pulse">
+            AI is thinking...
+        </p>
+        
+        <div class="flex items-center justify-center gap-2 z-10 h-20">
+            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0s] h-8"></div>
+            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.2s] h-12"></div>
+            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.4s] h-6"></div>
+            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.6s] h-10"></div>
+            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.8s] h-8"></div>
+        </div>
+    } @else {
+        <!-- Idle State (Optional, mostly handled by parent) -->
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 relative z-10">
+            Voice Agent Ready
+        </p>
+    }
+
+    <!-- Stop Button -->
+    <button (click)="cancelVoiceAgent()" 
+            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 flex items-center justify-center transition-colors z-20"
+            title="Stop Voice Agent">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    </button>
+</div>

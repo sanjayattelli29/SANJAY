@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using API.Middlewares;
+using Application.Services;
 
 namespace API
 {
@@ -79,12 +80,14 @@ namespace API
             builder.Services.AddAuthorization();
 
             // 5. register our custom services with the system
+            builder.Services.AddHttpClient();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IPolicyService, PolicyService>();
             builder.Services.AddScoped<IFileStorageService, ImageKitFileStorageService>();
             builder.Services.AddScoped<IClaimService, ClaimService>();
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddScoped<IVoiceOrchestratorService, VoiceOrchestratorService>();
             
             // setup signalr for real-time chat
             builder.Services.AddSignalR()
@@ -96,7 +99,7 @@ namespace API
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
-                    builder => builder.WithOrigins("http://localhost:4200", "https://acci-sure-frontend-insurance.vercel.app", "https://accisure.designwithsanjay.in")
+                    builder => builder.SetIsOriginAllowed(origin => true)
                                       .AllowAnyMethod()
                                       .AllowAnyHeader()
                                       .AllowCredentials());
@@ -173,11 +176,17 @@ namespace API
                 app.UseSwaggerUI();
             }
 
+            // CORS MUST be first — before exception handler and HTTPS redirect.
+            // Otherwise error responses won't have CORS headers and the browser reports status: 0.
+            app.UseCors("AllowAll");
+
             app.UseExceptionHandler();
 
-            app.UseHttpsRedirection();
-
-            app.UseCors("AllowAll");
+            // Only redirect to HTTPS in production — in dev, Angular calls http://localhost:5078 directly.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseAuthentication();
             app.UseAuthorization();

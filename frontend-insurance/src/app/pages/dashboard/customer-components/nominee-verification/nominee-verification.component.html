@@ -1,0 +1,103 @@
+<div class="space-y-6">
+    <div class="text-center mb-8">
+        <h3 class="text-xl font-black text-brand-navy">Nominee Verification Required</h3>
+        <p class="text-xs text-slate-500 mt-2">To process this specific claim, we need to verify the identity of the nominee.</p>
+    </div>
+
+    @if (verificationError()) {
+        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200">
+            {{ verificationError() }}
+        </div>
+    }
+
+    @if (verificationSuccessMsg()) {
+        <div class="p-4 mb-4 text-sm text-emerald-800 rounded-lg bg-emerald-50 border border-emerald-200 font-bold">
+            {{ verificationSuccessMsg() }}
+        </div>
+    }
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Aadhar Upload Card -->
+        <div class="card flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 hover:border-brand-orange/50 transition-colors text-center relative overflow-hidden" [class.bg-emerald-50/30]="aadharPreview()" [class.border-emerald-500]="aadharPreview()">
+            <input type="file" (change)="onAadharUpload($event)" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+            
+            @if (aadharPreview()) {
+                <div class="absolute inset-0 z-0">
+                    <img [src]="aadharPreview()" class="w-full h-full object-cover opacity-20">
+                </div>
+                <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white mb-4 relative z-10 shadow-lg shadow-emerald-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h4 class="text-brand-navy font-black text-sm relative z-10">Aadhar Uploaded</h4>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 relative z-10">Tap to change</p>
+            } @else {
+                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-brand-orange mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                    </svg>
+                </div>
+                <h4 class="text-brand-navy font-black text-sm">Upload Aadhar</h4>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Clear photo required</p>
+            }
+        </div>
+
+        <!-- Live Photo Upload Card -->
+        <div class="card flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 hover:border-brand-orange/50 transition-colors text-center relative overflow-hidden" [class.bg-emerald-50/30]="photoPreview() && !isCameraActive()" [class.border-emerald-500]="photoPreview() && !isCameraActive()">
+            
+            @if (isCameraActive()) {
+                <div class="relative w-full z-20">
+                    <p class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">Live Camera View</p>
+                    <div class="rounded-xl overflow-hidden border-2 border-brand-orange relative bg-black shadow-lg">
+                        <video id="nominee-camera-video" autoplay playsinline class="w-full aspect-video object-cover"></video>
+                        <div class="absolute inset-0 border-[3px] border-white/20 m-6 rounded-[2rem] border-dashed pointer-events-none"></div>
+                    </div>
+                    <div class="flex items-center justify-center gap-4 mt-4">
+                        <button (click)="takePicture()" class="px-6 py-2 bg-brand-orange hover:bg-[#ff5500] text-white rounded-xl font-bold text-xs uppercase shadow-xl transition-colors">Capture</button>
+                        <button (click)="stopCamera()" class="px-6 py-2 bg-slate-800/80 hover:bg-slate-800 backdrop-blur-md text-white rounded-xl font-bold text-xs uppercase transition-colors">Cancel</button>
+                    </div>
+                </div>
+            } @else if (photoPreview()) {
+                <div class="absolute inset-0 z-0">
+                    <img [src]="photoPreview()" class="w-full h-full object-cover opacity-20">
+                </div>
+                <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white mb-4 relative z-10 shadow-lg shadow-emerald-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h4 class="text-brand-navy font-black text-sm relative z-10">Photo Captured</h4>
+                <button (click)="activateCamera()" class="relative z-10 mt-2 px-4 py-1.5 bg-white text-brand-navy hover:text-brand-orange font-bold text-[10px] rounded-lg shadow-sm border border-slate-100 uppercase transition-colors">Retake</button>
+            } @else {
+                <button (click)="activateCamera()" class="w-full h-full absolute inset-0 z-10 opacity-0 cursor-pointer"></button>
+                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-brand-orange mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <h4 class="text-brand-navy font-black text-sm">Take a Picture</h4>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Live snapshot via camera</p>
+            }
+        </div>
+    </div>
+
+    <!-- Verify Button Card -->
+    <div class="flex justify-center mt-8">
+        <button (click)="verify()" [disabled]="isVerifying() || !aadharFile() || !photoFile()" class="btn-primary flex items-center gap-2 px-10 py-4 shadow-xl disabled:opacity-50">
+            @if (isVerifying()) {
+                <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Verifying...
+            } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Verify Nominee
+            }
+        </button>
+    </div>
+</div>

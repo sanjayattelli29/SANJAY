@@ -150,6 +150,19 @@
             <!-- ============================================================ -->
             @if (activeView() === 'dashboard') {
             <div class="space-y-10 py-6">
+                <!-- Condolence Message for Death Claims -->
+                @if (hasDeathClaim()) {
+                <div class="bg-brand-navy p-6 md:p-8 rounded-[2rem] text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+                    <div class="relative z-10 max-w-2xl">
+                        <h3 class="text-2xl font-black italic text-white mb-2">
+                            Sorry to hear about your loss, {{ user?.name || 'Customer' }}.
+                        </h3>
+                        <p class="text-slate-300 font-medium text-sm">Our company is built on strong values. We will verify all details and provide the complete insurance amount shortly. Your platform access remains active as we process your claim.</p>
+                    </div>
+                </div>
+                }
+
                 @if (!isKycVerified()) {
                 <div
                     class="card bg-brand-orange/10 border border-brand-orange/30 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -373,6 +386,7 @@
                                 <option value="Disability">Disability</option>
                                 <option value="Hospitalization">Hospitalization</option>
                                 <option value="Fracture/Major Hurt">Fracture/Major Hurt</option>
+                                <option value="Death">Death (Accidental)</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
@@ -464,10 +478,21 @@
                             </div>
                         </div>
                         }
+                        @if (claimForm.incidentType === 'Death' && !isNomineeVerified()) {
+                        <div class="md:col-span-2 mt-6 animate-in slide-in-from-bottom-4">
+                            <app-nominee-verification (verificationSuccess)="onNomineeVerified($event)"></app-nominee-verification>
+                        </div>
+                        }
+
+                        @if (claimForm.incidentType === 'Death' && isNomineeVerified()) {
+                        <div class="md:col-span-2 mt-6 bg-emerald-50 text-emerald-700 p-4 rounded-xl text-center font-bold text-sm border border-emerald-200">
+                            Nominee Verified Successfully. You may proceed.
+                        </div>
+                        }
                     </div>
                     <div class="flex justify-end pt-6 border-t border-slate-50">
                         <button (click)="claimStep.set(2)"
-                            [disabled]="!claimForm.incidentDate || !claimForm.incidentType"
+                            [disabled]="!claimForm.incidentDate || !claimForm.incidentType || (claimForm.incidentType === 'Death' && !isNomineeVerified())"
                             class="btn-primary flex items-center gap-2">Next Step <svg
                                 xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -507,6 +532,7 @@
                             }
                         </div>
 
+                        @if (claimForm.incidentType !== 'Death') {
                         <div class="space-y-2">
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Injury
                                 Type</label>
@@ -529,6 +555,7 @@
                                 <option value="Multiple">Multiple</option>
                             </select>
                         </div>
+                        }
 
                         <div class="space-y-4 md:col-span-2 bg-slate-50 p-6 rounded-3xl border border-slate-100">
                             <div
@@ -576,6 +603,7 @@
                             }
                         </div>
 
+                        @if (claimForm.incidentType !== 'Death') {
                         <div class="space-y-4 md:col-span-2 bg-blue-50/30 p-6 rounded-3xl border border-blue-100">
                             <h4
                                 class="text-xs font-black text-brand-navy uppercase tracking-widest border-b border-blue-100 pb-2">
@@ -615,6 +643,7 @@
                                 </div>
                             </div>
                         </div>
+                        }
 
                         <div class="md:col-span-2 mt-4">
                             <h4 class="text-xs font-black text-brand-navy uppercase tracking-widest mb-4">Supporting
@@ -650,7 +679,7 @@
                                         <p
                                             class="text-[8px] text-slate-400 uppercase font-black tracking-widest relative z-10">
                                             {{
-                                            hasFirReport() ? 'Uploaded' : (claimForm.policeCaseFiled ? 'Required' :
+                                            hasFirReport() ? 'Uploaded' : (claimForm.policeCaseFiled || claimForm.incidentType === 'Death' ? 'Required' :
                                             'Optional') }}
                                         </p>
                                     </label>
@@ -695,6 +724,45 @@
                                     <div class="absolute bottom-0 left-0 h-1 bg-emerald-500 w-full"></div>
                                     }
                                 </div>
+
+                                <!-- Death Certificate (Conditional) -->
+                                @if (claimForm.incidentType === 'Death') {
+                                <div class="p-4 border-2 border-dashed rounded-2xl text-center bg-slate-50/50 transition-all flex flex-col items-center justify-center relative overflow-hidden"
+                                    [class.border-emerald-500]="hasDeathCertificate()"
+                                    [class.border-slate-200]="!hasDeathCertificate()"
+                                    [class.bg-emerald-50/30]="hasDeathCertificate()">
+                                    <input type="file" (change)="onFileChange($event, 'death')" id="death-upload"
+                                        class="hidden">
+                                    <label for="death-upload" class="cursor-pointer block w-full">
+                                        <div
+                                            class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-brand-orange mx-auto mb-2 shadow-sm relative z-10">
+                                            @if (hasDeathCertificate()) {
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-500"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            } @else {
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            }
+                                        </div>
+                                        <p class="text-[10px] font-black text-brand-navy mb-1 uppercase relative z-10">
+                                            Death Certificate
+                                        </p>
+                                        <p
+                                            class="text-[8px] text-slate-400 uppercase font-black tracking-widest relative z-10">
+                                            {{ hasDeathCertificate() ? 'Uploaded' : 'Required' }}
+                                        </p>
+                                    </label>
+                                    @if (hasDeathCertificate()) {
+                                    <div class="absolute bottom-0 left-0 h-1 bg-emerald-500 w-full"></div>
+                                    }
+                                </div>
+                                }
 
                                 <!-- Medical Report -->
                                 <div
@@ -875,11 +943,13 @@
                                     as Draft</button>
                             </div>
                         </div>
-
                         <!-- Amount & Action Sidebar -->
                         <div class="lg:col-span-1">
                             <div
                                 class="card sticky top-10 space-y-6 shadow-2xl shadow-slate-200 border-2 border-brand-navy">
+
+                                @if (claimForm.incidentType !== 'Death') {
+                                <!-- Calculator block — hidden for Death claims -->
                                 <div class="bg-brand-navy text-white -mx-8 -mt-8 p-6 rounded-t-[30px] mb-6">
                                     <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-2">
                                         Claim Amount
@@ -912,6 +982,18 @@
                                         <div class="text-2xl font-black">₹{{ suggestedClaimAmount | number }}</div>
                                     </div>
                                 </div>
+                                } @else {
+                                <!-- Death claim — show full coverage notice instead -->
+                                <div class="bg-brand-navy text-white -mx-8 -mt-8 p-6 rounded-t-[30px] mb-6">
+                                    <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-2">
+                                        Death Claim — Full Cover</h3>
+                                    <div class="mt-4 p-4 bg-white/10 rounded-xl backdrop-blur-sm text-center">
+                                        <p class="text-[10px] text-slate-300 mb-2 font-semibold uppercase tracking-widest">Policy Coverage Amount</p>
+                                        <div class="text-2xl font-black text-white">Full Cover Applicable</div>
+                                        <p class="text-[10px] text-slate-400 mt-2 italic">The full insured amount will be evaluated by the claim officer.</p>
+                                    </div>
+                                </div>
+                                }
 
                                 <div class="space-y-2">
                                     <label
@@ -2845,7 +2927,7 @@
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Payment Method</p>
                                 <div class="flex items-center gap-2 text-xs font-black text-brand-navy italic">
-                                    <svg class="w-4 h-4 text-brand-orange" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-brand-orange" fill="currentColor" viewBox="0 0 24 24">
                                         <path
                                             d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />
                                     </svg>
@@ -3223,6 +3305,19 @@
         </button>
     </div>
 
+    <!-- Voice Agent Activation Button -->
+    <div class="px-6 pt-4 pb-2 bg-slate-50 border-b border-slate-100 flex justify-center">
+        @if (!isVoiceMode()) {
+        <button (click)="toggleVoiceMode()"
+            class="px-6 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-sm border border-indigo-200">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+            Start Voice AI Agent
+        </button>
+        }
+    </div>
+
     <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50">
         @for (msg of chatMessages(); track $index) {
         <div [class]="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
@@ -3262,6 +3357,14 @@
                 </svg>
             </button>
         </div>
+        
+        @if (isVoiceMode()) {
+        <app-voice-agent 
+            [isProcessing]="isVoiceProcessing()"
+            (audioCaptured)="handleAudioCaptured($event)"
+            (stopVoiceAgent)="cancelVoiceMode()">
+        </app-voice-agent>
+        }
     </div>
 </div>
 }

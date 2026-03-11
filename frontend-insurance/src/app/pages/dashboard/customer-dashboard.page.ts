@@ -13,6 +13,8 @@ import { NotificationPanelComponent } from '../../components/notification-panel/
 import { GooglePlacesInputComponent } from '../../components/incident-location/incident-location.component';
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
 import * as Tesseract from 'tesseract.js';
+import { NomineeVerificationComponent } from './customer-components/nominee-verification/nominee-verification.component';
+import { VoiceAgent } from './customer-components/voice-agent/voice-agent';
 
 // customer dashboard main page component
 // handles policy buying, claim raising, viewing policies and claims
@@ -20,7 +22,7 @@ import * as Tesseract from 'tesseract.js';
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, GooglePlacesInputComponent, LocationMapComponent],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, GooglePlacesInputComponent, LocationMapComponent, NomineeVerificationComponent, VoiceAgent],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })
@@ -31,6 +33,7 @@ export class CustomerDashboardPage implements OnInit {
     private claimService = inject(ClaimService);
     private chatService = inject(ChatService);
     private router = inject(Router);
+    private http = inject(HttpClient);
 
     // get current logged in user from localstorage
     user = this.authService.getUser();
@@ -122,6 +125,12 @@ export class CustomerDashboardPage implements OnInit {
     currentChatPolicy = signal<any | null>(null);
     isChatLoading = signal<boolean>(false);
     chatUserMessage = signal<string>('');
+    
+    // voice agent chat extension state
+    activeChatId = signal<string | null>(null);
+    isVoiceMode = signal<boolean>(false);
+    isVoiceProcessing = signal<boolean>(false);
+    private currentAudio: HTMLAudioElement | null = null; // tracks playing ElevenLabs audio
 
     // policy detail modal legacy state
     showPolicyDetailModal = signal(false);
@@ -144,6 +153,12 @@ export class CustomerDashboardPage implements OnInit {
     isKycVerifying = signal<boolean>(false);
     kycError = signal<string | null>(null);
     kycSuccessMsg = signal<string | null>(null);
+
+    // Death Claim State
+    isNomineeVerified = signal<boolean>(false);
+    hasDeathClaim = signal<boolean>(false);
+    nomineeAadharFile = signal<File | null>(null);
+    nomineePhotoFile = signal<File | null>(null);
 
     // This function loads all required data when the component initializes including configuration, policies, claims and chat list from the backend services.
     ngOnInit() {
@@ -190,6 +205,13 @@ export class CustomerDashboardPage implements OnInit {
             next: (claims) => {
                 this.myClaims = claims;
                 this.calculateTotals(); // recalc totals
+                
+                // Check if user has any active/past death claim to show on dashboard
+                const deathClaim = claims.find((c: any) => c.incidentType === 'Death' || (c.incidentDataJson && c.incidentDataJson.includes('Death')));
+                if (deathClaim) {
+                    this.hasDeathClaim.set(true);
+                }
+
                 console.log('User claims loaded:', claims);
             }
         });
@@ -912,7 +934,15 @@ export class CustomerDashboardPage implements OnInit {
     claimFiles: File[] = []; // uploaded documents
     hasFirReport = signal<boolean>(false);
     hasHospitalBill = signal<boolean>(false);
+    hasDeathCertificate = signal<boolean>(false);
     selectedLocationCoords = signal<{ lat: number, lng: number } | null>(null);
+
+    // handles event from Nominee Verification component
+    onNomineeVerified(event: {aadhar: File, photo: File}) {
+        this.nomineeAadharFile.set(event.aadhar);
+        this.nomineePhotoFile.set(event.photo);
+        this.isNomineeVerified.set(true);
+    }
 
     // this function initializes the claim submission form for a selected policy by resetting all form fields and navigating to the raise claim view.
     initiateClaim(pol: any) {
@@ -944,6 +974,10 @@ export class CustomerDashboardPage implements OnInit {
         this.claimFiles = [];
         this.hasFirReport.set(false);
         this.hasHospitalBill.set(false);
+        this.hasDeathCertificate.set(false);
+        this.isNomineeVerified.set(false);
+        this.nomineeAadharFile.set(null);
+        this.nomineePhotoFile.set(null);
         this.selectedLocationCoords.set(null);
         this.switchView('raise-claim');
     }
@@ -969,17 +1003,21 @@ export class CustomerDashboardPage implements OnInit {
     }
 
     get isClaimDataComplete(): boolean {
+        if (this.claimForm.incidentType === 'Death') {
+            return this.hasHospitalBill() && this.hasFirReport() && this.hasDeathCertificate() && this.isNomineeVerified();
+        }
         return this.hasHospitalBill() && this.claimForm.hospitalName !== '';
     }
 
     // this function handles the file upload event when users select supporting documents like medical reports and bills for their insurance claims.
-    onFileChange(event: any, type: 'fir' | 'bill' | 'others' = 'others') {
+    onFileChange(event: any, type: 'fir' | 'bill' | 'death' | 'others' = 'others') {
         if (event.target.files.length > 0) {
             const files = Array.from(event.target.files) as File[];
             this.claimFiles = [...this.claimFiles, ...files];
 
             if (type === 'fir') this.hasFirReport.set(true);
             if (type === 'bill') this.hasHospitalBill.set(true);
+            if (type === 'death') this.hasDeathCertificate.set(true);
         }
     }
 
@@ -1028,6 +1066,16 @@ export class CustomerDashboardPage implements OnInit {
         this.claimFiles.forEach(file => {
             formData.append('documents', file, file.name);
         });
+
+        // Add Nominee Verification documents if Death claim
+        if (this.claimForm.incidentType === 'Death') {
+            if (this.nomineeAadharFile()) {
+                formData.append('documents', this.nomineeAadharFile()!, 'Nominee_Aadhar.jpg');
+            }
+            if (this.nomineePhotoFile()) {
+                formData.append('documents', this.nomineePhotoFile()!, 'Nominee_Photo.jpg');
+            }
+        }
 
         // post to backend which saves claim and files to db
         this.claimService.raiseClaim(formData).subscribe({
@@ -1330,5 +1378,203 @@ export class CustomerDashboardPage implements OnInit {
         } finally {
             this.isKycVerifying.set(false);
         }
+    }
+
+    // --- Voice Agent Integration ---
+
+    toggleVoiceMode() {
+        const newState = !this.isVoiceMode();
+        this.isVoiceMode.set(newState);
+        if (newState) {
+            // Do NOT await — let the Voice Agent mount and ask for mic permission immediately
+            this.sendGreeting();
+        }
+    }
+
+    sendGreeting() {
+        const greetingText = "Hi Sanjay! I'm AcciSure. How can I help you today?";
+        
+        // Show greeting in the chat UI
+        this.chatMessages.update(msgs => [
+             ...msgs,
+             { role: 'agent', content: greetingText }
+        ]);
+
+        // Set processing = true so VoiceAgent waits while greeting plays
+        this.isVoiceProcessing.set(true);
+        console.log('[VoiceAgent] Greeting started, mic is paused while speaking...');
+
+        if ('speechSynthesis' in window) {
+            // Cancel any ongoing speech first
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(greetingText);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            utterance.onstart = () => {
+                console.log('[VoiceAgent] Greeting audio STARTED playing via SpeechSynthesis');
+            };
+
+            utterance.onend = () => {
+                console.log('[VoiceAgent] Greeting audio FINISHED. Now starting mic listening...');
+                this.isVoiceProcessing.set(false); // VoiceAgent will detect this and call startListening()
+            };
+
+            utterance.onerror = (e) => {
+                console.error('[VoiceAgent] SpeechSynthesis error:', e);
+                this.isVoiceProcessing.set(false); // Fallback: start listening anyway
+            };
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            console.warn('[VoiceAgent] SpeechSynthesis not supported by browser. Starting mic immediately.');
+            this.isVoiceProcessing.set(false);
+        }
+    }
+
+    async handleAudioCaptured(event: any) {
+        const audioBlob = event as Blob;
+        console.log(`[VoiceAgent] ── STEP 1: Audio captured. Size=${audioBlob?.size} bytes, Type=${audioBlob?.type}`);
+
+        if (!audioBlob || audioBlob.size === 0) {
+            console.warn('[VoiceAgent] ── Captured blob is empty, skipping.');
+            return;
+        }
+
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser) {
+            console.error('[VoiceAgent] ── No authenticated user, aborting.');
+            return;
+        }
+
+        this.isVoiceProcessing.set(true);
+
+        const policy = this.currentChatPolicy();
+        const policyId = policy?.policyId || 'General';
+
+        // Build the same customer + policy payload that sendChatMessage() sends to n8n
+        const freshUser = this.authService.getUser();
+        const customerContext = JSON.stringify({
+            id: freshUser?.id || currentUser?.id,
+            name: freshUser?.name || currentUser?.name,
+            email: freshUser?.email || currentUser?.email,
+            phone: freshUser?.phone || currentUser?.phone
+        });
+        const policyContext = policy ? JSON.stringify(policy) : '{}';
+
+        const formData = new FormData();
+        formData.append('audioFile', audioBlob, 'audio.webm');
+        formData.append('policyId', policyId);
+        formData.append('customerId', freshUser?.id || '');
+        formData.append('policyContext', policyContext);      // Full policy object → n8n
+        formData.append('customerContext', customerContext);  // Full customer object → n8n
+
+        console.log(`[VoiceAgent] ── STEP 2: Sending to backend → policy:`, policy, '| customer:', freshUser);
+        console.log('[VoiceAgent] ── POST http://localhost:5078/api/VoiceAgent/Process');
+
+        try {
+            const response = await this.http.post<any>('http://localhost:5078/api/VoiceAgent/Process', formData).toPromise();
+            console.log('[VoiceAgent] ── STEP 3: Backend response received:', response);
+
+            if (response) {
+                const transcript = response.transcript || response.Transcript || '';
+                const aiResponse = response.aiResponse || response.AiResponse || "I'm sorry, I'm having trouble thinking right now.";
+                const audioBase64 = response.audioBase64 || response.AudioBase64;
+
+                console.log(`[VoiceAgent] ── STEP 4: Transcript from Deepgram: "${transcript}"`);
+                console.log(`[VoiceAgent] ── STEP 5: AI Response from Groq: "${aiResponse}"`);
+                console.log(`[VoiceAgent] ── STEP 6: ElevenLabs audio present: ${!!audioBase64}, length: ${audioBase64?.length ?? 0}`);
+
+                this.chatMessages.update(msgs => [
+                    ...msgs,
+                    { role: 'user', content: transcript || '(no transcript)' },
+                    { role: 'agent', content: aiResponse }
+                ]);
+
+                if (audioBase64) {
+                    console.log('[VoiceAgent] ── STEP 7: Playing ElevenLabs audio response...');
+                    this.playAudioBase64(audioBase64);
+                } else {
+                    console.warn('[VoiceAgent] ── STEP 7: No audio in response, using SpeechSynthesis fallback...');
+                    // Fallback: speak the AI response via browser TTS
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(aiResponse);
+                        utterance.rate = 0.9;
+                        utterance.onend = () => {
+                            console.log('[VoiceAgent] ── Fallback TTS finished, resuming listening...');
+                            this.isVoiceProcessing.set(false);
+                        };
+                        window.speechSynthesis.speak(utterance);
+                        return; // don't set isVoiceProcessing=false yet, wait for speech to end
+                    }
+                }
+            } else {
+                console.warn('[VoiceAgent] ── STEP 3: Empty response from backend.');
+            }
+        } catch (err: any) {
+            console.error('[VoiceAgent] ── ERROR in pipeline:', err);
+            console.error('[VoiceAgent] ── Status:', err?.status, 'URL:', err?.url);
+            console.error('[VoiceAgent] ── Message:', err?.message);
+        } finally {
+            this.isVoiceProcessing.set(false);
+        }
+    }
+
+    private playAudioBase64(base64String: string) {
+        try {
+            const binaryString = window.atob(base64String);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: 'audio/mpeg' });
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            this.currentAudio = audio; // store reference so cancelVoiceMode can stop it
+
+            // Keep isVoiceProcessing=true while AI is speaking
+            // so the VoiceAgent component does NOT start recording over the response.
+            this.isVoiceProcessing.set(true);
+
+            audio.onended = () => {
+                URL.revokeObjectURL(url);
+                this.currentAudio = null;
+                console.log('[VoiceAgent] ── AI audio playback finished, resuming mic listening...');
+                this.isVoiceProcessing.set(false); // VoiceAgent.ngOnChanges will auto-restart mic
+            };
+
+            audio.onerror = (e) => {
+                console.error('[VoiceAgent] ── Audio playback error:', e);
+                URL.revokeObjectURL(url);
+                this.isVoiceProcessing.set(false);
+            };
+
+            audio.play().catch(e => {
+                console.error('[VoiceAgent] ── audio.play() failed:', e);
+                this.isVoiceProcessing.set(false);
+            });
+
+        } catch (err) {
+            console.error("Audio playback failed", err);
+        }
+    }
+
+    cancelVoiceMode() {
+        // Stop any ElevenLabs audio currently playing
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio.src = '';
+            this.currentAudio = null;
+        }
+        // Stop any browser TTS (greeting)
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        this.isVoiceMode.set(false);
+        this.isVoiceProcessing.set(false);
     }
 }
