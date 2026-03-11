@@ -1,0 +1,26 @@
+# Ignore project folders
+# insurance-frontend/
+# AcciSure/
+# CompleteAccidentInsurance/
+# frontend-insurance/
+
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (if frontend uses Node)
+node_modules/
+dist/
+build/
+
+# Env files
+.env
+.env.*
+.txt
+
+.vs/
+bin/
+obj/
+*.user
+*.suo
