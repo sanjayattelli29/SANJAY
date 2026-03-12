@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -90,7 +90,9 @@ export class CustomerDashboardPage implements OnInit {
             phone: '',
             email: '',
             bankAccount: '',
-            ifsc: ''
+            ifsc: '',
+            aadharNumber: '',
+            aadharCardUrl: ''
         },
         location: {
             address: '',
@@ -159,6 +161,8 @@ export class CustomerDashboardPage implements OnInit {
     hasDeathClaim = signal<boolean>(false);
     nomineeAadharFile = signal<File | null>(null);
     nomineePhotoFile = signal<File | null>(null);
+    nomineeAadharUrl = signal<string>('');
+    nomineePhotoUrl = signal<string>('');
 
     // This function loads all required data when the component initializes including configuration, policies, claims and chat list from the backend services.
     ngOnInit() {
@@ -325,22 +329,61 @@ export class CustomerDashboardPage implements OnInit {
         this.updatePremium(); // calc premium when tier selected
     }
 
-    // ADD FAMILY MEMBER
+    // Family member management
     addFamilyMember() {
-        const max = this.selectedCategory?.maxMembersAllowed || 5;
-        if (this.applicationForm.familyMembers.length < max) {
-            this.applicationForm.familyMembers.push({
-                fullName: '',
-                relation: 'Spouse',
-                dateOfBirth: this.today,
-                healthConditions: ''
-            });
+        this.applicationForm.familyMembers.push({
+            fullName: '',
+            relation: '',
+            dateOfBirth: '',
+            healthConditions: ''
+        });
+    }
+
+    removeFamilyMember(index: number) {
+        this.applicationForm.familyMembers.splice(index, 1);
+    }
+
+    // Nominee Aadhar management
+    onNomineeAadharUpload(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+            // Upload to ImageKit service
+            this.uploadNomineeAadharToImageKit(file);
         }
     }
 
-    // REMOVE FAMILY MEMBER
-    removeFamilyMember(index: number) {
-        this.applicationForm.familyMembers.splice(index, 1);
+    async uploadNomineeAadharToImageKit(file: File) {
+        try {
+            this.isUploadingDocs.set(true);
+            this.policyService.uploadDocument(file, 'nominee-aadhar').subscribe({
+                next: (res) => {
+                    this.applicationForm.nominee.aadharCardUrl = res.url;
+                    this.isUploadingDocs.set(false);
+                    console.log('Nominee Aadhar uploaded successfully:', res.url);
+                },
+                error: (err) => {
+                    console.error('Error uploading Aadhar to ImageKit:', err);
+                    this.isUploadingDocs.set(false);
+                    alert('Failed to upload Aadhar card. Please try again.');
+                }
+            });
+        } catch (error) {
+            console.error('Error in uploadNomineeAadharToImageKit:', error);
+            this.isUploadingDocs.set(false);
+        }
+    }
+
+    getNomineeAadharFileName(): string {
+        if (this.applicationForm.nominee.aadharCardUrl) {
+            // Extract filename from URL
+            const parts = this.applicationForm.nominee.aadharCardUrl.split('/');
+            return parts[parts.length - 1].replace(/^nominee_aadhar_\d+_/, '');
+        }
+        return '';
+    }
+
+    removeNomineeAadhar() {
+        this.applicationForm.nominee.aadharCardUrl = '';
     }
 
     // calc premium when tier selected
@@ -634,6 +677,12 @@ export class CustomerDashboardPage implements OnInit {
         return /^[0-9]{10}$/.test(phone);
     }
 
+    isValidAadhar(aadhar: string): boolean {
+        if (!aadhar) return false;
+        // Aadhar: exactly 12 digits
+        return /^\d{12}$/.test(aadhar);
+    }
+
     isStep1Valid(): boolean {
         const app = this.applicationForm;
         // Basic Applicant Validation
@@ -648,6 +697,7 @@ export class CustomerDashboardPage implements OnInit {
         if (!this.isValidPhone(app.nominee.phone)) return false;
         if (!this.isValidBankAccount(app.nominee.bankAccount)) return false;
         if (!this.isValidIFSC(app.nominee.ifsc)) return false;
+        if (!this.isValidAadhar(app.nominee.aadharNumber)) return false;
 
         // Family Members Validation (if applicable)
         if (this.selectedCategory?.categoryId === 'FAMILY') {
@@ -772,7 +822,9 @@ export class CustomerDashboardPage implements OnInit {
             email: n.email || n.nomineeEmail || '--',
             phone: n.phone || n.nomineePhone || '--',
             bankAccount: n.bankAccount || n.nomineeBankAccountNumber || n.bankAccountNumber || '--',
-            ifsc: n.ifsc || n.nomineeIfsc || '--'
+            ifsc: n.ifsc || n.nomineeIfsc || '--',
+            aadharNumber: n.aadharNumber || n.AadharNumber || '--',
+            aadharCardUrl: n.aadharCardUrl || n.AadharCardUrl || null
         };
 
         // Enrich applicant
@@ -928,6 +980,29 @@ export class CustomerDashboardPage implements OnInit {
 
     // claim raising section
     selectedPolicyForClaim = signal<any | null>(null);
+    nomineeData = computed(() => {
+        const policy = this.selectedPolicyForClaim();
+        if (!policy) return null;
+        
+        let raw: any = {};
+        try {
+            raw = typeof policy.applicationDataJson === 'string'
+                ? JSON.parse(policy.applicationDataJson)
+                : (policy.applicationDataJson || {});
+        } catch (e) { }
+
+        const n = raw.nominee || raw.Nominee || {};
+        return {
+            name: n.name || n.nomineeName || 'N/A',
+            relationship: n.relationship || n.nomineeRelationship || '--',
+            email: n.email || n.nomineeEmail || '--',
+            phone: n.phone || n.nomineePhone || '--',
+            bankAccount: n.bankAccount || n.nomineeBankAccountNumber || n.bankAccountNumber || '--',
+            ifsc: n.ifsc || n.nomineeIfsc || '--',
+            aadharNumber: n.aadharNumber || n.AadharNumber || '--',
+            aadharCardUrl: n.aadharCardUrl || n.AadharCardUrl || null
+        };
+    });
     claimStep = signal<number>(1);
 
     // claim form data
@@ -961,9 +1036,11 @@ export class CustomerDashboardPage implements OnInit {
     selectedLocationCoords = signal<{ lat: number, lng: number } | null>(null);
 
     // handles event from Nominee Verification component
-    onNomineeVerified(event: {aadhar: File, photo: File}) {
+    onNomineeVerified(event: {aadhar: File | null, photo: File, aadharUrl?: string, photoUrl?: string}) {
         this.nomineeAadharFile.set(event.aadhar);
         this.nomineePhotoFile.set(event.photo);
+        this.nomineeAadharUrl.set(event.aadharUrl || '');
+        this.nomineePhotoUrl.set(event.photoUrl || '');
         this.isNomineeVerified.set(true);
     }
 

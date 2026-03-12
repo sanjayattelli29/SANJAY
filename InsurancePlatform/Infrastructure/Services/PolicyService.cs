@@ -185,7 +185,9 @@ namespace Infrastructure.Services
                     NomineePhone = request.Nominee.Phone,
                     NomineeEmail = request.Nominee.Email,
                     BankAccountNumber = request.Nominee.BankAccount,
-                    IFSC = request.Nominee.IFSC
+                    IFSC = request.Nominee.IFSC,
+                    AadharNumber = request.Nominee.AadharNumber ?? string.Empty,
+                    AadharCardUrl = request.Nominee.AadharCardUrl ?? string.Empty
                 };
                 _context.NomineeDetails.Add(nominee);
             }
@@ -607,6 +609,12 @@ namespace Infrastructure.Services
             await _context.SaveChangesAsync();
 
             return new AuthResponseDto { Status = "Success", Message = "Documents uploaded and application is now under review." };
+        }
+    
+        public async Task<string> UploadGeneralFileAsync(Stream fileStream, string fileName, string folder)
+        {
+            var result = await _fileStorage.UploadFileAsync(fileStream, fileName, folder);
+            return result.FileUrl;
         }
     }
 }

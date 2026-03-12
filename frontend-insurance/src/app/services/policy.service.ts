@@ -65,4 +65,12 @@ export class PolicyService {
         const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/chatbot-agent-1";
         return this.http.post(webhookUrl, payload);
     }
+
+    // upload a single document to backend which uses ImageKit
+    uploadDocument(file: File, folder: string = 'general'): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', folder);
+        return this.http.post(`${this.apiUrl}/upload-document`, formData);
+    }
 }

@@ -1,5 +1,6 @@
 # Ignore sensitive configuration
 InsurancePlatform/API/appsettings.json
+
 InsurancePlatform/API/appsettings.Development.json
 # .NET secrets
 **/appsettings.Development.json

@@ -23,6 +23,7 @@ namespace Application.Interfaces
         Task<IEnumerable<PolicyApplication>> GetAgentCustomersAsync(string agentId);
         Task<AgentAnalyticsDto> GetAgentAnalyticsAsync(string agentId);
         Task<IEnumerable<UnifiedPaymentDto>> GetUnifiedPaymentsAsync();
+        Task<string> UploadGeneralFileAsync(Stream fileStream, string fileName, string folder);
     }
 
     public class AgentAnalyticsDto
@@ -141,5 +142,9 @@ namespace Application.DTOs
         public string Email { get; set; } = string.Empty;
         public string BankAccount { get; set; } = string.Empty;
         public string IFSC { get; set; } = string.Empty;
+        
+        // Aadhar Details
+        public string AadharNumber { get; set; } = string.Empty;
+        public string AadharCardUrl { get; set; } = string.Empty;
     }
 }

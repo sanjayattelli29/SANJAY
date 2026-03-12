@@ -85,5 +85,22 @@ namespace API.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+    
+        [HttpPost("upload-document")]
+        public async Task<IActionResult> UploadDocument(IFormFile file, [FromForm] string folder = "general")
+        {
+            if (file == null || file.Length == 0) return BadRequest(new { Message = "No file uploaded" });
+            
+            try
+            {
+                using var stream = file.OpenReadStream();
+                var url = await _policyService.UploadGeneralFileAsync(stream, file.FileName, folder);
+                return Ok(new { Url = url });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
 }

@@ -437,7 +437,9 @@ export class AgentDashboardPage implements OnInit {
             email: n.email || n.nomineeEmail || '--',
             phone: n.phone || n.nomineePhone || '--',
             bankAccount: n.bankAccount || n.nomineeBankAccountNumber || n.bankAccountNumber || '--',
-            ifsc: n.ifsc || n.nomineeIfsc || '--'
+            ifsc: n.ifsc || n.nomineeIfsc || '--',
+            aadharNumber: n.aadharNumber || n.AadharNumber || '--',
+            aadharCardUrl: n.aadharCardUrl || n.AadharCardUrl || null
         };
 
         // Applicant details
@@ -742,7 +744,9 @@ export class AgentDashboardPage implements OnInit {
             email: n.email || n.nomineeEmail || '--',
             phone: n.phone || n.nomineePhone || '--',
             bankAccount: n.bankAccount || n.nomineeBankAccountNumber || n.bankAccountNumber || '--',
-            ifsc: n.ifsc || n.nomineeIfsc || '--'
+            ifsc: n.ifsc || n.nomineeIfsc || '--',
+            aadharNumber: n.aadharNumber || n.AadharNumber || '--',
+            aadharCardUrl: n.aadharCardUrl || n.AadharCardUrl || null
         };
 
         // Enrich applicant details
@@ -813,6 +817,14 @@ export class AgentDashboardPage implements OnInit {
     openInvoiceModal(payment: any) {
         this.selectedPayment.set(payment);
         this.showInvoiceModal.set(true);
+    }
+
+    viewAadharCard(url: string) {
+        if (url) {
+            window.open(url, '_blank');
+        } else {
+            alert('Aadhar card document not available.');
+        }
     }
 
     generateInvoicePDF(payment: any) {

@@ -13,6 +13,10 @@ public class NomineeDetails
     public string NomineeEmail { get; set; } = string.Empty;
     public string BankAccountNumber { get; set; } = string.Empty;
     public string IFSC { get; set; } = string.Empty;
+    
+    // Aadhar Details
+    public string AadharNumber { get; set; } = string.Empty;
+    public string AadharCardUrl { get; set; } = string.Empty;
 
     // Navigation
     public PolicyApplication? PolicyApplication { get; set; }

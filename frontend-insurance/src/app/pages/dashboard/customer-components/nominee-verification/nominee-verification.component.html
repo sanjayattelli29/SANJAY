@@ -4,22 +4,47 @@
         <p class="text-xs text-slate-500 mt-2">To process this specific claim, we need to verify the identity of the nominee.</p>
     </div>
 
-    @if (verificationError()) {
-        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 border border-red-200">
-            {{ verificationError() }}
-        </div>
-    }
-
-    @if (verificationSuccessMsg()) {
-        <div class="p-4 mb-4 text-sm text-emerald-800 rounded-lg bg-emerald-50 border border-emerald-200 font-bold">
-            {{ verificationSuccessMsg() }}
-        </div>
-    }
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Aadhar Upload Card -->
-        <div class="card flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 hover:border-brand-orange/50 transition-colors text-center relative overflow-hidden" [class.bg-emerald-50/30]="aadharPreview()" [class.border-emerald-500]="aadharPreview()">
-            <input type="file" (change)="onAadharUpload($event)" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+        <!-- Nominee Details Card -->
+        @if (nomineeData) {
+        <div class="md:col-span-2 bg-slate-50 p-6 rounded-[2rem] border border-slate-100 shadow-inner">
+            <h4 class="text-[10px] font-black text-brand-navy uppercase tracking-[0.2em] mb-4 border-b pb-2 italic">Scheduled Nominee Details</h4>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="space-y-1">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Name</p>
+                    <p class="text-xs font-black text-brand-navy">{{ nomineeData.name }}</p>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Relationship</p>
+                    <p class="text-xs font-black text-slate-500 uppercase italic">{{ nomineeData.relationship }}</p>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Aadhar Number</p>
+                    <p class="text-xs font-black text-brand-orange">{{ nomineeData.aadharNumber }}</p>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Mobile</p>
+                    <p class="text-xs font-bold text-slate-600 tracking-widest">{{ nomineeData.phone }}</p>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Email</p>
+                    <p class="text-xs font-bold text-slate-600 lowercase">{{ nomineeData.email }}</p>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Bank Account</p>
+                    <p class="text-xs font-bold text-slate-600">{{ nomineeData.bankAccount }} ({{ nomineeData.ifsc }})</p>
+                </div>
+            </div>
+        </div>
+        }
+
+        <!-- Aadhar Upload/Preview Card -->
+        <div class="card flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 hover:border-brand-orange/50 transition-colors text-center relative overflow-hidden" 
+             [class.bg-emerald-50/30]="aadharPreview()" [class.border-emerald-500]="aadharPreview()">
+            
+            @if (!nomineeData) {
+                <input type="file" (change)="onAadharUpload($event)" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+            }
             
             @if (aadharPreview()) {
                 <div class="absolute inset-0 z-0">
@@ -30,8 +55,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
-                <h4 class="text-brand-navy font-black text-sm relative z-10">Aadhar Uploaded</h4>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 relative z-10">Tap to change</p>
+                <h4 class="text-brand-navy font-black text-sm relative z-10">Aadhar Registered</h4>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 relative z-10">{{ nomineeData ? 'Verified against record' : 'Tap to change' }}</p>
             } @else {
                 <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-brand-orange mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -83,21 +108,43 @@
         </div>
     </div>
 
-    <!-- Verify Button Card -->
-    <div class="flex justify-center mt-8">
-        <button (click)="verify()" [disabled]="isVerifying() || !aadharFile() || !photoFile()" class="btn-primary flex items-center gap-2 px-10 py-4 shadow-xl disabled:opacity-50">
-            @if (isVerifying()) {
-                <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <!-- Verify Button & Status Card -->
+    <div class="flex flex-col items-center mt-10 gap-6">
+        @if (verificationSuccessMsg()) {
+            <div class="w-full py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase text-sm tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl shadow-emerald-200 animate-in zoom-in duration-500 scale-105 border-4 border-white/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                 </svg>
-                Verifying...
-            } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                Verify Nominee
+                Identity Verified
+            </div>
+            <div class="bg-emerald-50 border border-emerald-100 px-8 py-3 rounded-full animate-bounce">
+                <p class="text-emerald-700 font-black text-[11px] uppercase tracking-widest italic">{{ verificationSuccessMsg() }}</p>
+            </div>
+        } @else {
+            <button (click)="verify()" [disabled]="isVerifying() || (!aadharFile() && !aadharUrl()) || !photoFile()" 
+                class="w-full py-5 bg-brand-navy hover:bg-[#0f2142] text-white rounded-2xl font-black uppercase text-sm tracking-[0.2em] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-4 shadow-xl hover:-translate-y-1 active:translate-y-0">
+                @if (isVerifying()) {
+                    <div class="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <span>Biometric Analysis...</span>
+                } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>Verify Nominee Identity</span>
+                }
+            </button>
+
+            @if (verificationError()) {
+                <div class="w-full p-6 bg-red-50 border-2 border-dashed border-red-200 rounded-[2.5rem] flex flex-col items-center gap-3 animate-in shake duration-500">
+                    <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </div>
+                    <p class="text-red-700 font-black text-sm max-w-xs text-center leading-tight">{{ verificationError() }}</p>
+                    <button (click)="activateCamera()" class="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline">Click here to re-take live photo</button>
+                </div>
             }
-        </button>
+        }
     </div>
 </div>

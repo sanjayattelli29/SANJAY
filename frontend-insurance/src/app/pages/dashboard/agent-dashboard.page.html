@@ -962,6 +962,23 @@
                             <p class="text-[11px] font-mono text-slate-500">{{
                                 selectedClaim().fullPolicyDetails?.nominee?.phone }}</p>
                         </div>
+                        @if (selectedClaim().fullPolicyDetails?.nominee?.aadharNumber || selectedClaim().fullPolicyDetails?.nominee?.aadharCardUrl) {
+                        <div>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase">Aadhar Identity</p>
+                            <p class="text-[11px] font-mono text-slate-500">{{
+                                selectedClaim().fullPolicyDetails?.nominee?.aadharNumber || 'Not Provided' }}</p>
+                            @if (selectedClaim().fullPolicyDetails?.nominee?.aadharCardUrl) {
+                            <button (click)="viewAadharCard(selectedClaim().fullPolicyDetails?.nominee?.aadharCardUrl)" 
+                                class="text-xs font-bold text-purple-600 hover:text-purple-800 underline flex items-center gap-1 mt-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                View Aadhar Card
+                            </button>
+                            }
+                        </div>
+                        }
                     </div>
                 </div>
 
@@ -1163,6 +1180,18 @@
                                         selectedApplication().fullDetails?.nominee?.bankAccount }}</span>
                                     <span class="text-[9px] font-black text-slate-400 uppercase">IFSC: {{
                                         selectedApplication().fullDetails?.nominee?.ifsc }}</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] text-slate-400 font-black uppercase">Aadhar Proof</span>
+                                    <span class="font-bold text-brand-navy">{{ selectedApplication().fullDetails?.nominee?.aadharNumber || '--' }}</span>
+                                    @if (selectedApplication().fullDetails?.nominee?.aadharCardUrl) {
+                                        <button (click)="viewAadharCard(selectedApplication().fullDetails?.nominee?.aadharCardUrl)"
+                                            class="text-[9px] font-black text-purple-600 hover:text-purple-800 underline uppercase mt-0.5 text-left">
+                                            View Aadhar Card
+                                        </button>
+                                    } @else {
+                                        <span class="text-[9px] text-slate-400 italic">No Aadhar Uploaded</span>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -1544,6 +1573,34 @@
                                             selectedUnifiedDetail().policy?.fullDetails?.nominee?.ifsc }}</p>
                                     </div>
                                 </div>
+                                <!-- Aadhar Details -->
+                                @if (selectedUnifiedDetail().policy?.fullDetails?.nominee?.aadharNumber || selectedUnifiedDetail().policy?.fullDetails?.nominee?.aadharCardUrl) {
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-emerald-100/50">
+                                    <div class="bg-white/60 p-3 rounded-xl">
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase">Aadhar Number</p>
+                                        <p class="text-xs font-mono font-bold text-slate-700 mt-0.5">{{
+                                            selectedUnifiedDetail().policy?.fullDetails?.nominee?.aadharNumber || 'Not Provided' }}</p>
+                                    </div>
+                                    @if (selectedUnifiedDetail().policy?.fullDetails?.nominee?.aadharCardUrl) {
+                                    <div class="bg-white/60 p-3 rounded-xl">
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase">Aadhar Card</p>
+                                        <button (click)="viewAadharCard(selectedUnifiedDetail().policy?.fullDetails?.nominee?.aadharCardUrl)" 
+                                            class="mt-1 text-xs font-bold text-purple-600 hover:text-purple-800 underline flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            View Aadhar Card
+                                        </button>
+                                    </div>
+                                    } @else {
+                                    <div class="bg-white/60 p-3 rounded-xl">
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase">Aadhar Card</p>
+                                        <p class="text-xs text-slate-500 italic mt-0.5">Not Uploaded</p>
+                                    </div>
+                                    }
+                                </div>
+                                }
                             </div>
                             } @else {
                             <div class="p-6 text-center bg-slate-50 border border-slate-200 border-dashed rounded-2xl">

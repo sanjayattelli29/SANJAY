@@ -596,7 +596,9 @@ export class AdminDashboardPage implements OnInit {
                     email: n.email || n.nomineeEmail || '--',
                     phone: n.phone || n.nomineePhone || '--',
                     bankAccount: n.bankAccount || n.nomineeBankAccountNumber || n.bankAccountNumber || '--',
-                    ifsc: n.ifsc || n.nomineeIfsc || '--'
+                    ifsc: n.ifsc || n.nomineeIfsc || '--',
+                    aadharNumber: n.aadharNumber || n.AadharNumber || '--',
+                    aadharCardUrl: n.aadharCardUrl || n.AadharCardUrl || null
                 };
 
                 const loc = normalize(fullDetails.location || raw.Location || raw.location || {});
@@ -700,6 +702,14 @@ export class AdminDashboardPage implements OnInit {
     openInvoiceModal(payment: any) {
         this.selectedPayment.set(payment);
         this.showInvoiceModal.set(true);
+    }
+
+    viewAadharCard(url: string) {
+        if (url) {
+            window.open(url, '_blank');
+        } else {
+            alert('Aadhar card document not available.');
+        }
     }
 
     generateInvoicePDF(payment: any) {
