@@ -167,11 +167,11 @@ export class CustomerDashboardPage implements OnInit {
     // This function loads all required data when the component initializes including configuration, policies, claims and chat list from the backend services.
     ngOnInit() {
         // Prefill name if available
-        if (this.user?.name) {
+        if (this.user.name) {
             this.applicationForm.applicant.fullName = this.user.name;
         }
 
-        const kycStatus = localStorage.getItem('isKycVerified_' + this.user?.id);
+        const kycStatus = localStorage.getItem('isKycVerified_' + this.user.id);
         if (kycStatus === 'true') {
             this.isKycVerified.set(true);
         }
@@ -322,7 +322,7 @@ export class CustomerDashboardPage implements OnInit {
         this.selectedTier = tier;
 
         // Prefill full name from user profile if not already set
-        if (!this.applicationForm.applicant.fullName && this.user?.name) {
+        if (!this.applicationForm.applicant.fullName && this.user.name) {
             this.applicationForm.applicant.fullName = this.user.name;
         }
 
@@ -1453,10 +1453,10 @@ export class CustomerDashboardPage implements OnInit {
                 if (result.confidence > 80) {
                     this.kycSuccessMsg.set('Face Verified Successfully! Same Person. Similarity Score: ' + result.confidence);
                     this.isKycVerified.set(true);
-                    if (this.user?.id) localStorage.setItem('isKycVerified_' + this.user.id, 'true');
+                    if (this.user.id) localStorage.setItem('isKycVerified_' + this.user.id, 'true');
 
                     // Call backend api
-                    if (this.user?.id) {
+                    if (this.user.id) {
                         this.authService.completeKyc(this.user.id).subscribe({
                             next: () => console.log('Backend KYC Status updated successfully'),
                             error: (err) => console.error('Failed to sync KYC with backend', err)
