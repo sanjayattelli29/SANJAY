@@ -110,7 +110,7 @@ export class AdminDashboardPage implements OnInit {
             name: ['', Validators.required],
             emailId: ['', [Validators.required, Validators.email]],
             password: ['', [Validators.required, Validators.minLength(6)]],
-            bankAccountNumber: ['', [Validators.required, Validators.minLength(16), Validators.maxLength(16)]]
+            bankAccountNumber: ['', [Validators.required, Validators.pattern(/^\d{16}$/)]]
         });
 
         // officer creation form
@@ -118,7 +118,7 @@ export class AdminDashboardPage implements OnInit {
             name: ['', Validators.required],
             emailId: ['', [Validators.required, Validators.email]],
             password: ['', [Validators.required, Validators.minLength(6)]],
-            bankAccountNumber: ['', [Validators.required, Validators.minLength(16), Validators.maxLength(16)]]
+            bankAccountNumber: ['', [Validators.required, Validators.pattern(/^\d{16}$/)]]
         });
 
         // email compose form

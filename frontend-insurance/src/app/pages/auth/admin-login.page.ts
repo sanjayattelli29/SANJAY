@@ -21,6 +21,11 @@ export class AdminLoginPage {
     // ui state signals
     isLoading = signal(false);
     errorMessage = signal('');
+    showPassword = false;
+
+    togglePassword() {
+        this.showPassword = !this.showPassword;
+    }
 
     // simple login form with email password
     loginForm = this.fb.group({

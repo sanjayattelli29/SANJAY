@@ -21,6 +21,11 @@ export class AgentLoginPage {
     // ui state
     isLoading = signal(false);
     errorMessage = signal('');
+    showPassword = false;
+
+    togglePassword() {
+        this.showPassword = !this.showPassword;
+    }
 
     // login form
     loginForm = this.fb.group({

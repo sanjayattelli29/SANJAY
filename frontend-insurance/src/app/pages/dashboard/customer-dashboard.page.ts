@@ -427,20 +427,30 @@ export class CustomerDashboardPage implements OnInit {
         return targetTotal / (counts[mode] || 1);
     }
 
-    // Step navigation: Proceed to Payment (Step 2)
-    proceedToPayment() {
-        if (!this.isApplicationFormValid()) {
-            alert('Please fill all mandatory fields and upload required documents before proceeding.');
+    // Step navigation: Proceed to Addresses (Step 2)
+    proceedToAddress() {
+        if (!this.isStep1Valid()) {
+            alert('Please fill all mandatory details (Applicant & Nominee) before proceeding.');
             return;
         }
         this.buyFlowStep.set(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Step navigation: Proceed to Review (Step 3)
+    // Step navigation: Proceed to Payment (Step 3)
+    proceedToPayment() {
+        if (!this.isStep2Valid()) {
+            alert('Please provide address and upload all required documents before proceeding.');
+            return;
+        }
+        this.buyFlowStep.set(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Step navigation: Proceed to Review (Step 4)
     proceedToReview() {
         this.calculatePaymentTimeline();
-        this.buyFlowStep.set(3);
+        this.buyFlowStep.set(4);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -452,6 +462,11 @@ export class CustomerDashboardPage implements OnInit {
     // Step navigation: Back to Step 2
     goBackToStep2() {
         this.buyFlowStep.set(2);
+    }
+
+    // Step navigation: Back to Step 3
+    goBackToStep3() {
+        this.buyFlowStep.set(3);
     }
 
     // Generates a 12-month schedule showing when payments occur
@@ -619,15 +634,13 @@ export class CustomerDashboardPage implements OnInit {
         return /^[0-9]{10}$/.test(phone);
     }
 
-    isApplicationFormValid(): boolean {
+    isStep1Valid(): boolean {
         const app = this.applicationForm;
-
         // Basic Applicant Validation
         if (!this.isValidName(app.applicant.fullName)) return false;
         if (app.applicant.age < 22) return false;
         if (app.annualIncome <= 0) return false;
-        if (app.applicant.travelKmPerMonth < 0) return false;
-
+        
         // Nominee Validation
         if (!app.nominee.name || !this.isValidName(app.nominee.name)) return false;
         if (!app.nominee.relationship) return false;
@@ -643,14 +656,24 @@ export class CustomerDashboardPage implements OnInit {
                 if (!this.isValidName(member.fullName) || !member.relation || !member.dateOfBirth) return false;
             }
         }
+        return true;
+    }
+
+    isStep2Valid(): boolean {
+        const app = this.applicationForm;
+        // Address Validation
+        if (!app.location.address || !app.location.pincode) return false;
 
         // Mandatory Documents Validation
         const mandatoryDocs = ['IdentityProof', 'AgeProof', 'IncomeProof', 'MedicalReport'];
         for (const type of mandatoryDocs) {
             if (!this.hasUploadedDocument(type)) return false;
         }
-
         return true;
+    }
+
+    isApplicationFormValid(): boolean {
+        return this.isStep1Valid() && this.isStep2Valid();
     }
 
     // submit application and then upload files
@@ -1405,33 +1428,70 @@ export class CustomerDashboardPage implements OnInit {
         console.log('[VoiceAgent] Greeting started, mic is paused while speaking...');
 
         if ('speechSynthesis' in window) {
-            // Cancel any ongoing speech first
-            window.speechSynthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(greetingText);
-            utterance.rate = 0.9;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-
-            utterance.onstart = () => {
-                console.log('[VoiceAgent] Greeting audio STARTED playing via SpeechSynthesis');
-            };
-
-            utterance.onend = () => {
-                console.log('[VoiceAgent] Greeting audio FINISHED. Now starting mic listening...');
-                this.isVoiceProcessing.set(false); // VoiceAgent will detect this and call startListening()
-            };
-
-            utterance.onerror = (e) => {
-                console.error('[VoiceAgent] SpeechSynthesis error:', e);
-                this.isVoiceProcessing.set(false); // Fallback: start listening anyway
-            };
-
-            window.speechSynthesis.speak(utterance);
+            this.speakResponse(greetingText, () => {
+                console.log('[VoiceAgent] Greeting finished. Ready for user input.');
+                this.isVoiceProcessing.set(false);
+            });
         } else {
             console.warn('[VoiceAgent] SpeechSynthesis not supported by browser. Starting mic immediately.');
             this.isVoiceProcessing.set(false);
         }
+    }
+
+    private speakResponse(text: string, onEnd: () => void) {
+        if (!('speechSynthesis' in window)) {
+            onEnd();
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+        
+        // Clean text: remove markdown artifacts, extra spaces, and weird symbols
+        const cleanText = text
+            .replace(/[*_#`]/g, '') 
+            .replace(/[-]{2,}/g, ' ') 
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        const setVoice = () => {
+            const voices = window.speechSynthesis.getVoices();
+            
+            // Priority: Premium/Natural Voices -> Google/Microsoft Voices -> English Voices
+            let selectedVoice = voices.find(v => (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('enhanced')) && v.lang.startsWith('en'))
+                || voices.find(v => (v.name.includes('Google') || v.name.includes('Microsoft')) && v.lang.startsWith('en'))
+                || voices.find(v => v.lang.startsWith('en'))
+                || voices[0];
+
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                console.log(`[VoiceAgent] Using Intelligent Voice: ${selectedVoice.name}`);
+            }
+        };
+
+        // Voices are often loaded asynchronously
+        if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                setVoice();
+                window.speechSynthesis.speak(utterance);
+                window.speechSynthesis.onvoiceschanged = null; // one-time use
+            };
+        } else {
+            setVoice();
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Voice characteristics for a more "human" feel
+        utterance.rate = 1.05; // Slightly faster sounds more confident/intelligent
+        utterance.pitch = 1.0; 
+        utterance.volume = 1.0;
+
+        utterance.onend = () => onEnd();
+        utterance.onerror = (e) => {
+            console.error('[VoiceAgent] TTS Error:', e);
+            onEnd();
+        };
     }
 
     async handleAudioCaptured(event: any) {
@@ -1498,27 +1558,19 @@ export class CustomerDashboardPage implements OnInit {
                     this.playAudioBase64(audioBase64);
                 } else {
                     console.warn('[VoiceAgent] ── STEP 7: No audio in response, using SpeechSynthesis fallback...');
-                    // Fallback: speak the AI response via browser TTS
-                    if ('speechSynthesis' in window) {
-                        window.speechSynthesis.cancel();
-                        const utterance = new SpeechSynthesisUtterance(aiResponse);
-                        utterance.rate = 0.9;
-                        utterance.onend = () => {
-                            console.log('[VoiceAgent] ── Fallback TTS finished, resuming listening...');
-                            this.isVoiceProcessing.set(false);
-                        };
-                        window.speechSynthesis.speak(utterance);
-                        return; // don't set isVoiceProcessing=false yet, wait for speech to end
-                    }
+                    this.speakResponse(aiResponse, () => {
+                        console.log('[VoiceAgent] ── Fallback TTS finished, resuming listening...');
+                        this.isVoiceProcessing.set(false);
+                    });
+                    return; // don't set isVoiceProcessing=false yet, wait for speech to end
                 }
             } else {
                 console.warn('[VoiceAgent] ── STEP 3: Empty response from backend.');
+                this.isVoiceProcessing.set(false);
             }
         } catch (err: any) {
             console.error('[VoiceAgent] ── ERROR in pipeline:', err);
             console.error('[VoiceAgent] ── Status:', err?.status, 'URL:', err?.url);
-            console.error('[VoiceAgent] ── Message:', err?.message);
-        } finally {
             this.isVoiceProcessing.set(false);
         }
     }

@@ -70,8 +70,8 @@ export class CustomerRegisterPage implements OnInit {
 
     // generate random math problem for bot prevention
     generateCaptcha() {
-        this.num1.set(Math.floor(Math.random() * 10) + 1);
-        this.num2.set(Math.floor(Math.random() * 10) + 1);
+        this.num1.set(Math.floor(Math.random() * 9) + 1);
+        this.num2.set(Math.floor(Math.random() * 9) + 1);
         this.registrationForm.get('captchaInput')?.reset();
     }
 
@@ -142,6 +142,11 @@ export class CustomerRegisterPage implements OnInit {
                 this.isOtpLoading.set(false);
             }
         });
+    }
+    showPassword = false;
+
+    togglePassword() {
+    this.showPassword = !this.showPassword;
     }
 
     // verify otp matches sent otp real-time

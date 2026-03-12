@@ -21,8 +21,10 @@ export class CustomerLoginPage implements OnInit {
     // ui state signals for reactive updates
     isLoading = signal(false);
     errorMessage = signal('');
-    // captcha text for alphanumeric challenge
-    captchaText = signal('');
+    // captcha math challenge numbers
+    num1 = signal(0);
+    num2 = signal(0);
+    showPassword = false;
 
     loginForm = this.fb.group({
         emailId: ['', [Validators.required, Validators.email]],
@@ -35,21 +37,21 @@ export class CustomerLoginPage implements OnInit {
         this.generateCaptcha();
     }
 
-    // create random alphanumeric string for captcha
+    // create simple math sum for captcha
     generateCaptcha() {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let result = '';
-        for (let i = 0; i < 6; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        this.captchaText.set(result);
+        this.num1.set(Math.floor(Math.random() * 9) + 1);
+        this.num2.set(Math.floor(Math.random() * 9) + 1);
         this.loginForm.get('captchaInput')?.reset();
     }
 
-    // check if user entered correct captcha text (case-insensitive for better UX)
+    togglePassword() {
+        this.showPassword = !this.showPassword;
+    }
+
+    // verify user entered correct sum
     isCaptchaCorrect(): boolean {
-        const userInput = (this.loginForm.get('captchaInput')?.value || '').toLowerCase();
-        return userInput === this.captchaText().toLowerCase();
+        const userInput = parseInt(this.loginForm.get('captchaInput')?.value || '0');
+        return userInput === (this.num1() + this.num2());
     }
 
     // submit login form to backend via auth service

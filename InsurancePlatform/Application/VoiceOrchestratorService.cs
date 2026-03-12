@@ -154,43 +154,62 @@ namespace Application.Services
         // STEP 3: Synthesize speech using ElevenLabs
         public async Task<byte[]> SynthesizeSpeechAsync(string text)
         {
-            // Preprocess: convert ₹20,00,000 → "20 lakhs rupees" for natural TTS
             var spokenText = PreprocessForTTS(text);
-            _logger.LogInformation("[VoiceAgent] STEP 3: TTS input: \"{Text}\"", spokenText.Length > 150 ? spokenText.Substring(0, 150) + "..." : spokenText);
+            _logger.LogInformation("[VoiceAgent] STEP 3: Synthesizing speech. Input text: \"{Text}\"", text);
 
             try
             {
-                var xiKey = _config["ExternalApis:ElevenLabs:ApiKey"];
-                var voiceId = "pNInz6obpgDQGcFmaJcg"; // Adam voice
+                var apiKey = _config["ExternalApis:ElevenLabs:ApiKey"];
+                // Using the Voice ID and Model from official ElevenLabs snippet for reliability
+                var voiceId = "56bWURjYFHyYyVf490Dp"; 
+                var modelId = "eleven_multilingual_v2";
 
-                var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.elevenlabs.io/v1/text-to-speech/{voiceId}");
-                request.Headers.Add("xi-api-key", xiKey);
+                // Added output_format query param for high quality
+                var url = $"https://api.elevenlabs.io/v1/text-to-speech/{voiceId}?output_format=mp3_44100_128";
+                
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Add("xi-api-key", apiKey);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("audio/mpeg"));
 
                 var payload = new
                 {
                     text = spokenText,
-                    model_id = "eleven_monolingual_v1",
-                    voice_settings = new { stability = 0.5, similarity_boost = 0.75 }
+                    model_id = modelId,
+                    voice_settings = new
+                    {
+                        stability = 0.5,
+                        similarity_boost = 0.75
+                    }
                 };
 
-                request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+                var json = JsonSerializer.Serialize(payload);
+                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                _logger.LogInformation("[VoiceAgent] Sending request to ElevenLabs... Model: {Model}, Voice: {Voice}", modelId, voiceId);
+                
                 var response = await _httpClient.SendAsync(request);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var err = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("[VoiceAgent] ElevenLabs Error {Status}: {Error}", (int)response.StatusCode, err);
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("[VoiceAgent] ElevenLabs API ERROR! Status: {Status}, Body: {Body}", (int)response.StatusCode, errorBody);
                     return Array.Empty<byte>();
                 }
 
                 var audioBytes = await response.Content.ReadAsByteArrayAsync();
-                _logger.LogInformation("[VoiceAgent] STEP 3 DONE: ElevenLabs returned {Bytes} bytes", audioBytes.Length);
+                
+                if (audioBytes == null || audioBytes.Length == 0)
+                {
+                    _logger.LogWarning("[VoiceAgent] ElevenLabs returned SUCCESS but EMPTY audio bytes.");
+                    return Array.Empty<byte>();
+                }
+
+                _logger.LogInformation("[VoiceAgent] ElevenLabs SUCCESS! Received {Size} bytes of audio.", audioBytes.Length);
                 return audioBytes;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[VoiceAgent] ElevenLabs exception: {Message}", ex.Message);
+                _logger.LogError(ex, "[VoiceAgent] CRITICAL: ElevenLabs exception: {Message}", ex.Message);
                 return Array.Empty<byte>();
             }
         }

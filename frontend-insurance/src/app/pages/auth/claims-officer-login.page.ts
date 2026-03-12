@@ -21,6 +21,11 @@ export class ClaimsOfficerLoginPage {
     // ui state
     isLoading = signal(false);
     errorMessage = signal('');
+    showPassword = false;
+
+    togglePassword() {
+        this.showPassword = !this.showPassword;
+    }
 
     // simple login form
     loginForm = this.fb.group({

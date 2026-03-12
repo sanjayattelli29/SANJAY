@@ -28,15 +28,16 @@
     } @else if (isProcessing) {
         <!-- Processing Visualizer -->
         <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-4 relative z-10 animate-pulse">
-            AI is thinking...
+            AI is Responding...
         </p>
         
-        <div class="flex items-center justify-center gap-2 z-10 h-20">
-            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0s] h-8"></div>
-            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.2s] h-12"></div>
-            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.4s] h-6"></div>
-            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.6s] h-10"></div>
-            <div class="w-2 rounded-full bg-emerald-500 animate-[bounce_1s_infinite_0.8s] h-8"></div>
+        <div class="relative w-24 h-24 flex items-center justify-center z-10">
+            <!-- Core Emerald Orb -->
+            <div class="w-12 h-12 bg-emerald-500 rounded-full z-10 shadow-[0_0_20px_#10b981] animate-pulse"></div>
+            
+            <!-- Responding Waves -->
+            <div class="absolute inset-0 border-2 border-emerald-500/30 rounded-full animate-ping"></div>
+            <div class="absolute inset-4 border border-emerald-500/20 rounded-full animate-[ping_1.5s_infinite]"></div>
         </div>
     } @else {
         <!-- Idle State (Optional, mostly handled by parent) -->

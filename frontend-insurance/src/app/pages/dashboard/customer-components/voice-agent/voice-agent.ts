@@ -41,14 +41,15 @@ export class VoiceAgent implements OnInit, OnChanges, OnDestroy {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        // When isProcessing transitions from true → false (greeting finished),
-        // automatically start the microphone.
         if (changes['isProcessing']) {
-            const prev = changes['isProcessing'].previousValue;
             const curr = changes['isProcessing'].currentValue;
-            console.log(`[VoiceAgent] isProcessing changed: ${prev} → ${curr}`);
-            if (prev === true && curr === false && !this.isListening()) {
-                console.log('[VoiceAgent] Greeting done! Auto-starting microphone now...');
+            const prev = changes['isProcessing'].previousValue;
+            
+            if (curr === true) {
+                console.log('[VoiceAgent] Processing started — ensuring microphone is CLOSED.');
+                this.stopAllAudio();
+            } else if (prev === true && curr === false) {
+                console.log('[VoiceAgent] Processing finished — starting microphone.');
                 this.startListening();
             }
         }

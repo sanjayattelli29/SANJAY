@@ -15,22 +15,57 @@
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Full Name</label>
                     <input type="text" formControlName="name" placeholder="Agent's full name"
-                        class="input-field py-3 text-sm">
+                        class="input-field py-3 text-sm"
+                        [class.border-rose-300]="agentForm.get('name')?.invalid && agentForm.get('name')?.touched">
+                    @if (agentForm.get('name')?.invalid && agentForm.get('name')?.touched) {
+                    <p class="text-xs text-rose-500 mt-1">Full name is required</p>
+                    }
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Email ID</label>
                     <input type="email" formControlName="emailId" placeholder="official@agency.com"
-                        class="input-field py-3 text-sm">
+                        class="input-field py-3 text-sm"
+                        [class.border-rose-300]="agentForm.get('emailId')?.invalid && agentForm.get('emailId')?.touched">
+                    @if (agentForm.get('emailId')?.invalid && agentForm.get('emailId')?.touched) {
+                    <p class="text-xs text-rose-500 mt-1">
+                        @if (agentForm.get('emailId')?.errors?.['required']) {
+                        Email is required
+                        } @if (agentForm.get('emailId')?.errors?.['email']) {
+                        Please enter a valid email address
+                        }
+                    </p>
+                    }
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-400 uppercase">System Password</label>
                     <input type="password" formControlName="password" placeholder="••••••••"
-                        class="input-field py-3 text-sm">
+                        class="input-field py-3 text-sm"
+                        [class.border-rose-300]="agentForm.get('password')?.invalid && agentForm.get('password')?.touched">
+                    @if (agentForm.get('password')?.invalid && agentForm.get('password')?.touched) {
+                    <p class="text-xs text-rose-500 mt-1">
+                        @if (agentForm.get('password')?.errors?.['required']) {
+                        Password is required
+                        } @if (agentForm.get('password')?.errors?.['minlength']) {
+                        Password must be at least 6 characters
+                        }
+                    </p>
+                    }
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Bank Account (16 Digits)</label>
                     <input type="text" formControlName="bankAccountNumber"
-                        placeholder="1234567890123456" class="input-field py-3 text-sm">
+                        placeholder="1234567890123456" class="input-field py-3 text-sm"
+                        maxlength="16"
+                        [class.border-rose-300]="agentForm.get('bankAccountNumber')?.invalid && agentForm.get('bankAccountNumber')?.touched">
+                    @if (agentForm.get('bankAccountNumber')?.invalid && agentForm.get('bankAccountNumber')?.touched) {
+                    <p class="text-xs text-rose-500 mt-1">
+                        @if (agentForm.get('bankAccountNumber')?.errors?.['required']) {
+                        Bank account number is required
+                        } @if (agentForm.get('bankAccountNumber')?.errors?.['minlength'] || agentForm.get('bankAccountNumber')?.errors?.['maxlength']) {
+                        Bank account must be exactly 16 digits
+                        }
+                    </p>
+                    }
                 </div>
                 <div class="md:col-span-2 flex justify-end">
                     <button type="submit" [disabled]="agentForm.invalid || isLoading"

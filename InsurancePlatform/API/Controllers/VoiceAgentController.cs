@@ -51,11 +51,14 @@ namespace API.Controllers
                 // STEP 3: Synthesize speech using ElevenLabs
                 var audioBytes = await _voiceService.SynthesizeSpeechAsync(aiTextResponse);
 
+                var audioBase64 = (audioBytes != null && audioBytes.Length > 0) ? Convert.ToBase64String(audioBytes) : "";
                 return Ok(new
                 {
                     Transcript = transcript,
                     AiResponse = aiTextResponse,
-                    AudioBase64 = Convert.ToBase64String(audioBytes)
+                    AudioBase64 = audioBase64,
+                    AudioSize = audioBytes?.Length ?? 0,
+                    DebugInfo = audioBytes?.Length == 0 ? "ElevenLabs returned 0 bytes. Check server terminal for exact API error body." : "OK"
                 });
             }
             catch (Exception ex)

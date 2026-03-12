@@ -21,7 +21,11 @@
                         Officer Name
                     </label>
                     <input type="text" formControlName="name"
-                        class="input-field py-3 text-sm focus:border-indigo-500">
+                        class="input-field py-3 text-sm focus:border-indigo-500"
+                        [class.border-rose-300]="officerForm.get('name')?.invalid && officerForm.get('name')?.touched">
+                    <p class="text-xs text-rose-500 mt-1" *ngIf="officerForm.get('name')?.invalid && officerForm.get('name')?.touched">
+                        Officer name is required
+                    </p>
                 </div>
 
                 <div class="space-y-2">
@@ -29,7 +33,16 @@
                         Corporate Email
                     </label>
                     <input type="email" formControlName="emailId"
-                        class="input-field py-3 text-sm focus:border-indigo-500">
+                        class="input-field py-3 text-sm focus:border-indigo-500"
+                        [class.border-rose-300]="officerForm.get('emailId')?.invalid && officerForm.get('emailId')?.touched">
+                    <p class="text-xs text-rose-500 mt-1" *ngIf="officerForm.get('emailId')?.invalid && officerForm.get('emailId')?.touched">
+                        <span *ngIf="officerForm.get('emailId')?.errors?.['required']">
+                            Email is required
+                        </span>
+                        <span *ngIf="officerForm.get('emailId')?.errors?.['email']">
+                            Please enter a valid email address
+                        </span>
+                    </p>
                 </div>
 
                 <div class="space-y-2">
@@ -37,7 +50,16 @@
                         Secure Password
                     </label>
                     <input type="password" formControlName="password"
-                        class="input-field py-3 text-sm focus:border-indigo-500">
+                        class="input-field py-3 text-sm focus:border-indigo-500"
+                        [class.border-rose-300]="officerForm.get('password')?.invalid && officerForm.get('password')?.touched">
+                    <p class="text-xs text-rose-500 mt-1" *ngIf="officerForm.get('password')?.invalid && officerForm.get('password')?.touched">
+                        <span *ngIf="officerForm.get('password')?.errors?.['required']">
+                            Password is required
+                        </span>
+                        <span *ngIf="officerForm.get('password')?.errors?.['minlength']">
+                            Password must be at least 6 characters
+                        </span>
+                    </p>
                 </div>
 
                 <div class="space-y-2">
@@ -45,7 +67,16 @@
                         Salary Account (16 Digits)
                     </label>
                     <input type="text" formControlName="bankAccountNumber"
-                        class="input-field py-3 text-sm focus:border-indigo-500">
+                        class="input-field py-3 text-sm focus:border-indigo-500" maxlength="16"
+                        [class.border-rose-300]="officerForm.get('bankAccountNumber')?.invalid && officerForm.get('bankAccountNumber')?.touched">
+                    <p class="text-xs text-rose-500 mt-1" *ngIf="officerForm.get('bankAccountNumber')?.invalid && officerForm.get('bankAccountNumber')?.touched">
+                        <span *ngIf="officerForm.get('bankAccountNumber')?.errors?.['required']">
+                            Bank account number is required
+                        </span>
+                        <span *ngIf="officerForm.get('bankAccountNumber')?.errors?.['pattern']">
+                            Bank account must be exactly 16 digits
+                        </span>
+                    </p>
                 </div>
 
                 <div class="md:col-span-2 flex justify-end">

@@ -10,14 +10,16 @@
         class="fixed lg:relative inset-y-0 left-0 z-40 w-72 bg-white border-r border-border-light flex flex-col shrink-0 transition-transform duration-300"
         [class.-translate-x-full]="!sidebarOpen()" [class.translate-x-0]="sidebarOpen()"
         [class.lg:translate-x-0]="true">
-        <!-- Logo -->
         <div class="p-8 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div
-                    class="w-10 h-10 bg-brand-orange rounded-2xl flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-orange-200">
-                    I</div>
-                <span class="text-xl font-black tracking-tighter text-brand-navy">AcciSure</span>
-            </div>
+            <a href="#" class="flex items-center gap-2.5"
+                style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+                <div class="logo-diamonds">
+                    <div class="diamond"></div>
+                    <div class="diamond"></div>
+                </div>
+                <span
+                    style="font-family:'Sora',sans-serif; font-weight:800; font-size:1.25rem; color:#0f1f14;">AcciSure</span>
+            </a>
             <button class="lg:hidden text-slate-400 hover:text-brand-navy transition-colors p-1"
                 (click)="sidebarOpen.set(false)">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
@@ -1407,7 +1409,7 @@
                     class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
                     <div class="flex items-center gap-4">
                         <button
-                            (click)="buyFlowStep() === 1 ? (selectedTier = null) : buyFlowStep() === 2 ? goBackToStep1() : proceedToPayment()"
+                            (click)="buyFlowStep() === 1 ? (selectedTier = null) : buyFlowStep() === 2 ? goBackToStep1() : buyFlowStep() === 3 ? goBackToStep2() : goBackToStep3()"
                             class="w-9 h-9 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-brand-navy hover:shadow-lg transition-all">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -1418,7 +1420,8 @@
                         <div>
                             <h2 class="text-xl font-black text-brand-navy italic">
                                 @if (buyFlowStep() === 1) { Application Details }
-                                @else if (buyFlowStep() === 2) { Payment Frequency }
+                                @else if (buyFlowStep() === 2) { Verification & Address }
+                                @else if (buyFlowStep() === 3) { Payment Frequency }
                                 @else { Final Review }
                             </h2>
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1430,6 +1433,7 @@
 
                     <!-- Step Indicator -->
                     <div class="flex items-center gap-2">
+                        <!-- Step 1 -->
                         <div class="flex items-center gap-1.5">
                             <span
                                 class="w-7 h-7 rounded-full flex items-center justify-center font-black text-[11px] transition-all"
@@ -1445,6 +1449,7 @@
                             <div class="absolute inset-0 bg-brand-navy transition-all duration-500"
                                 [style.transform]="buyFlowStep() > 1 ? 'translateX(0)' : 'translateX(-100%)'"></div>
                         </div>
+                        <!-- Step 2 -->
                         <div class="flex items-center gap-1.5">
                             <span
                                 class="w-7 h-7 rounded-full flex items-center justify-center font-black text-[11px] transition-all"
@@ -1454,12 +1459,13 @@
                                 [class.ring-brand-orange/20]="buyFlowStep() === 2">2</span>
                             <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline"
                                 [class.text-brand-navy]="buyFlowStep() >= 2"
-                                [class.text-slate-300]="buyFlowStep() < 2">Payment</span>
+                                [class.text-slate-300]="buyFlowStep() < 2">Verification</span>
                         </div>
                         <div class="w-6 h-[2px] bg-slate-100 relative overflow-hidden mx-1">
                             <div class="absolute inset-0 bg-brand-navy transition-all duration-500"
                                 [style.transform]="buyFlowStep() > 2 ? 'translateX(0)' : 'translateX(-100%)'"></div>
                         </div>
+                        <!-- Step 3 -->
                         <div class="flex items-center gap-1.5">
                             <span
                                 class="w-7 h-7 rounded-full flex items-center justify-center font-black text-[11px] transition-all"
@@ -1469,9 +1475,31 @@
                                 [class.ring-brand-orange/20]="buyFlowStep() === 3">3</span>
                             <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline"
                                 [class.text-brand-navy]="buyFlowStep() >= 3"
-                                [class.text-slate-300]="buyFlowStep() < 3">Review</span>
+                                [class.text-slate-300]="buyFlowStep() < 3">Payment</span>
+                        </div>
+                        <div class="w-6 h-[2px] bg-slate-100 relative overflow-hidden mx-1">
+                            <div class="absolute inset-0 bg-brand-navy transition-all duration-500"
+                                [style.transform]="buyFlowStep() > 3 ? 'translateX(0)' : 'translateX(-100%)'"></div>
+                        </div>
+                        <!-- Step 4 -->
+                        <div class="flex items-center gap-1.5">
+                            <span
+                                class="w-7 h-7 rounded-full flex items-center justify-center font-black text-[11px] transition-all"
+                                [class.bg-brand-navy]="buyFlowStep() >= 4" [class.text-white]="buyFlowStep() >= 4"
+                                [class.bg-slate-100]="buyFlowStep() < 4" [class.text-slate-400]="buyFlowStep() < 4"
+                                [class.ring-4]="buyFlowStep() === 4"
+                                [class.ring-brand-orange/20]="buyFlowStep() === 4">4</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline"
+                                [class.text-brand-navy]="buyFlowStep() >= 4"
+                                [class.text-slate-300]="buyFlowStep() < 4">Review</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Animated Progress Bar -->
+                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-8">
+                    <div class="h-full bg-brand-orange progress-fill-animation"
+                        [style.width]="(buyFlowStep() * 25) + '%'"></div>
                 </div>
 
 
@@ -1666,70 +1694,100 @@
                                 Nominee Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nominee
-                                        Name</label>
-                                    <input type="text" [(ngModel)]="applicationForm.nominee.name" #nomineeName="ngModel"
-                                        class="input-field" placeholder="Full Name"
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nominee Name</label>
+                                    <input type="text" [(ngModel)]="applicationForm.nominee.name" #nomineeName="ngModel" placeholder="Enter Nominee Name" class="input-field"
                                         [class.border-red-500]="nomineeName.touched && !isValidName(applicationForm.nominee.name)">
                                     <p *ngIf="nomineeName.touched && !isValidName(applicationForm.nominee.name)"
-                                        class="text-red-500 text-[10px] font-bold">Letters only required</p>
+                                        class="text-red-500 text-[10px] font-bold">Please enter a valid name (letters only)</p>
                                 </div>
                                 <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Relationship</label>
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Relationship</label>
                                     <select [(ngModel)]="applicationForm.nominee.relationship" class="input-field">
                                         <option value="" disabled selected>Select Relationship</option>
                                         <option value="Spouse">Spouse</option>
-                                        <option value="Mother">Mother</option>
-                                        <option value="Father">Father</option>
-                                        <option value="Son">Son</option>
-                                        <option value="Daughter">Daughter</option>
+                                        <option value="Child">Child</option>
+                                        <option value="Parent">Parent</option>
+                                        <option value="Sibling">Sibling</option>
+                                        <option value="Other">Other</option>
                                     </select>
                                 </div>
                                 <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nominee
-                                        Email</label>
-                                    <input type="email" [(ngModel)]="applicationForm.nominee.email"
-                                        #nomineeEmail="ngModel" class="input-field" placeholder="email@example.com"
-                                        [class.border-red-500]="nomineeEmail.touched && !isValidEmail(applicationForm.nominee.email)">
-                                    <p *ngIf="nomineeEmail.touched && !isValidEmail(applicationForm.nominee.email)"
-                                        class="text-red-500 text-[10px] font-bold">Invalid email format</p>
-                                </div>
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nominee
-                                        Phone</label>
-                                    <input type="text" [(ngModel)]="applicationForm.nominee.phone"
-                                        #nomineePhone="ngModel" class="input-field" placeholder="10-digit number"
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Phone Number</label>
+                                    <input type="text" [(ngModel)]="applicationForm.nominee.phone" #nomineePhone="ngModel" placeholder="Nominee Phone" class="input-field" maxlength="10"
                                         [class.border-red-500]="nomineePhone.touched && !isValidPhone(applicationForm.nominee.phone)">
                                     <p *ngIf="nomineePhone.touched && !isValidPhone(applicationForm.nominee.phone)"
-                                        class="text-red-500 text-[10px] font-bold">10-digit number required</p>
+                                        class="text-red-500 text-[10px] font-bold">Please enter a valid 10-digit phone number</p>
                                 </div>
                                 <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Bank
-                                        Account Number</label>
-                                    <input type="text" [(ngModel)]="applicationForm.nominee.bankAccount"
-                                        #nomineeBank="ngModel" class="input-field" placeholder="9-18 digit A/C number"
-                                        [class.border-red-500]="nomineeBank.touched && !isValidBankAccount(applicationForm.nominee.bankAccount)">
-                                    <p *ngIf="nomineeBank.touched && !isValidBankAccount(applicationForm.nominee.bankAccount)"
-                                        class="text-red-500 text-[10px] font-bold">9-18 digit account required</p>
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Email Address</label>
+                                    <input type="email" [(ngModel)]="applicationForm.nominee.email" #nomineeEmail="ngModel" placeholder="Nominee Email" class="input-field"
+                                        [class.border-red-500]="nomineeEmail.touched && !isValidEmail(applicationForm.nominee.email)">
+                                    <p *ngIf="nomineeEmail.touched && !isValidEmail(applicationForm.nominee.email)"
+                                        class="text-red-500 text-[10px] font-bold">Please enter a valid email address (format: user@domain.com)</p>
                                 </div>
                                 <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Bank
-                                        IFSC Code</label>
-                                    <input type="text" [(ngModel)]="applicationForm.nominee.ifsc" #nomineeIfsc="ngModel"
-                                        class="input-field" placeholder="e.g. SBIN0001234"
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Bank Account Number</label>
+                                    <input type="text" [(ngModel)]="applicationForm.nominee.bankAccount" #nomineeAccount="ngModel" placeholder="Account Number" class="input-field" maxlength="18"
+                                        [class.border-red-500]="nomineeAccount.touched && !isValidBankAccount(applicationForm.nominee.bankAccount)">
+                                    <p *ngIf="nomineeAccount.touched && !isValidBankAccount(applicationForm.nominee.bankAccount)"
+                                        class="text-red-500 text-[10px] font-bold">Please enter a valid bank account number (9-18 digits)</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">IFSC Code</label>
+                                    <input type="text" [(ngModel)]="applicationForm.nominee.ifsc" #nomineeIfsc="ngModel" placeholder="Bank IFSC (e.g. SBIN0001234)" class="input-field" maxlength="11" style="text-transform: uppercase;"
                                         [class.border-red-500]="nomineeIfsc.touched && !isValidIFSC(applicationForm.nominee.ifsc)">
                                     <p *ngIf="nomineeIfsc.touched && !isValidIFSC(applicationForm.nominee.ifsc)"
-                                        class="text-red-500 text-[10px] font-bold">Format: ABCD0123456</p>
+                                        class="text-red-500 text-[10px] font-bold">Please enter a valid IFSC code (e.g. SBIN0001234)</p>
                                 </div>
                             </div>
                         </section>
+                    </div>
 
+                    <!-- Sticky Sidebar Step 1 -->
+                    <div class="lg:col-span-1">
+                        <div class="card sticky top-6 flex flex-col gap-5 shadow-2xl shadow-slate-200">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                                    Selected Plan</p>
+                                <h4 class="text-lg font-black text-brand-navy">{{ selectedTier.tierName }} {{
+                                    selectedCategory.categoryId }}</h4>
+                                <p class="text-xs text-emerald-500 font-bold">Cover: ₹{{
+                                    selectedTier.baseCoverageAmount / 100000 }}L</p>
+                            </div>
+                            <div class="p-5 bg-slate-900 rounded-3xl text-white space-y-3">
+                                <div
+                                    class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/40 border-b border-white/10 pb-2">
+                                    <span>Live Estimate</span>
+                                    <span class="text-brand-orange">Live</span>
+                                </div>
+                                <div class="flex justify-between items-end">
+                                    <p class="text-3xl font-black italic">₹{{ calculatedPremium() | number:'1.0-0'
+                                        }}</p>
+                                    <p class="text-[10px] font-bold text-brand-orange mb-1">/ year</p>
+                                </div>
+                                <p class="text-[9px] font-bold text-white/40 italic">Step 1 of 4 Completed.</p>
+                            </div>
+                            <button (click)="proceedToAddress()" [disabled]="!isStep1Valid()"
+                                class="btn-primary w-full py-5 text-sm shadow-xl shadow-orange-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale transition-all">
+                                Next: Verification
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </button>
+                            <p class="text-[10px] text-center text-slate-400 italic">Provide applicant & nominee details.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                }
+
+                <!-- ===================== STEP 2: ADDRESS & DOCUMENTS ===================== -->
+                @if (buyFlowStep() === 2) {
+                <div
+                    class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div class="lg:col-span-3 space-y-8">
                         <!-- Address -->
                         <section class="card">
                             <h3 class="text-sm font-black text-brand-navy mb-6 border-b pb-4 uppercase tracking-widest">
@@ -1908,32 +1966,16 @@
                         </section>
                     </div>
 
-                    <!-- Sticky Sidebar Step 1 -->
+                    <!-- Sticky Sidebar Step 2 -->
                     <div class="lg:col-span-1">
                         <div class="card sticky top-6 flex flex-col gap-5 shadow-2xl shadow-slate-200">
                             <div>
                                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
-                                    Selected Plan</p>
-                                <h4 class="text-lg font-black text-brand-navy">{{ selectedTier.tierName }} {{
-                                    selectedCategory.categoryId }}</h4>
-                                <p class="text-xs text-emerald-500 font-bold">Cover: ₹{{
-                                    selectedTier.baseCoverageAmount / 100000 }}L</p>
+                                    Step 2: Verification</p>
+                                <h4 class="text-lg font-black text-brand-navy">Address & Docs</h4>
+                                <p class="text-xs text-brand-orange font-bold italic">Documents are mandatory.</p>
                             </div>
-                            <div class="p-5 bg-slate-900 rounded-3xl text-white space-y-3">
-                                <div
-                                    class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/40 border-b border-white/10 pb-2">
-                                    <span>Live Estimate</span>
-                                    <span class="text-brand-orange">Live</span>
-                                </div>
-                                <div class="flex justify-between items-end">
-                                    <p class="text-3xl font-black italic">₹{{ calculatedPremium() | number:'1.0-0'
-                                        }}</p>
-                                    <p class="text-[10px] font-bold text-brand-orange mb-1">/ year</p>
-                                </div>
-                                <p class="text-[9px] font-bold text-white/40 italic">Dynamic risk-based estimate.
-                                </p>
-                            </div>
-                            <button (click)="proceedToPayment()" [disabled]="!isApplicationFormValid()"
+                            <button (click)="proceedToPayment()" [disabled]="!isStep2Valid()"
                                 class="btn-primary w-full py-5 text-sm shadow-xl shadow-orange-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale transition-all">
                                 Next: Payment
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
@@ -1942,16 +1984,17 @@
                                         d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </button>
-                            <p class="text-[10px] text-center text-slate-400 italic">Complete all fields to proceed.
-                            </p>
+                            <button (click)="goBackToStep1()"
+                                class="w-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-navy transition-colors">←
+                                Back to Details</button>
                         </div>
                     </div>
                 </div>
                 }
 
 
-                <!-- ===================== STEP 2: PAYMENT FREQUENCY ===================== -->
-                @if (buyFlowStep() === 2) {
+                <!-- ===================== STEP 3: PAYMENT FREQUENCY ===================== -->
+                @if (buyFlowStep() === 3) {
                 <div class="animate-in fade-in slide-in-from-right-4 duration-500 max-w-4xl mx-auto">
                     <div class="text-center mb-10">
                         <h3 class="text-3xl font-black text-brand-navy italic mb-2">How would you like to pay?</h3>
@@ -2002,15 +2045,15 @@
                         <!-- Summary -->
                         <div class="lg:col-span-5">
                             <div
-                                class="card bg-slate-900 text-black p-7 rounded-[2rem] shadow-2xl shadow-slate-200 space-y-5">
-                                <p class="text-[10px] font-black uppercase tracking-widest text-black/40">Annual
+                                class="card bg-slate-900 text-white p-7 rounded-[2rem] shadow-2xl shadow-slate-200 space-y-5">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Annual
                                     Premium</p>
                                 <div class="flex items-end gap-2">
                                     <span class="text-4xl font-black italic">₹{{ calculatedPremium() |
                                         number:'1.0-0' }}</span>
                                     <span class="text-xs font-bold text-brand-orange mb-1">/ Year</span>
                                 </div>
-                                <p class="text-xs text-black/40 italic leading-relaxed">Subject to underwriting
+                                <p class="text-xs text-white/40 italic leading-relaxed">Subject to underwriting
                                     review based on documents provided.</p>
                                 <button (click)="proceedToReview()"
                                     class="btn-primary w-full py-5 bg-brand-orange text-white shadow-xl shadow-orange-500/20 group flex items-center justify-center gap-3">
@@ -2022,18 +2065,17 @@
                                             d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>
                                 </button>
-                                <button (click)="goBackToStep1()"
+                                <button (click)="goBackToStep2()"
                                     class="w-full text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-colors">←
-                                    Edit Application</button>
+                                    Edit Verification</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 }
 
-
-                <!-- ===================== STEP 3: FINAL REVIEW & SUBMIT ===================== -->
-                @if (buyFlowStep() === 3) {
+                <!-- ===================== STEP 4: FINAL REVIEW & SUBMIT ===================== -->
+                @if (buyFlowStep() === 4) {
                 <div class="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -2112,7 +2154,10 @@
 
                                     <button (click)="goBackToStep1()"
                                         class="w-full py-4 mt-2 border-2 border-slate-100 hover:border-brand-orange/30 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-navy transition-all">
-                                        Modify Information</button>
+                                        Modify Details</button>
+                                    <button (click)="goBackToStep2()"
+                                        class="w-full py-4 mt-2 border-2 border-slate-100 hover:border-brand-orange/30 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-navy transition-all">
+                                        Modify Verification</button>
                                 </div>
                             </div>
                         </div>
