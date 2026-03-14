@@ -115,6 +115,20 @@ export class PolicyDetailsPage implements OnInit {
         const pol = this.policy();
         if (!pol) return;
 
+        // Validation: Incident date cannot be before policy start date
+        if (pol.startDate && this.claimForm.incidentDate) {
+            const start = new Date(pol.startDate);
+            const incident = new Date(this.claimForm.incidentDate);
+            // reset hours to compare only dates
+            start.setHours(0, 0, 0, 0);
+            incident.setHours(0, 0, 0, 0);
+
+            if (incident < start) {
+                alert(`Cannot raise a claim for an incident before the policy start date (${start.toLocaleDateString()}).`);
+                return;
+            }
+        }
+
         this.isSubmittingClaim.set(true);
         // build formdata for multipart upload
         const formData = new FormData();
@@ -168,6 +182,14 @@ export class PolicyDetailsPage implements OnInit {
     onHospitalChanged(name: string) {
         this.claimForm.hospitalName = name;
         console.log('Hospital updated in form:', name);
+    }
+
+    // format min date for input
+    getMinDate(): string {
+        const pol = this.policy();
+        if (!pol || !pol.startDate) return '';
+        const d = new Date(pol.startDate);
+        return d.toISOString().split('T')[0];
     }
 
     // navigate back to dashboard

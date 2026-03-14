@@ -61,6 +61,11 @@ export class AgentDashboardPage implements OnInit {
     // ui state
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
+    profileDropdownOpen = signal(false);
+
+    toggleProfileDropdown() {
+        this.profileDropdownOpen.update(v => !v);
+    }
 
     // agent dashboard data from backend
     stats: any = {
@@ -151,18 +156,18 @@ export class AgentDashboardPage implements OnInit {
     setSection(section: string) {
         this.activeSection.set(section);
         this.message.set({ type: '', text: '' });
+        this.destroyCharts();
         if (section === 'dashboard') {
-            this.initCharts();
-        } else if (section === 'payments') {
-            this.loadUnifiedPayments();
-            this.destroyCharts();
-        } else {
-            this.destroyCharts();
+            setTimeout(() => this.initCharts(), 500); // wait for DOM to be ready
         }
         if (section === 'chat') {
             this.loadChatList();
         }
+        if (section === 'payments') {
+            this.loadUnifiedPayments();
+        }
     }
+
 
     navigateToChat(chat: any) {
         if (chat.id && chat.id.startsWith('new_')) {
@@ -191,15 +196,19 @@ export class AgentDashboardPage implements OnInit {
 
     private initCharts() {
         if (this.activeSection() !== 'dashboard') return;
+        
+        // Wait for DOM to be ready with new structure
         setTimeout(() => {
             this.destroyCharts();
-            this.createCommissionChart();
-            this.createPortfolioChart();
-            this.createTierChart();
-            this.createPremiumTrendChart();
-            this.createStatusChart();
-            this.createClaimImpactChart();
-        }, 100);
+            
+            const data = this.analytics();
+            if (!data) return;
+
+            this.createCommissionChart(data);
+            this.createPortfolioChart(data);
+            this.createTierChart(data);
+            this.createPremiumTrendChart(data);
+        }, 500); 
     }
 
     private destroyCharts() {
@@ -207,84 +216,107 @@ export class AgentDashboardPage implements OnInit {
         this.charts = [];
     }
 
-    private createCommissionChart() {
+    private createCommissionChart(data: any) {
         const canvas = document.getElementById('commissionChart') as HTMLCanvasElement;
-        if (!canvas || !this.analytics()) return;
+        if (!canvas) return;
 
-        const chartData = this.analytics().commissionPerformance || [];
-        const labels = chartData.map((d: any) => d.month);
-        const data = chartData.map((d: any) => d.value);
-
+        const points = data.commissionPerformance || [];
+        
         this.charts.push(new Chart(canvas, {
             type: 'line',
             data: {
-                labels,
+                labels: points.map((p: any) => p.month),
                 datasets: [{
-                    label: 'Commission (₹)',
-                    data,
+                    label: 'Commission',
+                    data: points.map((p: any) => p.value),
                     borderColor: '#f97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    backgroundColor: 'rgba(249, 115, 22, 0.08)',
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
+                    tension: 0.45,
+                    borderWidth: 3,
+                    pointRadius: 5,
                     pointBackgroundColor: '#fff',
                     pointBorderColor: '#f97316',
-                    pointBorderWidth: 2
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7,
+                    pointHoverBorderWidth: 3
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
+                interaction: { intersect: false, mode: 'index' },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(241, 245, 249, 0.5)', drawTicks: false }, 
+                        ticks: { font: { size: 10, weight: 600, family: 'Sora' }, color: '#94a3b8', padding: 10 } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { font: { size: 10, weight: 600, family: 'Sora' }, color: '#94a3b8', padding: 10 } 
+                    }
                 }
             }
         }));
     }
 
-    private createPortfolioChart() {
+    private createPortfolioChart(data: any) {
         const canvas = document.getElementById('portfolioChart') as HTMLCanvasElement;
-        if (!canvas || !this.analytics()) return;
+        if (!canvas) return;
 
-        const chartData = this.analytics().portfolioMix || [];
+        const mix = data.portfolioMix || [];
 
         this.charts.push(new Chart(canvas, {
             type: 'doughnut',
             data: {
-                labels: chartData.map((d: any) => d.category),
+                labels: mix.map((m: any) => m.category),
                 datasets: [{
-                    data: chartData.map((d: any) => d.count),
-                    backgroundColor: ['#4f46e5', '#f97316', '#10b981', '#6366f1']
+                    data: mix.map((m: any) => m.count),
+                    backgroundColor: ['#4f46e5', '#f97316', '#10b981', '#6366f1', '#ec4899'],
+                    borderWidth: 4,
+                    borderColor: '#fff',
+                    hoverOffset: 15
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '65%',
+                cutout: '72%',
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } }
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { 
+                            boxWidth: 8, 
+                            padding: 20,
+                            font: { size: 10, weight: 'bold', family: 'Sora' },
+                            usePointStyle: true,
+                            color: '#64748b'
+                        } 
+                    }
                 }
             }
         }));
     }
 
-    private createTierChart() {
+    private createTierChart(data: any) {
         const canvas = document.getElementById('tierChart') as HTMLCanvasElement;
-        if (!canvas || !this.analytics()) return;
+        if (!canvas) return;
 
-        const chartData = this.analytics().tierBreakdown || [];
+        const breakdown = data.tierBreakdown || [];
 
         this.charts.push(new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: chartData.map((d: any) => d.tier),
+                labels: breakdown.map((b: any) => b.tier),
                 datasets: [{
                     label: 'Policies',
-                    data: chartData.map((d: any) => d.count),
+                    data: breakdown.map((b: any) => b.count),
                     backgroundColor: '#6366f1',
-                    borderRadius: 8
+                    borderRadius: 10,
+                    barThickness: 25,
+                    hoverBackgroundColor: '#4f46e5'
                 }]
             },
             options: {
@@ -292,28 +324,30 @@ export class AgentDashboardPage implements OnInit {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    y: { beginAtZero: true, grid: { drawTicks: false, color: '#f8fafc' }, ticks: { font: { size: 10, family: 'Sora' }, color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: 600, family: 'Sora' }, color: '#94a3b8' } }
                 }
             }
         }));
     }
 
-    private createPremiumTrendChart() {
+    private createPremiumTrendChart(data: any) {
         const canvas = document.getElementById('premiumTrendChart') as HTMLCanvasElement;
-        if (!canvas || !this.analytics()) return;
+        if (!canvas) return;
 
-        const chartData = this.analytics().premiumTrends || [];
+        const trends = data.premiumTrends || [];
 
         this.charts.push(new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: chartData.map((d: any) => d.month),
+                labels: trends.map((t: any) => t.month),
                 datasets: [{
-                    label: 'Premium Collected (₹)',
-                    data: chartData.map((d: any) => d.value),
+                    label: 'Premium',
+                    data: trends.map((t: any) => t.value),
                     backgroundColor: '#10b981',
-                    borderRadius: 8
+                    borderRadius: 10,
+                    barThickness: 25,
+                    hoverBackgroundColor: '#059669'
                 }]
             },
             options: {
@@ -321,53 +355,61 @@ export class AgentDashboardPage implements OnInit {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    y: { beginAtZero: true, grid: { color: '#f8fafc' }, ticks: { font: { size: 10, family: 'Sora' }, color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: 600, family: 'Sora' }, color: '#94a3b8' } }
                 }
             }
         }));
     }
 
-    private createStatusChart() {
+    private createStatusChart(data: any) {
         const canvas = document.getElementById('statusChart') as HTMLCanvasElement;
-        if (!canvas || !this.analytics()) return;
+        if (!canvas) return;
 
-        const chartData = this.analytics().policyStatusMetrics || [];
+        const status = data.policyStatusMetrics || [];
 
         this.charts.push(new Chart(canvas, {
             type: 'pie',
             data: {
-                labels: chartData.map((d: any) => d.status),
+                labels: status.map((s: any) => s.status),
                 datasets: [{
-                    data: chartData.map((d: any) => d.count),
-                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1']
+                    data: status.map((s: any) => s.count),
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#94a3b8'],
+                    borderWidth: 4,
+                    borderColor: '#fff'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } }
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { boxWidth: 8, padding: 15, font: { size: 10, weight: 'bold', family: 'Sora' }, usePointStyle: true } 
+                    }
                 }
             }
         }));
     }
 
-    private createClaimImpactChart() {
+    private createClaimImpactChart(data: any) {
         const canvas = document.getElementById('claimChart') as HTMLCanvasElement;
-        if (!canvas || !this.analytics()) return;
+        if (!canvas) return;
 
-        const chartData = this.analytics().claimImpact || [];
+        const impact = data.claimImpact || [];
 
         this.charts.push(new Chart(canvas, {
             type: 'radar',
             data: {
-                labels: chartData.map((d: any) => d.metric),
+                labels: impact.map((i: any) => i.metric),
                 datasets: [{
-                    label: 'Portfolio Impact',
-                    data: chartData.map((d: any) => d.value),
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    label: 'Impact Factor',
+                    data: impact.map((i: any) => i.value),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#6366f1',
                     fill: true
                 }]
             },
@@ -379,7 +421,9 @@ export class AgentDashboardPage implements OnInit {
                     r: {
                         beginAtZero: true,
                         ticks: { display: false },
-                        suggestedMax: Math.max(...chartData.map((d: any) => d.value)) * 1.2
+                        grid: { color: '#f1f5f9' },
+                        angleLines: { color: '#f1f5f9' },
+                        pointLabels: { font: { size: 9, weight: 700, family: 'Sora' }, color: '#64748b' }
                     }
                 }
             }

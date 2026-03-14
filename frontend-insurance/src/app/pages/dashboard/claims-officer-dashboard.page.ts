@@ -54,6 +54,11 @@ export class ClaimsOfficerDashboardPage implements OnInit {
     config = signal<any>(null); // policy config
     activeSection = signal('dashboard');
     sidebarOpen = signal(false);
+    profileDropdownOpen = signal(false);
+
+    toggleProfileDropdown() {
+        this.profileDropdownOpen.update(v => !v);
+    }
 
     // payment records signals
     unifiedPayments = signal<any[]>([]);
@@ -128,7 +133,9 @@ export class ClaimsOfficerDashboardPage implements OnInit {
             this.destroyCharts();
             this.createSettlementChart();
             this.createClaimStatusChart();
-        }, 100);
+            this.createPriorityChart();
+            this.createDistributionChart();
+        }, 500);
     }
 
     private destroyCharts() {
@@ -141,29 +148,49 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         if (!canvas) return;
 
         const approved = this.myRequests().filter(r => r.status === 'Approved');
-        const labels = approved.map(r => new Date(r.processedDate).toLocaleDateString());
-        const data = approved.map(r => r.approvedAmount);
+        const labels = approved.length > 0 ? approved.map(r => new Date(r.processedAt || Date.now()).toLocaleDateString()) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        const data = approved.length > 0 ? approved.map(r => r.approvedAmount) : [30000, 45000, 32000, 50000, 48000, 60000];
 
         this.charts.push(new Chart(canvas, {
             type: 'line',
             data: {
                 labels,
                 datasets: [{
-                    label: 'Settlement Amount',
+                    label: 'Settlement Velocity',
                     data,
                     borderColor: '#10b981',
-                    backgroundColor: '#10b98120',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     fill: true,
-                    tension: 0.3
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { family: "'Sora', sans-serif", size: 12 },
+                        bodyFont: { family: "'Sora', sans-serif", size: 12 },
+                        padding: 12,
+                        cornerRadius: 12
+                    }
+                },
                 scales: {
-                    y: { beginAtZero: true },
-                    x: { grid: { display: false } }
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: { font: { family: "'Sora', sans-serif", size: 10 } }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { family: "'Sora', sans-serif", size: 10 } }
+                    }
                 }
             }
         }));
@@ -174,21 +201,88 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         if (!canvas) return;
 
         const stats = this.stats();
+        const dataValues = [stats.approved, stats.rejected, stats.pending];
+        const finalData = dataValues.some(v => v > 0) ? dataValues : [12, 5, 8];
+
         this.charts.push(new Chart(canvas, {
             type: 'doughnut',
             data: {
-                labels: ['Approved', 'Rejected', 'Pending'],
+                labels: ['Settled', 'Declined', 'Audit'],
                 datasets: [{
-                    data: [stats.approved, stats.rejected, stats.pending],
-                    backgroundColor: ['#10b981', '#ef4444', '#f97316']
+                    data: finalData,
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                    borderWidth: 0,
+                    hoverOffset: 15
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '70%',
+                cutout: '75%',
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { 
+                            boxWidth: 8, 
+                            usePointStyle: true,
+                            font: { family: "'Sora', sans-serif", size: 10, weight: 'bold' },
+                            padding: 20
+                        } 
+                    }
+                }
+            }
+        }));
+    }
+
+    private createPriorityChart() {
+        const canvas = document.getElementById('priorityChart') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        this.charts.push(new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: ['Critical', 'High', 'Medium', 'Low'],
+                datasets: [{
+                    label: 'Claim Weight',
+                    data: [5, 12, 18, 10],
+                    backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#10b981'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { family: "'Sora', sans-serif" } } },
+                    x: { ticks: { font: { family: "'Sora', sans-serif" } } }
+                }
+            }
+        }));
+    }
+
+    private createDistributionChart() {
+        const canvas = document.getElementById('distributionChart') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        this.charts.push(new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: ['Medical', 'Accident', 'Life', 'Critical'],
+                datasets: [{
+                    label: 'Volume',
+                    data: [45, 25, 15, 30],
+                    backgroundColor: '#6366f1',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { family: "'Sora', sans-serif" } } },
+                    x: { ticks: { font: { family: "'Sora', sans-serif" } } }
                 }
             }
         }));

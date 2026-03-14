@@ -51,22 +51,33 @@
                     </p>
                     }
                 </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Bank Account (16 Digits)</label>
-                    <input type="text" formControlName="bankAccountNumber"
-                        placeholder="1234567890123456" class="input-field py-3 text-sm"
-                        maxlength="16"
-                        [class.border-rose-300]="agentForm.get('bankAccountNumber')?.invalid && agentForm.get('bankAccountNumber')?.touched">
-                    @if (agentForm.get('bankAccountNumber')?.invalid && agentForm.get('bankAccountNumber')?.touched) {
-                    <p class="text-xs text-rose-500 mt-1">
-                        @if (agentForm.get('bankAccountNumber')?.errors?.['required']) {
+                        <div class="space-y-2">
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Bank Account (16 Digits)</label>
+
+                <input type="text"
+                    formControlName="bankAccountNumber"
+                    placeholder="1234567890123456"
+                    class="input-field py-3 text-sm"
+                    maxlength="16"
+                    pattern="\d{16}"
+                    [class.border-rose-300]="agentForm.get('bankAccountNumber')?.invalid && agentForm.get('bankAccountNumber')?.touched">
+
+                @if (agentForm.get('bankAccountNumber')?.invalid && agentForm.get('bankAccountNumber')?.touched) {
+                <p class="text-xs text-rose-500 mt-1">
+
+                    @if (agentForm.get('bankAccountNumber')?.errors?.['required']) {
                         Bank account number is required
-                        } @if (agentForm.get('bankAccountNumber')?.errors?.['minlength'] || agentForm.get('bankAccountNumber')?.errors?.['maxlength']) {
-                        Bank account must be exactly 16 digits
-                        }
-                    </p>
                     }
-                </div>
+
+                    @if (agentForm.get('bankAccountNumber')?.errors?.['pattern'] || 
+                        agentForm.get('bankAccountNumber')?.errors?.['minlength'] || 
+                        agentForm.get('bankAccountNumber')?.errors?.['maxlength']) {
+                        Bank account must be exactly 16 digits
+                    }
+
+                </p>
+                }
+            </div>
                 <div class="md:col-span-2 flex justify-end">
                     <button type="submit" [disabled]="agentForm.invalid || isLoading"
                         class="btn-primary px-10 py-3 text-xs shadow-lg shadow-orange-500/20">

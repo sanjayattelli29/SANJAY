@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Application.DTOs
 {
     // this class is for showing general numbers on admin dashboard
@@ -19,5 +21,24 @@ namespace Application.DTOs
         public decimal TotalCoverageRaised { get; set; }
         // NEW: total premium collection sum
         public decimal TotalPremiumCollected { get; set; }
+        // NEW: total commission for all agents combined
+        public decimal TotalCommission { get; set; }
+
+        // Chart Data
+        public List<StatPointDto> PolicyGrowth { get; set; } = new();
+        public List<StatPointDto> RevenueTrends { get; set; } = new();
+        public List<CategoryStatDto> ClaimsByCategory { get; set; } = new();
+    }
+
+    public class StatPointDto
+    {
+        public string Label { get; set; } = string.Empty;
+        public decimal Value { get; set; }
+    }
+
+    public class CategoryStatDto
+    {
+        public string Category { get; set; } = string.Empty;
+        public int Count { get; set; }
     }
 }

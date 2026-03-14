@@ -42,6 +42,12 @@ namespace Infrastructure.Services
             if (policy.Status != "Active") throw new Exception("Claims can only be raised for Active policies.");
             if (policy.ExpiryDate < DateTime.UtcNow) throw new Exception("Policy has expired.");
 
+            // Validation: Incident date cannot be before policy start date
+            if (policy.StartDate.HasValue && request.IncidentDate.Date < policy.StartDate.Value.Date)
+            {
+                throw new Exception($"Incident date cannot be before the policy start date ({policy.StartDate.Value:yyyy-MM-dd}).");
+            }
+
             // create a new claim record
             var claim = new InsuranceClaim
             {
@@ -290,6 +296,10 @@ namespace Infrastructure.Services
         // calculates overall statistics for admin dashboard
         public async Task<AdminDashboardStatsDto> GetAdminStatsAsync()
         {
+            var activePolicies = await _context.PolicyApplications
+                .Where(pa => pa.Status == "Active")
+                .ToListAsync();
+
             var stats = new AdminDashboardStatsDto
             {
                 // count total users by role
@@ -311,8 +321,36 @@ namespace Infrastructure.Services
                     
                 TotalPremiumCollected = await _context.PolicyApplications
                     .Where(pa => pa.Status == "Active" || pa.Status == "AwaitingPayment")
-                    .SumAsync(pa => (decimal?)pa.PaidAmount) ?? 0
+                    .SumAsync(pa => (decimal?)pa.PaidAmount) ?? 0,
+
+                TotalCommission = activePolicies.Sum(pa => pa.CalculatedPremium * 0.10m)
             };
+
+            // Chart Data Calculations (In-Memory for formatting convenience)
+            var allApps = await _context.PolicyApplications
+                .Select(pa => new { pa.SubmissionDate, pa.PaymentDate, pa.PaidAmount })
+                .ToListAsync();
+
+            stats.PolicyGrowth = allApps
+                .GroupBy(pa => pa.SubmissionDate.ToString("MMM yyyy"))
+                .OrderBy(g => g.Min(pa => pa.SubmissionDate))
+                .Select(g => new StatPointDto { Label = g.Key, Value = g.Count() })
+                .TakeLast(6)
+                .ToList();
+
+            stats.RevenueTrends = allApps
+                .Where(pa => pa.PaymentDate.HasValue)
+                .GroupBy(pa => pa.PaymentDate!.Value.ToString("MMM yyyy"))
+                .OrderBy(g => g.Min(pa => pa.PaymentDate))
+                .Select(g => new StatPointDto { Label = g.Key, Value = g.Sum(pa => pa.PaidAmount ?? 0) })
+                .TakeLast(6)
+                .ToList();
+
+            stats.ClaimsByCategory = await _context.InsuranceClaims
+                .GroupBy(c => c.IncidentType)
+                .Select(g => new CategoryStatDto { Category = g.Key, Count = g.Count() })
+                .ToListAsync();
+
             return stats;
         }
 

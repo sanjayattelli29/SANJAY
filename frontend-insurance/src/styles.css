@@ -68,6 +68,44 @@
   .faq-item {
     @apply border-b border-slate-100 py-4 cursor-pointer hover:bg-slate-50 transition-colors px-4 rounded-lg;
   }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-500 
+           hover:bg-brand-orange/5 hover:text-brand-orange transition-all;
+  }
+  .sidebar-link.active {
+    @apply bg-brand-orange/10 text-brand-orange font-black;
+  }
+}
+
+/* Logo Diamonds Styles */
+.logo-diamonds {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diamond {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--color-brand-orange, #1db355);
+  transform: rotate(45deg);
+}
+
+.diamond:first-child {
+  background: var(--color-brand-orange, #1db355);
+  margin-right: -10px;
+  z-index: 1;
+}
+
+.diamond:last-child {
+  background: #02a647;
+  margin-left: -10px;
+  opacity: 0.8;
 }
 
 /* Fix for Google Places Autocomplete dropdown visibility over modals */

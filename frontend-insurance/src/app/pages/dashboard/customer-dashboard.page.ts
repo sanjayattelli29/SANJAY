@@ -14,12 +14,14 @@ import { HttpClient } from '@angular/common/http';
 import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 import { GooglePlacesInputComponent } from '../../components/incident-location/incident-location.component';
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
-import * as Tesseract from 'tesseract.js';
 import { NomineeVerificationComponent } from './customer-components/nominee-verification/nominee-verification.component';
 import { VoiceAgent } from './customer-components/voice-agent/voice-agent';
+import { CustomerPart1Component } from './customer-components/part1/customer-part1';
+import { CustomerPart2Component } from './customer-components/part2/customer-part2';
 import { SafePipe } from '../../pipes/safe.pipe';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { environment } from '../../../environments/environment';
 
 // customer dashboard main page component
 // handles policy buying, claim raising, viewing policies and claims
@@ -27,7 +29,7 @@ import autoTable from 'jspdf-autotable';
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, GooglePlacesInputComponent, LocationMapComponent, NomineeVerificationComponent, VoiceAgent, SafePipe],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, VoiceAgent, CustomerPart1Component, CustomerPart2Component],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })
@@ -277,6 +279,8 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     // store uploaded policy documents
     policyDocuments: { type: string, file: File, name: string }[] = [];
     isUploadingDocs = signal<boolean>(false);
+    isExtractingAadhar = signal<boolean>(false);
+    aadharSuccess = signal<boolean>(false);
 
     // calculated premium from backend
     calculatedPremium = signal<number>(0);
@@ -699,8 +703,55 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     onNomineeAadharUpload(event: any) {
         const file = event.target.files[0];
         if (file) {
-            // Upload to ImageKit service
+            this.aadharSuccess.set(false);
+            // Upload to ImageKit service first, then extract via Vision API
             this.uploadNomineeAadharToImageKit(file);
+        }
+    }
+
+    async extractNomineeAadharNumber(imageUrl: string) {
+        this.isExtractingAadhar.set(true);
+        try {
+            console.log('[VisionAPI] Extracting from URL:', imageUrl);
+            
+            const res = await fetch(
+                `https://vision.googleapis.com/v1/images:annotate?key=${environment.googleVisionApiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        requests: [{
+                            image: { source: { imageUri: imageUrl } },
+                            features: [{ type: 'TEXT_DETECTION' }]
+                        }]
+                    })
+                }
+            );
+
+            const json = await res.json();
+            const fullText = json.responses?.[0]?.fullTextAnnotation?.text || '';
+            
+            console.log('[VisionAPI] Full Text Result:', fullText);
+
+            // Regex to find 12-digit Aadhar number
+            // 1. Match XXXX XXXX XXXX (spaced)
+            const spacedMatch = fullText.match(/\b\d{4}[\s]\d{4}[\s]\d{4}\b/);
+            // 2. Or match a solid 12 digits block
+            const solidMatch = fullText.replace(/\s/g, '').match(/\d{12}/);
+
+            const raw = spacedMatch ? spacedMatch[0].replace(/\s/g, '') : solidMatch?.[0] ?? null;
+
+            if (raw && raw.length === 12) {
+                this.applicationForm.nominee.aadharNumber = raw;
+                console.log('[VisionAPI] Successfully Extracted Aadhar:', raw);
+            } else {
+                console.warn('[VisionAPI] Could not detect a valid 12-digit Aadhar number.');
+            }
+
+        } catch (error) {
+            console.error('[VisionAPI] Extraction Error:', error);
+        } finally {
+            this.isExtractingAadhar.set(false);
         }
     }
 
@@ -711,11 +762,16 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 next: (res) => {
                     this.applicationForm.nominee.aadharCardUrl = res.url;
                     this.isUploadingDocs.set(false);
+                    this.aadharSuccess.set(true); // Show green success message
                     console.log('Nominee Aadhar uploaded successfully:', res.url);
+                    
+                    // Trigger Vision API extraction using the ImageKit URL
+                    this.extractNomineeAadharNumber(res.url);
                 },
                 error: (err) => {
                     console.error('Error uploading Aadhar to ImageKit:', err);
                     this.isUploadingDocs.set(false);
+                    this.aadharSuccess.set(false);
                     alert('Failed to upload Aadhar card. Please try again.');
                 }
             });
@@ -736,6 +792,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
     removeNomineeAadhar() {
         this.applicationForm.nominee.aadharCardUrl = '';
+        this.aadharSuccess.set(false);
     }
 
     // calc premium when tier selected
@@ -1264,7 +1321,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 // If it's a backend mismatch but payment succeeded, or if it explicitly says AwaitingPayment
                 // Also bypass 500 timeout from N8N webhooks (shows as 'unexpected error') since the DB tx works
                 if (errorMsg.includes('status') || errorMsg.includes('AwaitingPayment') || errorMsg.includes('unexpected error') || errorMsg.includes('An unexpected error')) {
-                    
+                    this.showPaymentModal.set(false);
                     // ✅ Send invoice email even on pseudo-error if it means success
                     this.sendInvoiceEmail(pol);
                     
@@ -1277,6 +1334,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                         this.openPolicyDetails(pol.id);
                     });
                 } else {
+                    this.showPaymentModal.set(false);
                     alert('Payment failed: ' + errorMsg);
                 }
             }
@@ -1426,6 +1484,8 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     hasHospitalBill = signal<boolean>(false);
     hasDeathCertificate = signal<boolean>(false);
     selectedLocationCoords = signal<{ lat: number, lng: number } | null>(null);
+    selectedHospitalCoords = signal<{ lat: number, lng: number } | null>(null);
+    selectedHospitalDetails = signal<any>(null);
 
     // handles event from Nominee Verification component
     onNomineeVerified(event: {aadhar: File | null, photo: File, aadharUrl?: string, photoUrl?: string}) {
@@ -1515,7 +1575,22 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
     // This function submits a new insurance claim to the backend by sending the claim form data along with uploaded supporting documents as multipart form data.
     submitClaim() {
-        if (!this.selectedPolicyForClaim()) return;
+        const pol = this.selectedPolicyForClaim();
+        if (!pol) return;
+
+        // Validation: Incident date cannot be before policy start date
+        if (pol.startDate && this.claimForm.incidentDate) {
+            const start = new Date(pol.startDate);
+            const incident = new Date(this.claimForm.incidentDate);
+            // reset hours to compare only dates
+            start.setHours(0, 0, 0, 0);
+            incident.setHours(0, 0, 0, 0);
+
+            if (incident < start) {
+                alert(`Cannot raise a claim for an incident before the policy start date (${start.toLocaleDateString()}).`);
+                return;
+            }
+        }
 
         this.isSubmitting.set(true);
         // build formdata for multipart upload with files
@@ -1599,6 +1674,13 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         console.log('Location updated in dashboard form:', data);
     }
 
+    getMinDateForClaim(): string {
+        const pol = this.selectedPolicyForClaim();
+        if (!pol || !pol.startDate) return '';
+        const d = new Date(pol.startDate);
+        return d.toISOString().split('T')[0];
+    }
+
     // Handles map location selection for policy buying flow
     onPolicyLocationSelected(data: any) {
         if (typeof data === 'string') {
@@ -1621,9 +1703,16 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     }
 
     // This function updates the hospital name in the claim form when the user selects a hospital from the autocomplete dropdown.
-    onHospitalChanged(name: string) {
-        this.claimForm.hospitalName = name;
-        console.log('Hospital updated in dashboard form:', name);
+    onHospitalChanged(data: any) {
+        if (typeof data === 'string') {
+            this.claimForm.hospitalName = data;
+            this.selectedHospitalDetails.set(null);
+        } else {
+            this.claimForm.hospitalName = data.address;
+            this.selectedHospitalCoords.set({ lat: data.lat, lng: data.lng });
+            this.selectedHospitalDetails.set(data.components || null);
+        }
+        console.log('Hospital updated with details:', data);
     }
 
     // Generates a PDF invoice locally, uploads to ImageKit, then sends email via n8n
@@ -1675,6 +1764,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 const payload = {
                     customerEmail: user.email,
                     customerName: user.name || user.email,
+                    phoneNumber: user.phone || 'Not Provided',
                     policyId: pol.id,
                     policyName: pol.tierId || pol.policyName || 'Accidental Insurance Policy',
                     amount: pol.calculatedPremium,
@@ -1683,7 +1773,6 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     }),
                     invoiceLink: permanentUrl
                 };
-
                 this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-invoice', payload)
                     .subscribe({
                         next: (res) => console.log('Invoice email sent with working link:', res),
@@ -1696,6 +1785,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-invoice', {
                     customerEmail: user.email,
                     customerName: user.name || user.email,
+                    phoneNumber: user.phone || 'Not Provided',
                     policyId: pol.id,
                     invoiceLink: `https://ik.imagekit.io/nextbyteind/invoices/Invoice_${pol.id}.pdf`
                 }).subscribe();
@@ -1707,6 +1797,9 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     logout() {
         this.authService.logout();
     }
+
+    // Exposes this component instance to child partial components
+    get self(): this { return this; }
 
     // This function opens the AI chat assistant helper for a specific policy tier and sends an initial greeting message to start the conversation.
     openChatHelper(tier: any) {
@@ -1807,49 +1900,59 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
             reader.onload = async () => {
                 this.aadharPreview.set(reader.result as string);
 
-                // Actual text extraction from image via Tesseract
+                // Extract text details via Google Vision API
                 this.aadharText.set("Extracting text details directly from your document... Please wait...");
                 try {
-                    const worker = await Tesseract.createWorker('eng');
-                    const ret = await worker.recognize(file);
-                    let text = ret.data.text;
+                    const base64Content = (reader.result as string).split(',')[1];
+                    const response = await fetch(
+                        `https://vision.googleapis.com/v1/images:annotate?key=${environment.googleVisionApiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                requests: [{
+                                    image: { content: base64Content },
+                                    features: [{ type: 'TEXT_DETECTION' }]
+                                }]
+                            })
+                        }
+                    );
 
-                    if (text && text.trim().length > 0) {
+                    const json = await response.json();
+                    const fullText = json.responses?.[0]?.fullTextAnnotation?.text || '';
+                    console.log('[KYC Vision] Result:', fullText);
+
+                    if (fullText && fullText.trim().length > 0) {
                         let parsedDetails = [];
-
-                        // Extract Name heuristic: Aadhar names are typically the English line immediately before the DOB line
-                        const lines = text.split('\n').filter(l => l.trim().length > 0);
-                        const dobIndex = lines.findIndex(l => /DOB|Year of Birth/i.test(l));
+                        const lines = fullText.split('\n').filter((l: { trim: () => { (): any; new(): any; length: number; }; }) => l.trim().length > 0);
+                        
+                        // Extract Name heuristic
+                        const dobIndex = lines.findIndex((l: string) => /DOB|Year of Birth/i.test(l));
                         if (dobIndex > 0) {
                             let possibleName = lines[dobIndex - 1].trim();
-                            // Strip typical leading Telugu/Hindi OCR artifacts (non-alphabet chars)
                             possibleName = possibleName.replace(/^[^a-zA-Z]+/, '').trim();
-                            if (possibleName.length > 3) {
-                                parsedDetails.push(`Name: ${possibleName}`);
-                            }
+                            if (possibleName.length > 3) parsedDetails.push(`Name: ${possibleName}`);
                         }
 
                         // Extract DOB
-                        const dobMatch = text.match(/DOB[:\.\s]*(\d{2}\/\d{2}\/\d{4})/i) || text.match(/Year of Birth.*(\d{4})/i);
+                        const dobMatch = fullText.match(/DOB[:\.\s]*(\d{2}\/\d{2}\/\d{4})/i) || fullText.match(/Year of Birth.*(\d{4})/i);
                         if (dobMatch) parsedDetails.push(`Date of Birth: ${dobMatch[1]}`);
 
-                        // Extract common Aadhar patterns
-                        // Using a more lenient regex without word boundaries, allowing 1 or more spaces between blocks
-                        const aadharMatch = text.match(/\d{4}[\s-]+\d{4}[\s-]+\d{4}/);
+                        // Extract 12-digit Aadhar pattern
+                        const aadharMatch = fullText.match(/\d{4}[\s-]+\d{4}[\s-]+\d{4}/) || fullText.match(/\d{12}/);
                         if (aadharMatch) parsedDetails.push(`Aadhar Number: ${aadharMatch[0].trim()}`);
 
                         if (parsedDetails.length > 0) {
-                            this.aadharText.set(`Key Details Extracted Successfully!\n\n${parsedDetails.join('\n')}\n\nNote: These are extracted details. If details were not extracted successfully please upload again, or it's OK, verification will still proceed digitally.`);
+                            this.aadharText.set(`Key Details Extracted Successfully!\n\n${parsedDetails.join('\n')}\n\nNote: These details are for verification convenience.`);
                         } else {
-                            this.aadharText.set(`Unstructured Formatting:\nCould not cleanly parse core details.\n\nNote: These are extracted details. If details were not extracted successfully please upload again, or it's OK, verification will still proceed digitally.\n\nFallback OCR Attempt:\n${text.replace(/\n\n+/g, '\n').substring(0, 100)}...`);
+                            this.aadharText.set(`Key details could not be parsed automatically.\n\nRaw Text Start:\n${fullText.substring(0, 100)}...`);
                         }
                     } else {
-                        this.aadharText.set("Could not automatically extract readable text from the image. It might be blurry, improperly lit, or heavily multilingual. However, identity match will still properly proceed digitally via API.");
+                        this.aadharText.set("Could not automatically extract readable text. Please ensure the image is clear.");
                     }
-                    await worker.terminate();
                 } catch (e) {
-                    console.error("OCR Extraction failed:", e);
-                    this.aadharText.set("OCR text extraction temporarily unavailable. Identity verification will proceed digitally via face recognition.");
+                    console.error("KYC Vision API failed:", e);
+                    this.aadharText.set("Extraction temporarily unavailable. Verification will proceed via face recognition.");
                 }
             };
             reader.readAsDataURL(file);

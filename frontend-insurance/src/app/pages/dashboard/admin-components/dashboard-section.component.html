@@ -1,175 +1,238 @@
 <div class="animate-in fade-in duration-700">
 
-    <div class="mb-10">
-        <h1 class="text-4xl font-black text-brand-navy tracking-tight">
-            Executive Dashboard
-        </h1>
-        <p class="text-slate-400 font-bold mt-2">
-            Real-time enterprise metrics & operational health.
-        </p>
+    <!-- Analytics Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <!-- Customers -->
+        <div class="card p-5 border-none shadow-xl shadow-slate-200/40 bg-white group hover:translate-y-[-4px] transition-all duration-300">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-inner">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-[0.2em]">Total Customers</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-2xl font-black text-brand-navy">{{ adminStats?.totalCustomers || 0 }}</span>
+                        <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-md">+12%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents -->
+        <div class="card p-5 border-none shadow-xl shadow-slate-200/40 bg-white group hover:translate-y-[-4px] transition-all duration-300">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 shadow-inner">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-[0.2em]">Active Agents</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-2xl font-black text-brand-navy">{{ adminStats?.totalAgents || 0 }}</span>
+                        <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-md">Stable</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Officers -->
+        <div class="card p-5 border-none shadow-xl shadow-slate-200/40 bg-white group hover:translate-y-[-4px] transition-all duration-300">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-[0.2em]">Claim Officers</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-2xl font-black text-brand-navy">{{ adminStats?.totalClaimOfficers || 0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policies -->
+        <div class="card p-5 border-none shadow-xl shadow-slate-200/40 bg-white group hover:translate-y-[-4px] transition-all duration-300">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-inner">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase font-black text-slate-400 tracking-[0.2em]">Active Policies</p>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-2xl font-black text-brand-navy">{{ adminStats?.totalPolicies || 0 }}</span>
+                        <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-md">+5.4%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Analytics Cards: Improved Grid for 8 Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-
-        <!-- Row 1 -->
-        <!-- Total Customers -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </div>
-                <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Customers</p>
-            </div>
-            <span class="text-2xl font-black text-brand-navy tracking-tight">
-                {{ adminStats?.totalCustomers || 0 }}
-            </span>
-        </div>
-
-        <!-- Total Agents -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-                <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Agents</p>
-            </div>
-            <span class="text-2xl font-black text-brand-navy tracking-tight">
-                {{ adminStats?.totalAgents || 0 }}
-            </span>
-        </div>
-
-        <!-- Claim Officers -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                </div>
-                <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Officers</p>
-            </div>
-            <span class="text-2xl font-black text-brand-navy tracking-tight">
-                {{ adminStats?.totalClaimOfficers || 0 }}
-            </span>
-        </div>
-
-        <!-- Active Policies -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                </div>
-                <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Policies</p>
-            </div>
-            <span class="text-2xl font-black text-brand-navy tracking-tight">
-                {{ adminStats?.totalPolicies || 0 }}
-            </span>
-        </div>
-
-        <!-- Row 2 -->
+    <!-- Sub-Metrics Grid (Requested Row 2) -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
         <!-- Total Coverage -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+        <div class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                 </div>
                 <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Total Coverage</p>
             </div>
-            <span class="text-xl font-black text-brand-navy tracking-tight">
+            <div class="text-xl font-black text-brand-navy">
                 ₹{{ adminStats?.totalCoverageRaised | number:'1.0-0' }}
-            </span>
+            </div>
         </div>
 
-        <!-- Premium Collected -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-cyan-50 flex items-center justify-center text-cyan-600">
+        <!-- Premiums -->
+        <div class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
                 <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Premiums</p>
             </div>
-            <span class="text-xl font-black text-brand-navy tracking-tight">
+            <div class="text-xl font-black text-brand-navy">
                 ₹{{ adminStats?.totalPremiumCollected | number:'1.0-0' }}
-            </span>
+            </div>
         </div>
 
-        <!-- Total Claims -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600">
+        <!-- Total Claims Count -->
+        <div class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
-                <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Claims</p>
+                <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Total Claims</p>
             </div>
-            <span class="text-2xl font-black text-brand-navy tracking-tight">
+            <div class="text-xl font-black text-brand-navy">
                 {{ adminStats?.totalClaims || 0 }}
-            </span>
+            </div>
         </div>
 
-        <!-- Payout Amount -->
-        <div
-            class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all duration-300">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+        <!-- Settled -->
+        <div class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all border-l-4 border-emerald-400">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M14.121 15.536c-1.171 1.952-3.07 1.952-4.242 0-1.172-1.953-1.172-5.119 0-7.072 1.171-1.952 3.07-1.952 4.242 0M8 10.5h4m-4 3h4m9-1.5a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 15.536c-1.171 1.952-3.07 1.952-4.242 0-1.172-1.953-1.172-5.119 0-7.072 1.171-1.952 3.07-1.952 4.242 0M8 10.5h4m-4 3h4m9-1.5a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Settled</p>
             </div>
-            <span class="text-xl font-black text-emerald-600 tracking-tight italic">
+            <div class="text-xl font-black text-emerald-600">
                 ₹{{ adminStats?.totalClaimedAmount | number:'1.0-0' }}
-            </span>
-        </div>
-
-    </div>
-
-    <!-- CTA -->
-    <div class="card p-8 border-none shadow-2xl shadow-slate-200/40 bg-indigo-600 text-white mb-12">
-        <div class="flex justify-between items-center">
-            <div>
-                <h3 class="font-black text-xl italic tracking-tighter mb-1">
-                    System Health Optimized
-                </h3>
-                <p class="text-[10px] uppercase font-bold tracking-widest text-indigo-100">
-                    Global Data Section moved to dedicated console
-                </p>
             </div>
-            <button (click)="goToCommands()"
-                class="px-6 py-2 bg-white text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg shadow-indigo-900/20">
-                Open Console
-            </button>
+        </div>
+
+        <!-- Commissions (NEW) -->
+        <div class="card p-4 border-none shadow-lg shadow-slate-200/40 bg-white group hover:scale-[1.02] transition-all border-l-4 border-amber-400">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Total Commission</p>
+            </div>
+            <div class="text-xl font-black text-brand-orange">
+                ₹{{ adminStats?.totalCommission | number:'1.0-0' }}
+            </div>
         </div>
     </div>
 
+    <!-- Charts Section: Main Analysis Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        
+        <!-- Large Chart: Policy Performance -->
+        <div class="lg:col-span-2 card p-6 border-none shadow-2xl shadow-slate-200/40 bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="font-black text-brand-navy uppercase tracking-tight">Policy Acquisition Flow</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Performance over last 6 months</p>
+                </div>
+                <div class="flex gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-brand-orange"></div>
+                        <span class="text-[10px] font-black text-slate-400 uppercase">Growth</span>
+                    </div>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas #policyChart></canvas>
+            </div>
+        </div>
 
+        <!-- Doughnut Chart: Distribution -->
+        <div class="card p-6 border-none shadow-2xl shadow-slate-200/40 bg-white">
+            <h3 class="font-black text-brand-navy uppercase tracking-tight mb-6">Eco-System Distribution</h3>
+            <div class="h-64 relative flex items-center justify-center">
+                <canvas #userChart></canvas>
+                <div class="absolute flex flex-col items-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Total Users</span>
+                    <span class="text-2xl font-black text-brand-navy">{{ (adminStats?.totalCustomers || 0) + (adminStats?.totalAgents || 0) + (adminStats?.totalClaimOfficers || 0) }}</span>
+                </div>
+            </div>
+            <div class="mt-6 space-y-2">
+                <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-indigo-600"></div> Customers
+                    </span>
+                    <span class="text-brand-navy">{{ adminStats?.totalCustomers || 0 }}</span>
+                </div>
+                <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-orange-500"></div> Agents
+                    </span>
+                    <span class="text-brand-navy">{{ adminStats?.totalAgents || 0 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <!-- Bar Chart: Claims -->
+        <div class="card p-6 border-none shadow-2xl shadow-slate-200/40 bg-white">
+            <div class="mb-6">
+                <h3 class="font-black text-brand-navy uppercase tracking-tight">Claim Categorization</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Distribution by Incident Type</p>
+            </div>
+            <div class="h-64">
+                <canvas #claimChart></canvas>
+            </div>
+        </div>
+
+        <!-- Multi-Metric Card: Revenue & Coverage -->
+        <div class="card p-6 border-none shadow-2xl shadow-slate-200/40 bg-white overflow-hidden relative">
+            <div class="mb-6">
+                <h3 class="font-black text-brand-navy uppercase tracking-tight">Financial Velocity</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Revenue and Settlement Trends</p>
+            </div>
+            <div class="h-48 mb-6">
+                <canvas #revenueChart></canvas>
+            </div>
+            <div class="grid grid-cols-2 gap-4 border-t border-slate-50 pt-4">
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Premiums Flow</p>
+                    <p class="text-lg font-black text-brand-navy mt-1">₹{{ adminStats?.totalPremiumCollected | number:'1.0-0' }}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Settlement Ops</p>
+                    <p class="text-lg font-black text-emerald-600 mt-1">₹{{ adminStats?.totalClaimedAmount | number:'1.0-0' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>

@@ -98,6 +98,7 @@ export class AdminDashboardPage implements OnInit {
     selectedClaimId = signal<string | null>(null);
     isSendingEmail = signal<boolean>(false);
     includeCredentials = signal<boolean>(false); // include password in email
+    profileDropdownOpen = signal<boolean>(false); // profile dropdown state
 
     // reactive forms for creating users and sending emails
     agentForm: FormGroup;
@@ -156,6 +157,8 @@ export class AdminDashboardPage implements OnInit {
     setSection(section: string) {
         this.activeSection.set(section);
         this.message.set({ text: '', type: '' });
+        this.sidebarOpen.set(false); // ensure sidebar closes on navigation
+        this.profileDropdownOpen.set(false); // close profile dropdown
 
         // init charts when viewing dashboard section
         if (section === 'dashboard') {
@@ -860,6 +863,10 @@ export class AdminDashboardPage implements OnInit {
         doc.text('AcciSure Insurance - Protecting Your Brighter Tomorrow', 105, 285, { align: 'center' });
 
         doc.save(`AcciSure_Invoice_${payment.transactionId?.substring(0, 8) || 'Doc'}.pdf`);
+    }
+
+    toggleProfileDropdown() {
+        this.profileDropdownOpen.update(v => !v);
     }
 
     logout() {
