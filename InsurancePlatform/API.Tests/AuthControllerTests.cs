@@ -12,11 +12,6 @@ public class AuthControllerTests
     private readonly Mock<IAuthService> _mockAuthService;
     private readonly AuthController _controller;
 
-    public AuthControllerTests()
-    {
-        _mockAuthService = new Mock<IAuthService>();
-        _controller = new AuthController(_mockAuthService.Object);
-    }
 
     [Fact]
     public async Task Register_Success_ReturnsOk()

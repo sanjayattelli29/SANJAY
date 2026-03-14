@@ -12,6 +12,9 @@ import { UserOptions } from 'jspdf-autotable';
 import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 import { HttpClient } from '@angular/common/http';
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
+import * as pdfjsLib from 'pdfjs-dist';
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs`;
+import * as Tesseract from 'tesseract.js';
 
 // n8n webhook for ai claim insights
 const N8N_WEBHOOK_URL = 'https://nextglidesol.app.n8n.cloud/webhook/claim-ai-insights';
@@ -517,8 +520,15 @@ export class ClaimsOfficerDashboardPage implements OnInit {
             let rawDocumentText = '';
             const dividers = '\n\n' + '='.repeat(30) + '\n\n';
 
+            const BASE_URL = 'https://localhost:7140';
+
             for (const doc of claim.documents) {
-                const fileUrl: string = doc.fileUrl ?? '';
+                // Check all possible property names for the URL and prefix relative paths
+                let fileUrl: string = doc.fileUrl || doc.url || doc.documentUrl || doc.documentPath || doc.filePath || '';
+                if (fileUrl && !fileUrl.startsWith('http') && !fileUrl.startsWith('data:')) {
+                    fileUrl = fileUrl.startsWith('/') ? `${BASE_URL}${fileUrl}` : `${BASE_URL}/${fileUrl}`;
+                }
+
                 if (!fileUrl) continue;
 
                 try {
@@ -528,20 +538,30 @@ export class ClaimsOfficerDashboardPage implements OnInit {
                     const contentType = resp.headers.get('content-type') ?? '';
                     let content = '';
 
-                    if (contentType.includes('application/pdf') || doc.fileName?.toLowerCase().endsWith('.pdf')) {
-                        // PDF -> ArrayBuffer -> Base64
+                    const fileName = doc.fileName || doc.documentType || 'Document';
+                    const isPdf = contentType.includes('application/pdf') || fileName.toLowerCase().endsWith('.pdf');
+                    const isImage = contentType.includes('image/') || fileName.toLowerCase().match(/\.(png|jpg|jpeg|webp)$/);
+
+                    if (isPdf) {
                         const buffer = await resp.arrayBuffer();
-                        content = btoa(
-                            new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-                        );
-                        content = `[PDF DOCUMENT: ${doc.fileName}]\nBASE64_DATA: ${content}`;
+                        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+                        let pdfText = '';
+                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                            const page = await pdf.getPage(pageNum);
+                            const textContent = await page.getTextContent();
+                            pdfText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+                        }
+                        content = `[PDF DOCUMENT: ${fileName}]\nEXTRACTED_TEXT:\n${pdfText.trim() || 'No readable text found in this PDF.'}`;
+                    } else if (isImage) {
+                        const { data: { text } } = await Tesseract.recognize(fileUrl, 'eng');
+                        content = `[IMAGE DOCUMENT: ${fileName}]\nOCR_EXTRACTED_TEXT:\n${text.trim() || 'No text detected in this image.'}`;
                     } else if (contentType.includes('text') || contentType.includes('json') || contentType.includes('javascript') || contentType.includes('xml')) {
                         // Text-based -> Plain Text
                         content = await resp.text();
-                        content = `[TEXT DOCUMENT: ${doc.fileName}]\nCONTENT:\n${content}`;
+                        content = `[TEXT DOCUMENT: ${fileName}]\nCONTENT:\n${content}`;
                     } else {
                         // Reference URL for others
-                        content = `[FILE REFERENCE: ${doc.fileName}]\nURL: ${fileUrl}`;
+                        content = `[FILE REFERENCE: ${fileName}]\nURL: ${fileUrl}`;
                     }
 
                     rawDocumentText += (rawDocumentText ? dividers : '') + content;

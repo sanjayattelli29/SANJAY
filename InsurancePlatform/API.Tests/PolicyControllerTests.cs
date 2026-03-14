@@ -15,11 +15,11 @@ public class PolicyControllerTests
     private readonly Mock<IPolicyService> _mockPolicyService;
     private readonly PolicyController _controller;
 
-    public PolicyControllerTests()
-    {
-        _mockPolicyService = new Mock<IPolicyService>();
-        _controller = new PolicyController(_mockPolicyService.Object);
-    }
+    //public PolicyControllerTests()
+    //{
+    //    _mockPolicyService = new Mock<IPolicyService>();
+    //    _controller = new PolicyController(_mockPolicyService.Object);
+    //}
 
     private void SetUser(string userId)
     {

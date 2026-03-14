@@ -13,6 +13,9 @@ import { NotificationPanelComponent } from '../../components/notification-panel/
 import { Chart, registerables } from 'chart.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as pdfjsLib from 'pdfjs-dist';
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs`;
+import * as Tesseract from 'tesseract.js';
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
 
 // register chartjs for commission analytics
@@ -496,8 +499,31 @@ export class AgentDashboardPage implements OnInit {
                 ...(policy.documents || [])
             ];
 
+            // Specifically include Nominee's Aadhar if it exists but isn't in documents array
+            if (policy.fullDetails?.nominee?.aadharCardUrl) {
+                const aadharUrl = policy.fullDetails.nominee.aadharCardUrl;
+                const hasAadhar = documents.some(d => (d.fileUrl || d.url) === aadharUrl);
+                if (!hasAadhar) {
+                    const isImg = aadharUrl.toLowerCase().match(/\.(png|jpg|jpeg|webp)$/);
+                    documents.push({
+                        documentType: 'AadharProof',
+                        fileName: isImg ? 'Nominee_Aadhar_Card.img' : 'Nominee_Aadhar_Card.pdf',
+                        fileUrl: aadharUrl
+                    });
+                }
+            }
+
+            const BASE_URL = 'https://localhost:7140';
+
             for (const doc of documents) {
-                const fileUrl: string = doc.fileUrl ?? '';
+                // Check all possible property names for the URL
+                let fileUrl: string = doc.fileUrl || doc.url || doc.documentUrl || doc.documentPath || doc.filePath || '';
+                
+                // If relative path, prefix with backend BASE_URL
+                if (fileUrl && !fileUrl.startsWith('http') && !fileUrl.startsWith('data:')) {
+                    fileUrl = fileUrl.startsWith('/') ? `${BASE_URL}${fileUrl}` : `${BASE_URL}/${fileUrl}`;
+                }
+
                 if (!fileUrl) continue;
 
                 try {
@@ -508,11 +534,22 @@ export class AgentDashboardPage implements OnInit {
                     let content = '';
 
                     const fileName = doc.fileName || doc.documentType || 'Document';
+                    const isPdf = contentType.includes('application/pdf') || fileName.toLowerCase().endsWith('.pdf');
+                    const isImage = contentType.includes('image/') || fileName.toLowerCase().match(/\.(png|jpg|jpeg|webp)$/);
 
-                    if (contentType.includes('application/pdf') || fileName.toLowerCase().endsWith('.pdf')) {
+                    if (isPdf) {
                         const buffer = await resp.arrayBuffer();
-                        content = btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
-                        content = `[PDF DOCUMENT: ${fileName}]\nBASE64_DATA: ${content}`;
+                        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+                        let pdfText = '';
+                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                            const page = await pdf.getPage(pageNum);
+                            const textContent = await page.getTextContent();
+                            pdfText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+                        }
+                        content = `[PDF DOCUMENT: ${fileName}]\nEXTRACTED_TEXT:\n${pdfText.trim() || 'No readable text found in this PDF.'}`;
+                    } else if (isImage) {
+                        const { data: { text } } = await Tesseract.recognize(fileUrl, 'eng');
+                        content = `[IMAGE DOCUMENT: ${fileName}]\nOCR_EXTRACTED_TEXT:\n${text.trim() || 'No text detected in this image.'}`;
                     } else if (contentType.includes('text') || fileName.toLowerCase().match(/\.(txt|json|xml)$/)) {
                         content = await resp.text();
                         content = `[TEXT DOCUMENT: ${fileName}]\nCONTENT:\n${content}`;
@@ -520,8 +557,9 @@ export class AgentDashboardPage implements OnInit {
                         content = `[FILE REFERENCE: ${fileName}]\nURL: ${fileUrl}`;
                     }
                     rawDocumentText += (rawDocumentText ? dividers : '') + content;
-                } catch (fetchErr) {
+                } catch (fetchErr: any) {
                     console.warn(`Could not fetch document ${doc.fileName}:`, fetchErr);
+                    rawDocumentText += (rawDocumentText ? dividers : '') + `[UNFETCHABLE FILE: ${doc.fileName || doc.documentType}]\nURL: ${fileUrl}\nERROR: ${fetchErr.message || fetchErr}`;
                 }
             }
 

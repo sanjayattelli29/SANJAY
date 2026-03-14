@@ -23,5 +23,7 @@ namespace Application.DTOs
         public string? PhoneNumber { get; set; }
         // kyc status
         public bool IsKycVerified { get; set; }
+        // profile image CDN url from ImageKit
+        public string? ProfileImageUrl { get; set; }
     }
 }

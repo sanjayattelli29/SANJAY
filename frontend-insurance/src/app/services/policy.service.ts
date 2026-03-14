@@ -73,4 +73,13 @@ export class PolicyService {
         formData.append('folder', folder);
         return this.http.post(`${this.apiUrl}/upload-document`, formData);
     }
+
+    // upload invoice pdf as base64
+    uploadInvoice(applicationId: string, base64Pdf: string, fileName: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/upload-invoice`, { 
+            applicationId, 
+            base64Pdf, 
+            fileName 
+        });
+    }
 }

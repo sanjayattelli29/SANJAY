@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities
@@ -26,5 +26,8 @@ namespace Domain.Entities
         public string? InitialPassword { get; set; }
 
         public bool IsKycVerified { get; set; } = false;
+
+        // This stores the ImageKit CDN URL of the user's profile photo
+        public string? ProfileImageUrl { get; set; }
     }
 }

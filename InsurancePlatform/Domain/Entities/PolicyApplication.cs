@@ -58,6 +58,8 @@ public class PolicyApplication
     public decimal? PaidAmount { get; set; }
     public DateTime? PaymentDate { get; set; }
     public string? TransactionId { get; set; }
+    public string? InvoiceUrl { get; set; }
+
 
     // relational links
     public ICollection<FamilyMember> FamilyMembers { get; set; } = new List<FamilyMember>();

@@ -1,0 +1,9 @@
+namespace Application.DTOs
+{
+    public class UploadInvoiceDto
+    {
+        public string ApplicationId { get; set; } = string.Empty;
+        public string Base64Pdf { get; set; } = string.Empty;
+        public string FileName { get; set; } = "invoice.pdf";
+    }
+}

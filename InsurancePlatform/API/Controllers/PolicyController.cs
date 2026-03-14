@@ -13,10 +13,12 @@ namespace API.Controllers
     public class PolicyController : ControllerBase
     {
         private readonly IPolicyService _policyService;
+        private readonly IFileStorageService _fileStorageService;
 
-        public PolicyController(IPolicyService policyService)
+        public PolicyController(IPolicyService policyService, IFileStorageService fileStorageService)
         {
             _policyService = policyService;
+            _fileStorageService = fileStorageService;
         }
 
         // see the plans and category details
@@ -102,5 +104,29 @@ namespace API.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+        [HttpPost("upload-invoice")]
+        public async Task<IActionResult> UploadInvoice([FromBody] UploadInvoiceDto dto)
+        {
+            try
+            {
+                var base64Data = dto.Base64Pdf.Contains(",")
+                    ? dto.Base64Pdf.Substring(dto.Base64Pdf.IndexOf(',') + 1)
+                    : dto.Base64Pdf;
+
+                var pdfBytes = Convert.FromBase64String(base64Data);
+                using var stream = new MemoryStream(pdfBytes);
+
+                var uploadResult = await _fileStorageService.UploadFileAsync(stream, dto.FileName, "/invoices");
+                
+                await _policyService.UpdateInvoiceUrlAsync(dto.ApplicationId, uploadResult.FileUrl);
+
+                return Ok(new { invoiceUrl = uploadResult.FileUrl });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Invoice upload failed: {ex.Message}" });
+            }
+        }
     }
 }
+

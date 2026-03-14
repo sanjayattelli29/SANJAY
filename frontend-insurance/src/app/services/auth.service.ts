@@ -54,6 +54,10 @@ export class AuthService {
           localStorage.setItem('user_id', userId || '');
           localStorage.setItem('user_name', userName || '');
           localStorage.setItem('user_phone', userPhone || '');
+          // save profile image url from backend so it persists across sessions
+          if (response.profileImageUrl || response.ProfileImageUrl) {
+            localStorage.setItem('user_profile_image_' + userId, response.profileImageUrl || response.ProfileImageUrl);
+          }
           console.log('[AuthService] Token and user info saved to localStorage using auth_ keys');
         } else {
           console.warn('[AuthService] No token found in login response! Keys present:', Object.keys(response));
@@ -111,5 +115,13 @@ export class AuthService {
   // update backend KYC status
   completeKyc(userId: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/Auth/complete-kyc/${userId}`, {});
+  }
+
+  // upload a profile image to imagekit via the backend and return the CDN URL
+  uploadProfileImage(userId: string, base64Image: string, fileName: string): Observable<{ imageUrl: string }> {
+    return this.http.post<{ imageUrl: string }>(`${this.apiUrl}/Auth/upload-profile-image`,
+      { userId, base64Image, fileName },
+      { headers: { Authorization: 'Bearer ' + this.getToken() } }
+    );
   }
 }

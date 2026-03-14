@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
@@ -95,7 +95,8 @@ namespace Infrastructure.Services
                     Id = user.Id,
                     FullName = user.FullName,
                     PhoneNumber = user.PhoneNumber,
-                    IsKycVerified = user.IsKycVerified
+                    IsKycVerified = user.IsKycVerified,
+                    ProfileImageUrl = user.ProfileImageUrl
                 };
             }
             return new AuthResponseDto { Status = "Error", Message = "Invalid login attempt." };
@@ -240,6 +241,21 @@ namespace Infrastructure.Services
                 return new AuthResponseDto { Status = "Error", Message = "Failed to update KYC status!" };
 
             return new AuthResponseDto { Status = "Success", Message = "KYC Verified!" };
+        }
+
+        // save the ImageKit profile image URL against the user record
+        public async Task<AuthResponseDto> UpdateProfileImageAsync(string userId, string imageUrl)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return new AuthResponseDto { Status = "Error", Message = "User not found!" };
+
+            user.ProfileImageUrl = imageUrl;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return new AuthResponseDto { Status = "Error", Message = "Failed to update profile image!" };
+
+            return new AuthResponseDto { Status = "Success", Message = "Profile image updated!", ProfileImageUrl = imageUrl };
         }
 
         // this creates the security token that proves user is logged in

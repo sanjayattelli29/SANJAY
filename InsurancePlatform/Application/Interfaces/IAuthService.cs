@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 
 namespace Application.Interfaces
 {
@@ -27,6 +27,9 @@ namespace Application.Interfaces
         Task<AuthResponseDto> DeleteUserAsync(string userId);
 
         Task<AuthResponseDto> CompleteKycAsync(string userId);
+
+        // update the user's profile image url after uploading to ImageKit
+        Task<AuthResponseDto> UpdateProfileImageAsync(string userId, string imageUrl);
     }
 
     public class UserListingDto

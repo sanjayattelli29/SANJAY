@@ -611,7 +611,18 @@ namespace Infrastructure.Services
             return new AuthResponseDto { Status = "Success", Message = "Documents uploaded and application is now under review." };
         }
     
+        public async Task<bool> UpdateInvoiceUrlAsync(string applicationId, string invoiceUrl)
+        {
+            var app = await _context.PolicyApplications.FindAsync(applicationId);
+            if (app == null) return false;
+
+            app.InvoiceUrl = invoiceUrl;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<string> UploadGeneralFileAsync(Stream fileStream, string fileName, string folder)
+
         {
             var result = await _fileStorage.UploadFileAsync(fileStream, fileName, folder);
             return result.FileUrl;

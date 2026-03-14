@@ -1,4 +1,6 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, AfterViewInit } from '@angular/core';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +17,9 @@ import { LocationMapComponent } from '../../components/location-map/location-map
 import * as Tesseract from 'tesseract.js';
 import { NomineeVerificationComponent } from './customer-components/nominee-verification/nominee-verification.component';
 import { VoiceAgent } from './customer-components/voice-agent/voice-agent';
+import { SafePipe } from '../../pipes/safe.pipe';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // customer dashboard main page component
 // handles policy buying, claim raising, viewing policies and claims
@@ -22,11 +27,11 @@ import { VoiceAgent } from './customer-components/voice-agent/voice-agent';
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, GooglePlacesInputComponent, LocationMapComponent, NomineeVerificationComponent, VoiceAgent],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, GooglePlacesInputComponent, LocationMapComponent, NomineeVerificationComponent, VoiceAgent, SafePipe],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })
-export class CustomerDashboardPage implements OnInit {
+export class CustomerDashboardPage implements OnInit, AfterViewInit {
     // inject all required services
     private authService = inject(AuthService);
     private policyService = inject(PolicyService);
@@ -38,9 +43,169 @@ export class CustomerDashboardPage implements OnInit {
     // get current logged in user from localstorage
     user = this.authService.getUser();
     // active view state for switching between sections
-    activeView = signal<'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'policy-details' | 'claim-details' | 'chat' | 'kyc-verification'>('dashboard');
+    activeView = signal<'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'policy-details' | 'claim-details' | 'chat' | 'kyc-verification' | 'profile'>('dashboard');
     // sidebar toggle for mobile
     sidebarOpen = signal<boolean>(false);
+
+    // ─── Profile ─────────────────────────────────────────────────────────────────
+    // load profile image: prefer CDN url saved on login, fall back to locally stored base64 (offline)
+    profileImage = signal<string | null>(
+        localStorage.getItem('user_profile_image_' + (this.authService.getUser().id || 'guest')) ||
+        localStorage.getItem('profile_image_' + (this.authService.getUser().id || 'guest'))
+    );
+    profileIsUploading = signal<boolean>(false);
+    profileUploadError = signal<string>('');
+    profileLocationText = signal<string>('');
+    profileMapUrl = signal<string>('');
+    profileIsFetchingLocation = signal<boolean>(false);
+    profileSaveSuccess = signal<boolean>(false);
+
+    profileForm = {
+        name:     this.authService.getUser().name || '',
+        email:    this.authService.getUser().email || '',
+        phone:    this.authService.getUser().phone || '',
+        city:     localStorage.getItem('profile_city_' + (this.authService.getUser().id || 'guest')) || '',
+        bio:      localStorage.getItem('profile_bio_' + (this.authService.getUser().id || 'guest')) || '',
+        occupation: localStorage.getItem('profile_occupation_' + (this.authService.getUser().id || 'guest')) || '',
+        bankAccount: localStorage.getItem('profile_bank_' + (this.authService.getUser().id || 'guest')) || '',
+        ifscCode:   localStorage.getItem('profile_ifsc_' + (this.authService.getUser().id || 'guest')) || ''
+    };
+
+    // Bank validation helpers
+    get isBankAccountValid(): boolean {
+        const val = this.profileForm.bankAccount;
+        return !val || /^\d{9,18}$/.test(val);
+    }
+
+    get isIfscValid(): boolean {
+        const val = this.profileForm.ifscCode;
+        return !val || /^[A-Z]{4}0[A-Z0-9]{6}$/.test(val);
+    }
+
+    // Profile image upload handler — uploads to ImageKit via backend and stores CDN url
+    onProfileImageChange(event: Event) {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        if (file.size > 3 * 1024 * 1024) { alert('Image must be under 3 MB'); return; }
+
+        this.profileIsUploading.set(true);
+        this.profileUploadError.set('');
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result as string;
+            // Show preview instantly while uploading
+            this.profileImage.set(base64);
+
+            // Upload to ImageKit via backend
+            this.authService.uploadProfileImage(
+                this.user.id || 'guest',
+                base64,
+                file.name
+            ).subscribe({
+                next: (res) => {
+                    // Replace preview base64 with the permanent CDN URL
+                    this.profileImage.set(res.imageUrl);
+                    localStorage.setItem('user_profile_image_' + (this.user.id || 'guest'), res.imageUrl);
+                    this.profileIsUploading.set(false);
+                },
+                error: () => {
+                    // Keep local preview if upload fails so user still sees their pic
+                    localStorage.setItem('profile_image_' + (this.user.id || 'guest'), base64);
+                    this.profileUploadError.set('Upload failed — saved locally.');
+                    this.profileIsUploading.set(false);
+                }
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Remove profile image
+    removeProfileImage() {
+        this.profileImage.set(null);
+        localStorage.removeItem('profile_image_' + (this.user.id || 'guest'));
+        localStorage.removeItem('user_profile_image_' + (this.user.id || 'guest'));
+    }
+
+    // Fetch the user's current location via browser API and build a Google Maps embed URL
+    fetchUserLocation() {
+        if (!navigator.geolocation) { alert('Geolocation not supported by your browser.'); return; }
+        this.profileIsFetchingLocation.set(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude.toFixed(5);
+                const lng = pos.coords.longitude.toFixed(5);
+                const mapUrl = `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+                this.profileMapUrl.set(mapUrl);
+                this.profileLocationText.set(`${lat}° N, ${lng}° E`);
+                localStorage.setItem('profile_lat_' + this.user.id, lat);
+                localStorage.setItem('profile_lng_' + this.user.id, lng);
+                // Reverse geocode with free API
+                fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const city = data.address?.city || data.address?.town || data.address?.village || '';
+                        const state = data.address?.state || '';
+                        const readable = [city, state].filter(Boolean).join(', ');
+                        this.profileLocationText.set(readable || `${lat}° N, ${lng}° E`);
+                        this.profileForm.city = readable;
+                    })
+                    .catch(() => {})
+                    .finally(() => this.profileIsFetchingLocation.set(false));
+            },
+            () => {
+                this.profileIsFetchingLocation.set(false);
+                alert('Unable to fetch your location. Please allow location access.');
+            }
+        );
+    }
+
+    // Restore saved map from localStorage
+    restoreSavedLocation() {
+        const lat = localStorage.getItem('profile_lat_' + this.user.id);
+        const lng = localStorage.getItem('profile_lng_' + this.user.id);
+        if (lat && lng) {
+            this.profileMapUrl.set(`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`);
+            this.profileLocationText.set(this.profileForm.city || `${lat}° N, ${lng}° E`);
+        }
+    }
+
+    // Save editable profile fields to localStorage
+    saveProfile() {
+        if (!this.isBankAccountValid || !this.isIfscValid) {
+            alert('Please correct the errors in Bank Details before saving.');
+            return;
+        }
+        const uid = this.user.id || 'guest';
+        localStorage.setItem('profile_city_' + uid, this.profileForm.city);
+        localStorage.setItem('profile_bio_' + uid, this.profileForm.bio);
+        localStorage.setItem('profile_occupation_' + uid, this.profileForm.occupation);
+        localStorage.setItem('profile_bank_' + uid, this.profileForm.bankAccount);
+        localStorage.setItem('profile_ifsc_' + uid, this.profileForm.ifscCode);
+        this.profileSaveSuccess.set(true);
+        setTimeout(() => this.profileSaveSuccess.set(false), 3000);
+    }
+
+    // Handles location search result from Google Places input
+    onProfileLocationSelected(location: any) {
+        if (!location) return;
+        this.profileForm.city = location.formatted_address || location.name;
+        if (location.geometry?.location) {
+            const lat = typeof location.geometry.location.lat === 'function' ? location.geometry.location.lat() : location.geometry.location.lat;
+            const lng = typeof location.geometry.location.lng === 'function' ? location.geometry.location.lng() : location.geometry.location.lng;
+            this.profileMapUrl.set(`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`);
+            this.profileLocationText.set(this.profileForm.city);
+            localStorage.setItem('profile_lat_' + this.user.id, lat.toString());
+            localStorage.setItem('profile_lng_' + this.user.id, lng.toString());
+        }
+    }
+
+    // Initials helper for default avatar
+    get userInitials(): string {
+        const n = this.user.name || 'User';
+        return n.split(' ').map((p: string) => p[0]).slice(0, 2).join('').toUpperCase();
+    }
+    // ─── End Profile ──────────────────────────────────────────────────────────────
 
     // sub-view state for detail pages
     selectedPolicyId = signal<string | null>(null);
@@ -56,8 +221,8 @@ export class CustomerDashboardPage implements OnInit {
 
     // data arrays from backend
     config: any = null; // policy configuration
-    myPolicies: any[] = []; // user's policies
-    myClaims: any[] = []; // user's claims
+    myPolicies = signal<any[]>([]); // user's policies
+    myClaims = signal<any[]>([]); // user's claims
     myChats = signal<any[]>([]); // chat rooms
 
     // calculated totals for dashboard cards
@@ -180,6 +345,161 @@ export class CustomerDashboardPage implements OnInit {
         this.loadMyPolicies();
         this.loadMyClaims();
         this.loadChatList();
+        this.restoreSavedLocation();
+    }
+
+    // This function is called after Angular renders the view and is used to initialize the Chart.js charts on the dashboard.
+    ngAfterViewInit() {
+        // Wait a moment for @if blocks to be rendered
+        setTimeout(() => this.renderDashboardCharts(), 300);
+    }
+
+    // Destroy and re-create all dashboard charts based on current data
+    private chartInstances: { [key: string]: Chart } = {};
+
+    renderDashboardCharts() {
+        this.renderCoverageBarChart();
+        this.renderClaimDonutChart();
+        this.renderActivityLineChart();
+    }
+
+    private getOrCreateChart(id: string, config: any): Chart | null {
+        const canvas = document.getElementById(id) as HTMLCanvasElement;
+        if (!canvas) return null;
+        if (this.chartInstances[id]) {
+            this.chartInstances[id].destroy();
+        }
+        const chart = new Chart(canvas, config);
+        this.chartInstances[id] = chart;
+        return chart;
+    }
+
+    renderCoverageBarChart() {
+        const activePolicies = this.myPolicies().filter((p: any) => p.status === 'Active');
+        const labels = activePolicies.map((p: any) => p.tierId?.replace('IND_', '').replace('FAM_', '') || 'Policy');
+        const coverageData = activePolicies.map((p: any) => p.totalCoverageAmount || 0);
+        const claimedData = activePolicies.map((p: any) => {
+            const policyClaims = this.myClaims().filter((c: any) => c.policyApplicationId === p.id && (c.status === 'Approved' || c.status === 'Paid'));
+            return policyClaims.reduce((sum: number, c: any) => sum + (c.approvedAmount || 0), 0);
+        });
+
+        if (labels.length === 0) {
+            labels.push('No Policy');
+            coverageData.push(0);
+            claimedData.push(0);
+        }
+
+        this.getOrCreateChart('coverageBarChart', {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Total Coverage (₹)', data: coverageData, backgroundColor: 'rgba(15,31,20,0.85)', borderRadius: 8, borderSkipped: false },
+                    { label: 'Amount Claimed (₹)', data: claimedData, backgroundColor: 'rgba(249,115,22,0.85)', borderRadius: 8, borderSkipped: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: true,
+                plugins: { legend: { position: 'top', labels: { font: { family: 'Inter, sans-serif', weight: 'bold', size: 11 }, color: '#64748b' } } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { family: 'Inter', weight: 'bold', size: 10 }, color: '#94a3b8' } },
+                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Inter', size: 10 }, color: '#94a3b8', callback: (v: any) => '₹' + (v / 100000).toFixed(0) + 'L' } }
+                }
+            }
+        });
+    }
+
+    renderClaimDonutChart() {
+        const approved = this.myClaims().filter((c: any) => c.status === 'Approved' || c.status === 'Paid').length;
+        const processing = this.myClaims().filter((c: any) => c.status === 'Processing' || c.status === 'Pending' || c.status === 'UnderReview').length;
+        const rejected = this.myClaims().filter((c: any) => c.status === 'Rejected').length;
+
+        const hasData = approved + processing + rejected > 0;
+        const data = hasData ? [approved, processing, rejected] : [1];
+        const bgColors = hasData ? ['#10b981', '#f59e0b', '#ef4444'] : ['#e2e8f0'];
+        const labels = hasData ? ['Approved / Paid', 'In Processing', 'Rejected'] : ['No Claims Yet'];
+        const counts = hasData ? [approved, processing, rejected] : [0];
+
+        // Build custom HTML legend on the right side
+        const legendEl = document.getElementById('claimDonutLegend');
+        if (legendEl) {
+            const legendItems = hasData
+                ? [
+                    { color: '#10b981', label: 'Approved / Paid', count: approved },
+                    { color: '#f59e0b', label: 'In Processing', count: processing },
+                    { color: '#ef4444', label: 'Rejected', count: rejected }
+                  ]
+                : [{ color: '#e2e8f0', label: 'No Claims Yet', count: 0 }];
+
+            legendEl.innerHTML = legendItems.map(item => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#f8fafc; border-radius:12px; border:1px solid #f1f5f9;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:${item.color}; flex-shrink:0;"></span>
+                        <span style="font-size:11px; font-weight:700; color:#475569; font-family:Inter,sans-serif;">${item.label}</span>
+                    </div>
+                    <span style="font-size:14px; font-weight:900; color:#0f1f14; font-family:Inter,sans-serif;">${item.count}</span>
+                </div>
+            `).join('');
+        }
+
+        this.getOrCreateChart('claimDonutChart', {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data, backgroundColor: bgColors, borderWidth: 3, borderColor: '#fff', hoverBorderColor: '#fff', hoverOffset: 6 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx: any) => hasData ? ` ${ctx.label}: ${ctx.parsed} claim(s)` : ' No claims submitted' } }
+                }
+            }
+        });
+    }
+
+    renderActivityLineChart() {
+        // Build last 6 months labels
+        const months: string[] = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push(d.toLocaleString('default', { month: 'short', year: '2-digit' }));
+        }
+
+        // count policies purchased per month
+        const policyByMonth = months.map((_, idx) => {
+            const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1);
+            return this.myPolicies().filter((p: any) => {
+                const pd = new Date(p.submissionDate);
+                return pd.getFullYear() === d.getFullYear() && pd.getMonth() === d.getMonth();
+            }).length;
+        });
+
+        // count claims raised per month
+        const claimsByMonth = months.map((_, idx) => {
+            const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1);
+            return this.myClaims().filter((c: any) => {
+                const cd = new Date(c.submissionDate);
+                return cd.getFullYear() === d.getFullYear() && cd.getMonth() === d.getMonth();
+            }).length;
+        });
+
+        this.getOrCreateChart('activityLineChart', {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [
+                    { label: 'Policies Started', data: policyByMonth, borderColor: '#0f1f14', backgroundColor: 'rgba(15,31,20,0.08)', fill: true, tension: 0.4, pointBackgroundColor: '#0f1f14', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7 },
+                    { label: 'Claims Raised', data: claimsByMonth, borderColor: '#800020', backgroundColor: 'rgba(128,0,32,0.08)', fill: true, tension: 0.4, pointBackgroundColor: '#800020', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: true,
+                plugins: { legend: { position: 'top', labels: { font: { family: 'Inter', weight: 'bold', size: 11 }, color: '#64748b' } } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { family: 'Inter', weight: 'bold', size: 10 }, color: '#94a3b8' } },
+                    y: { grid: { color: '#f1f5f9' }, beginAtZero: true, ticks: { precision: 0, font: { family: 'Inter', size: 10 }, color: '#94a3b8' } }
+                }
+            }
+        });
     }
 
     // This function fetches the policy configuration data from the backend database which contains all available policy categories, tiers and benefits information.
@@ -196,9 +516,11 @@ export class CustomerDashboardPage implements OnInit {
     loadMyPolicies() {
         this.policyService.getMyPolicies().subscribe({
             next: (policies) => {
-                this.myPolicies = policies;
+                this.myPolicies.set(policies);
                 this.calculateTotals(); // recalc dashboard totals
                 console.log('User policies loaded:', policies);
+                // Re-render charts with real data once loaded
+                setTimeout(() => this.renderDashboardCharts(), 150);
             }
         });
     }
@@ -207,16 +529,46 @@ export class CustomerDashboardPage implements OnInit {
     loadMyClaims() {
         this.claimService.getMyClaims().subscribe({
             next: (claims) => {
-                this.myClaims = claims;
+                this.myClaims.set(claims.map((c: any) => {
+                    let details: any = null;
+                    if (c.policy?.applicationDataJson) {
+                        try {
+                            const raw = JSON.parse(c.policy.applicationDataJson);
+                            const normalize = (obj: any) => {
+                                if (!obj) return null;
+                                const normalized: any = {};
+                                Object.keys(obj).forEach(key => {
+                                    const normalizedKey = key.charAt(0).toLowerCase() + key.slice(1);
+                                    normalized[normalizedKey] = obj[key];
+                                });
+                                return normalized;
+                            };
+
+                            const fullDetails = normalize(raw);
+                            if (fullDetails) {
+                                fullDetails.nominee = normalize(fullDetails.nominee || raw.Nominee) || {};
+                                fullDetails.nominee.name = fullDetails.nominee.name || fullDetails.nominee.nomineeName || '--';
+                                fullDetails.nominee.email = fullDetails.nominee.email || fullDetails.nominee.nomineeEmail || '--';
+                                fullDetails.nominee.phone = fullDetails.nominee.phone || fullDetails.nominee.nomineePhone || '--';
+                                fullDetails.nominee.bankAccount = fullDetails.nominee.bankAccount || fullDetails.nominee.nomineeBankAccountNumber || '--';
+                                fullDetails.nominee.relationship = fullDetails.nominee.relationship || fullDetails.nominee.nomineeRelationship || '--';
+                            }
+                            details = fullDetails;
+                        } catch (e) { }
+                    }
+                    return { ...c, fullDetails: details };
+                }));
                 this.calculateTotals(); // recalc totals
                 
                 // Check if user has any active/past death claim to show on dashboard
-                const deathClaim = claims.find((c: any) => c.incidentType === 'Death' || (c.incidentDataJson && c.incidentDataJson.includes('Death')));
+                const deathClaim = this.myClaims().find((c: any) => c.incidentType === 'Death' || (c.incidentDataJson && c.incidentDataJson.includes('Death')));
                 if (deathClaim) {
                     this.hasDeathClaim.set(true);
                 }
 
-                console.log('User claims loaded:', claims);
+                console.log('User claims loaded:', this.myClaims());
+                // Re-render charts with real data once loaded
+                setTimeout(() => this.renderDashboardCharts(), 150);
             }
         });
     }
@@ -237,14 +589,14 @@ export class CustomerDashboardPage implements OnInit {
         let approved = 0;
 
         // sum up coverage from active policies
-        this.myPolicies.forEach(p => {
+        this.myPolicies().forEach(p => {
             if (p.status === 'Active') {
                 coverage += p.totalCoverageAmount || 0;
             }
         });
 
         // sum up claim amounts by status
-        this.myClaims.forEach(c => {
+        this.myClaims().forEach(c => {
             requested += c.requestedAmount || 0;
             if (c.status === 'Approved' || c.status === 'Paid') {
                 claims += c.approvedAmount || 0;
@@ -261,7 +613,7 @@ export class CustomerDashboardPage implements OnInit {
     }
 
     // This function allows users to navigate between different sections of the dashboard like policies, claims, buy policy and chat by updating the active view.
-    switchView(view: 'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'chat' | 'kyc-verification') {
+    switchView(view: 'dashboard' | 'my-policies' | 'buy-policy' | 'raise-claim' | 'my-claims' | 'chat' | 'kyc-verification' | 'profile' | 'policy-details' | 'claim-details') {
         this.activeView.set(view);
         // reset selections when entering buy policy
         if (view === 'buy-policy') {
@@ -302,7 +654,7 @@ export class CustomerDashboardPage implements OnInit {
 
     // This function checks whether the user already has an active policy in a specific category to prevent purchasing duplicate policies.
     hasActivePolicy(categoryId: string): boolean {
-        return this.myPolicies.some(p => p.policyCategory === categoryId && p.status === 'Active');
+        return this.myPolicies().some(p => p.policyCategory === categoryId && p.status === 'Active');
     }
 
     // This function handles the user selection of a policy category such as individual or family and resets the tier selection and family members list.
@@ -789,7 +1141,7 @@ export class CustomerDashboardPage implements OnInit {
 
     // This function opens the detailed view of a specific policy by loading its complete information including associated claims from the database.
     openPolicyDetails(polId: string) {
-        const pol = this.myPolicies.find(p => p.id === polId);
+        const pol = this.myPolicies().find(p => p.id === polId);
         if (!pol) return;
 
         // Parse JSON data robustly
@@ -867,7 +1219,7 @@ export class CustomerDashboardPage implements OnInit {
         pol.monthlyPremium = (pol.calculatedPremium || 0) / 12;
 
         this.detailedPolicy.set({ ...pol });
-        this.detailedClaimsForPolicy.set(this.myClaims.filter(c => c.policyApplicationId === polId));
+        this.detailedClaimsForPolicy.set(this.myClaims().filter(c => c.policyApplicationId === polId));
         this.selectedPolicyId.set(polId);
         this.activeView.set('policy-details');
     }
@@ -893,8 +1245,18 @@ export class CustomerDashboardPage implements OnInit {
             next: () => {
                 this.isPaying.set(false);
                 this.showPaymentModal.set(false);
-                alert('Payment Successful! Your policy is now ACTIVE.');
-                window.location.reload();
+
+                // ✅ Send invoice email via n8n
+                this.sendInvoiceEmail(pol);
+
+                alert('Payment Successful! Your policy is now ACTIVE. Invoice sent to your email.');
+                
+                // Refresh policies and navigate to the detailed view of the paid policy
+                this.policyService.getMyPolicies().subscribe((policies) => {
+                    this.myPolicies.set(policies);
+                    this.calculateTotals();
+                    this.openPolicyDetails(pol.id);
+                });
             },
             error: (err) => {
                 this.isPaying.set(false);
@@ -902,8 +1264,18 @@ export class CustomerDashboardPage implements OnInit {
                 // If it's a backend mismatch but payment succeeded, or if it explicitly says AwaitingPayment
                 // Also bypass 500 timeout from N8N webhooks (shows as 'unexpected error') since the DB tx works
                 if (errorMsg.includes('status') || errorMsg.includes('AwaitingPayment') || errorMsg.includes('unexpected error') || errorMsg.includes('An unexpected error')) {
-                    alert('Payment processed. Your policy is now ACTIVE.');
-                    window.location.reload();
+                    
+                    // ✅ Send invoice email even on pseudo-error if it means success
+                    this.sendInvoiceEmail(pol);
+                    
+                    alert('Payment processed. Your policy is now ACTIVE. Invoice sent to your email.');
+
+                    // Refresh policies and navigate to the detailed view of the paid policy
+                    this.policyService.getMyPolicies().subscribe((policies) => {
+                        this.myPolicies.set(policies);
+                        this.calculateTotals();
+                        this.openPolicyDetails(pol.id);
+                    });
                 } else {
                     alert('Payment failed: ' + errorMsg);
                 }
@@ -913,7 +1285,7 @@ export class CustomerDashboardPage implements OnInit {
 
     // This function opens the detailed view of a specific insurance claim showing all information about the claim including status and associated policy details.
     openClaimDetails(claimId: string) {
-        const claim = this.myClaims.find(c => c.id === claimId);
+        const claim = this.myClaims().find(c => c.id === claimId);
         if (!claim) return;
 
         // Parse policy json to get nominee info
@@ -962,15 +1334,35 @@ export class CustomerDashboardPage implements OnInit {
             next: (res) => {
                 this.isPaying.set(false);
                 this.showPolicyDetailModal.set(false);
-                alert('Payment Successful! Your policy is now ACTIVE.');
-                window.location.reload();
+
+                // ✅ Send invoice email via n8n
+                this.sendInvoiceEmail(pol);
+
+                alert('Payment Successful! Your policy is now ACTIVE. Invoice sent to your email.');
+                
+                // Refresh policies and navigate to the detailed view of the paid policy
+                this.policyService.getMyPolicies().subscribe((policies) => {
+                    this.myPolicies.set(policies);
+                    this.calculateTotals();
+                    this.openPolicyDetails(pol.id);
+                });
             },
             error: (err) => {
                 this.isPaying.set(false);
                 const errorMsg = typeof err.error === 'string' ? err.error : (err.error?.message || err.message || '');
                 if (errorMsg.includes('status') || errorMsg.includes('AwaitingPayment') || errorMsg.includes('unexpected error') || errorMsg.includes('An unexpected error')) {
-                    alert('Payment processed. Your policy is now ACTIVE.');
-                    window.location.reload();
+                    
+                    // ✅ Send invoice email even on pseudo-error if it means success
+                    this.sendInvoiceEmail(pol);
+                    
+                    alert('Payment processed. Your policy is now ACTIVE. Invoice sent to your email.');
+
+                    // Refresh policies and navigate to the detailed view of the paid policy
+                    this.policyService.getMyPolicies().subscribe((policies) => {
+                        this.myPolicies.set(policies);
+                        this.calculateTotals();
+                        this.openPolicyDetails(pol.id);
+                    });
                 } else {
                     alert('Payment failed: ' + errorMsg);
                 }
@@ -1232,6 +1624,83 @@ export class CustomerDashboardPage implements OnInit {
     onHospitalChanged(name: string) {
         this.claimForm.hospitalName = name;
         console.log('Hospital updated in dashboard form:', name);
+    }
+
+    // Generates a PDF invoice locally, uploads to ImageKit, then sends email via n8n
+    private sendInvoiceEmail(pol: any) {
+        const user = this.authService.getUser();
+        const doc = new jsPDF();
+        
+        // 1. Generate PDF Content
+        doc.setFontSize(22);
+        doc.text('ACCISURE INSURANCE INVOICE', 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 28, { align: 'center' });
+        
+        doc.line(20, 35, 190, 35);
+        
+        doc.setFontSize(12);
+        doc.text('Customer Details:', 20, 45);
+        doc.setFontSize(10);
+        doc.text(`Name: ${user.name || 'Valued Customer'}`, 20, 52);
+        doc.text(`Email: ${user.email}`, 20, 58);
+        
+        doc.setFontSize(12);
+        doc.text('Policy Information:', 120, 45);
+        doc.setFontSize(10);
+        doc.text(`Policy ID: ${pol.id}`, 120, 52);
+        doc.text(`Plan: ${pol.tierId || pol.policyName}`, 120, 58);
+        doc.text(`Category: ${pol.policyCategory || 'Standard'}`, 120, 64);
+
+        autoTable(doc, {
+            startY: 80,
+            head: [['Description', 'Amount']],
+            body: [
+                ['Initial Premium Payment', `INR ${pol.calculatedPremium}`],
+                ['Service Tax (GST)', 'Included'],
+            ],
+            foot: [['Total Paid', `INR ${pol.calculatedPremium}`]],
+            theme: 'striped',
+            headStyles: { fillColor: [1, 33, 67] }
+        });
+
+        // 2. Convert to Base64 and Upload
+        const pdfBase64 = doc.output('datauristring');
+        
+        this.policyService.uploadInvoice(pol.id, pdfBase64, `Invoice_${pol.id}.pdf`).subscribe({
+            next: (uploadRes) => {
+                const permanentUrl = uploadRes.invoiceUrl;
+                
+                // 3. Send payload to n8n with working link
+                const payload = {
+                    customerEmail: user.email,
+                    customerName: user.name || user.email,
+                    policyId: pol.id,
+                    policyName: pol.tierId || pol.policyName || 'Accidental Insurance Policy',
+                    amount: pol.calculatedPremium,
+                    paymentDate: new Date().toLocaleDateString('en-IN', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                    }),
+                    invoiceLink: permanentUrl
+                };
+
+                this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-invoice', payload)
+                    .subscribe({
+                        next: (res) => console.log('Invoice email sent with working link:', res),
+                        error: (err) => console.error('Invoice email failed:', err)
+                    });
+            },
+            error: (uploadErr) => {
+                console.error('Invoice PDF upload failed. Sending email with fallback.', uploadErr);
+                // Fallback to sending email even if upload failed (link might be broken but email gets through)
+                this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-invoice', {
+                    customerEmail: user.email,
+                    customerName: user.name || user.email,
+                    policyId: pol.id,
+                    invoiceLink: `https://ik.imagekit.io/nextbyteind/invoices/Invoice_${pol.id}.pdf`
+                }).subscribe();
+            }
+        });
     }
 
     // This function logs out the current user by calling the authentication service logout method which clears the session and redirects to login page.
