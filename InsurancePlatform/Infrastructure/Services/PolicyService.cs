@@ -34,12 +34,12 @@ namespace Infrastructure.Services
         {
             if (_cachedConfig != null) return _cachedConfig;
 
-            // find the path to policy-config-new.json
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Data", "policy-config-new.json");
+            // find the path to policy-config.json
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Data", "policy-config.json");
             
             if (!File.Exists(path))
             {
-                path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "policy-config-new.json");
+                path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "policy-config.json");
             }
 
             var json = await File.ReadAllTextAsync(path);

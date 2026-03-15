@@ -1,195 +1,383 @@
 {
-    "policyCategories": [
-        {
-            "categoryId": "INDIVIDUAL",
-            "categoryName": "Individual Accident Policy",
-            "maxMembersAllowed": 1,
-            "tiers": [
-                {
-                    "tierId": "IND_SILVER",
-                    "tierName": "Silver",
-                    "baseCoverageAmount": 500000,
-                    "basePremiumAmount": 3000,
-                    "validityInYears": 1,
-                    "benefits": [
-                        "Accidental Death Cover",
-                        "Permanent Disability Cover",
-                        "Hospitalization Support"
-                    ]
-                },
-                {
-                    "tierId": "IND_GOLD",
-                    "tierName": "Gold",
-                    "baseCoverageAmount": 1000000,
-                    "basePremiumAmount": 5000,
-                    "validityInYears": 1,
-                    "benefits": [
-                        "Accidental Death Cover",
-                        "Permanent Disability Cover",
-                        "Partial Disability Cover",
-                        "Hospitalization Support",
-                        "Ambulance Charges"
-                    ]
-                },
-                {
-                    "tierId": "IND_PREMIUM",
-                    "tierName": "Premium",
-                    "baseCoverageAmount": 2000000,
-                    "basePremiumAmount": 8000,
-                    "validityInYears": 1,
-                    "benefits": [
-                        "Accidental Death Cover",
-                        "Permanent Disability Cover",
-                        "Partial Disability Cover",
-                        "ICU Cover",
-                        "Worldwide Emergency Cover"
-                    ]
-                }
+  "policyCategories": [
+    {
+      "categoryId": "INDIVIDUAL",
+      "categoryName": "Individual Accident Policy",
+      "maxMembersAllowed": 1,
+      "applicationRequirements": {
+        "documentsRequired": [
+          {
+            "docType": "IdentityProof",
+            "required": true,
+            "accepted": [
+              "Aadhaar",
+              "Passport",
+              "DrivingLicense",
+              "VoterID"
             ]
-        },
-        {
-            "categoryId": "FAMILY",
-            "categoryName": "Family Group Accident Policy",
-            "maxMembersAllowed": 4,
-            "premiumBasedOn": "PrimaryApplicantOnly",
-            "tiers": [
-                {
-                    "tierId": "FAM_SILVER",
-                    "tierName": "Silver",
-                    "baseCoverageAmount": 1000000,
-                    "basePremiumAmount": 7000,
-                    "validityInYears": 1,
-                    "benefits": [
-                        "Family Accidental Cover",
-                        "Hospitalization Cover",
-                        "Children Education Support"
-                    ]
-                },
-                {
-                    "tierId": "FAM_GOLD",
-                    "tierName": "Gold",
-                    "baseCoverageAmount": 2000000,
-                    "basePremiumAmount": 12000,
-                    "validityInYears": 1,
-                    "benefits": [
-                        "Family Accidental Cover",
-                        "ICU Cover",
-                        "Children Education Support",
-                        "Ambulance Cover"
-                    ]
-                },
-                {
-                    "tierId": "FAM_PREMIUM",
-                    "tierName": "Premium",
-                    "baseCoverageAmount": 4000000,
-                    "basePremiumAmount": 18000,
-                    "validityInYears": 1,
-                    "benefits": [
-                        "Family Accidental Cover",
-                        "Worldwide Emergency Cover",
-                        "Full Disability Cover",
-                        "ICU + Surgery Cover"
-                    ]
-                }
+          },
+          {
+            "docType": "AgeProof",
+            "required": true,
+            "accepted": [
+              "BirthCertificate",
+              "Aadhaar",
+              "Passport",
+              "DrivingLicense"
             ]
-        }
-    ],
-    "riskFactors": {
-        "ageMultipliers": [
-            {
-                "minAge": 18,
-                "maxAge": 25,
-                "multiplier": 1.0
-            },
-            {
-                "minAge": 26,
-                "maxAge": 45,
-                "multiplier": 1.2
-            },
-            {
-                "minAge": 46,
-                "maxAge": 65,
-                "multiplier": 1.5
-            }
+          },
+          {
+            "docType": "MedicalReport",
+            "required": true,
+            "description": "Recent blood test or health check within last 6 months"
+          },
+          {
+            "docType": "SalaryProof",
+            "requiredCondition": "professionRequiresIncomeProof",
+            "description": "Last 12 months salary slips, ITR, or business income statement"
+          }
         ],
-        "professionMultipliers": [
-            {
-                "profession": "SoftwareEmployee",
-                "multiplier": 1.0
-            },
-            {
-                "profession": "Teacher",
-                "multiplier": 1.0
-            },
-            {
-                "profession": "Doctor",
-                "multiplier": 1.2
-            },
-            {
-                "profession": "Driver",
-                "multiplier": 1.5
-            },
-            {
-                "profession": "ConstructionWorker",
-                "multiplier": 1.8
-            },
-            {
-                "profession": "FactoryWorker",
-                "multiplier": 1.6
-            },
-            {
-                "profession": "Police",
-                "multiplier": 1.7
-            },
-            {
-                "profession": "Army",
-                "multiplier": 2.0
-            },
-            {
-                "profession": "SelfEmployed",
-                "multiplier": 1.3
-            },
-            {
-                "profession": "Others",
-                "multiplier": 1.6
-            }
+        "applicantQuestions": [
+          "Full Name",
+          "Date Of Birth",
+          "Gender",
+          "Profession",
+          "Annual Income",
+          "Smoking Habit",
+          "Alcohol Habit",
+          "Average Travel Distance Per Month (KM)",
+          "Existing Health Conditions",
+          "Previous Insurance Claims"
         ],
-        "alcoholMultiplier": {
-            "nonDrinker": 1.0,
-            "occasional": 1.2,
-            "regular": 1.5,
-            "others": 1.6
-        },
-        "smokingMultiplier": {
-            "nonSmoker": 1.0,
-            "occasional": 1.3,
-            "regular": 1.6,
-            "others": 1.7
-        },
-        "travelFrequencyMultiplier": [
-            {
-                "maxKmPerMonth": 500,
-                "multiplier": 1.0
-            },
-            {
-                "maxKmPerMonth": 2000,
-                "multiplier": 1.2
-            },
-            {
-                "maxKmPerMonth": 5000,
-                "multiplier": 1.5
-            },
-            {
-                "maxKmPerMonth": 100000,
-                "multiplier": 1.7,
-                "label": "Others"
-            }
+        "nomineeInformation": [
+          "Nominee Name",
+          "Relationship",
+          "Nominee Phone",
+          "Nominee Email",
+          "Bank Account Number",
+          "IFSC Code"
         ]
+      },
+      "tiers": [
+        {
+          "tierId": "IND_SILVER",
+          "tierName": "Silver",
+          "baseCoverageAmount": 500000,
+          "basePremiumAmount": 3000,
+          "validityInYears": 1,
+          "benefits": [
+            "Accidental Death Cover",
+            "Permanent Disability Cover",
+            "Hospitalization Support"
+          ]
+        },
+        {
+          "tierId": "IND_GOLD",
+          "tierName": "Gold",
+          "baseCoverageAmount": 1000000,
+          "basePremiumAmount": 5000,
+          "validityInYears": 1,
+          "benefits": [
+            "Accidental Death Cover",
+            "Permanent Disability Cover",
+            "Partial Disability Cover",
+            "Hospitalization Support",
+            "Ambulance Charges"
+          ]
+        },
+        {
+          "tierId": "IND_PREMIUM",
+          "tierName": "Premium",
+          "baseCoverageAmount": 2000000,
+          "basePremiumAmount": 8000,
+          "validityInYears": 1,
+          "benefits": [
+            "Accidental Death Cover",
+            "Permanent Disability Cover",
+            "Partial Disability Cover",
+            "ICU Cover",
+            "Worldwide Emergency Cover"
+          ]
+        }
+      ]
     },
-    "paymentModeMultipliers": {
-        "monthly": 1.1,
-        "halfYearly": 1.05,
-        "yearly": 0.95
+    {
+      "categoryId": "FAMILY",
+      "categoryName": "Family Group Accident Policy",
+      "maxMembersAllowed": 4,
+      "premiumBasedOn": "PrimaryApplicantOnly",
+      "applicationRequirements": {
+        "documentsRequired": [
+          {
+            "docType": "IdentityProof",
+            "required": true
+          },
+          {
+            "docType": "AgeProof",
+            "required": true
+          },
+          {
+            "docType": "MedicalReport",
+            "required": true
+          },
+          {
+            "docType": "SalaryProof",
+            "requiredCondition": "professionRequiresIncomeProof"
+          }
+        ],
+        "familyMemberQuestions": [
+          "Member Name",
+          "Relationship",
+          "Date Of Birth",
+          "Existing Health Conditions"
+        ],
+        "nomineeInformation": [
+          "Nominee Name",
+          "Relationship",
+          "Nominee Phone",
+          "Nominee Email",
+          "Bank Account Number",
+          "IFSC Code"
+        ]
+      },
+      "tiers": [
+        {
+          "tierId": "FAM_SILVER",
+          "tierName": "Silver",
+          "baseCoverageAmount": 1000000,
+          "basePremiumAmount": 7000,
+          "validityInYears": 1,
+          "benefits": [
+            "Family Accidental Cover",
+            "Hospitalization Cover",
+            "Children Education Support"
+          ]
+        },
+        {
+          "tierId": "FAM_GOLD",
+          "tierName": "Gold",
+          "baseCoverageAmount": 2000000,
+          "basePremiumAmount": 12000,
+          "validityInYears": 1,
+          "benefits": [
+            "Family Accidental Cover",
+            "ICU Cover",
+            "Children Education Support",
+            "Ambulance Cover"
+          ]
+        },
+        {
+          "tierId": "FAM_PREMIUM",
+          "tierName": "Premium",
+          "baseCoverageAmount": 4000000,
+          "basePremiumAmount": 18000,
+          "validityInYears": 1,
+          "benefits": [
+            "Family Accidental Cover",
+            "Worldwide Emergency Cover",
+            "Full Disability Cover",
+            "ICU + Surgery Cover"
+          ]
+        }
+      ]
+    }
+  ],
+  "incomeProofRequiredFor": [
+    "SoftwareEmployee",
+    "Doctor",
+    "Teacher",
+    "Driver",
+    "FactoryWorker",
+    "Police",
+    "Army",
+    "SelfEmployed",
+    "BusinessOwner"
+  ],
+  "riskFactors": {
+    "ageMultipliers": [
+      {
+        "minAge": 18,
+        "maxAge": 25,
+        "multiplier": 1.0
+      },
+      {
+        "minAge": 26,
+        "maxAge": 45,
+        "multiplier": 1.1
+      },
+      {
+        "minAge": 46,
+        "maxAge": 65,
+        "multiplier": 1.2
+      }
+    ],
+    "professionMultipliers": [
+      {
+        "profession": "SoftwareEmployee",
+        "multiplier": 1.0
+      },
+      {
+        "profession": "Teacher",
+        "multiplier": 1.0
+      },
+      {
+        "profession": "Doctor",
+        "multiplier": 1.05
+      },
+      {
+        "profession": "Driver",
+        "multiplier": 1.2
+      },
+      {
+        "profession": "ConstructionWorker",
+        "multiplier": 1.35
+      },
+      {
+        "profession": "FactoryWorker",
+        "multiplier": 1.25
+      },
+      {
+        "profession": "Police",
+        "multiplier": 1.3
+      },
+      {
+        "profession": "Army",
+        "multiplier": 1.4
+      },
+      {
+        "profession": "SelfEmployed",
+        "multiplier": 1.1
+      },
+      {
+        "profession": "BusinessOwner",
+        "multiplier": 1.05
+      },
+      {
+        "profession": "Others",
+        "multiplier": 1.1
+      }
+    ],
+    "incomeMultiplier": [
+      {
+        "minIncome": 0,
+        "maxIncome": 200000,
+        "multiplier": 1.1
+      },
+      {
+        "minIncome": 200001,
+        "maxIncome": 500000,
+        "multiplier": 1.07
+      },
+      {
+        "minIncome": 500001,
+        "maxIncome": 800000,
+        "multiplier": 1.05
+      },
+      {
+        "minIncome": 800001,
+        "maxIncome": 1000000,
+        "multiplier": 1.03
+      },
+      {
+        "minIncome": 1000001,
+        "maxIncome": 1500000,
+        "multiplier": 1.02
+      },
+      {
+        "minIncome": 1500001,
+        "maxIncome": 2000000,
+        "multiplier": 1.01
+      },
+      {
+        "minIncome": 2000001,
+        "maxIncome": 3000000,
+        "multiplier": 1.0
+      },
+      {
+        "minIncome": 3000001,
+        "maxIncome": 5000000,
+        "multiplier": 0.99
+      },
+      {
+        "minIncome": 5000001,
+        "maxIncome": 10000000,
+        "multiplier": 0.98
+      },
+      {
+        "minIncome": 10000001,
+        "maxIncome": 999999999,
+        "multiplier": 0.97
+      }
+    ],
+    "alcoholMultiplier": {
+      "nonDrinker": 1.0,
+      "occasional": 1.05,
+      "regular": 1.15
     },
-    "premiumFormula": "FinalPremium = BasePremium × AgeMultiplier × ProfessionMultiplier × AlcoholMultiplier × SmokingMultiplier × TravelMultiplier × PaymentModeMultiplier"
+    "smokingMultiplier": {
+      "nonSmoker": 1.0,
+      "occasional": 1.08,
+      "regular": 1.18
+    },
+    "travelFrequencyMultiplier": [
+      {
+        "maxKmPerMonth": 500,
+        "multiplier": 1.0
+      },
+      {
+        "maxKmPerMonth": 2000,
+        "multiplier": 1.05
+      },
+      {
+        "maxKmPerMonth": 5000,
+        "multiplier": 1.12
+      },
+      {
+        "maxKmPerMonth": 100000,
+        "multiplier": 1.2
+      }
+    ],
+    "vehicleTypeMultiplier": [
+      {
+        "vehicleType": "None",
+        "multiplier": 1.0
+      },
+      {
+        "vehicleType": "TwoWheeler",
+        "multiplier": 1.1
+      },
+      {
+        "vehicleType": "Car",
+        "multiplier": 1.05
+      },
+      {
+        "vehicleType": "ElectricCar",
+        "multiplier": 1.02
+      },
+      {
+        "vehicleType": "HybridCar",
+        "multiplier": 1.03
+      },
+      {
+        "vehicleType": "ElectricTwoWheeler",
+        "multiplier": 1.07
+      },
+      {
+        "vehicleType": "CommercialVehicle",
+        "multiplier": 1.18
+      }
+    ]
+  },
+  "paymentModeMultipliers": {
+    "monthly": 1.05,
+    "halfYearly": 1.02,
+    "yearly": 0.95
+  },
+  "coverageRules": {
+    "maxCoverageBasedOnIncome": {
+      "multiplier": 10,
+      "description": "Maximum coverage allowed = AnnualIncome × 10"
+    }
+  },
+  "premiumFormula": "FinalPremium = BasePremium × AgeMultiplier × ProfessionMultiplier × IncomeMultiplier × AlcoholMultiplier × SmokingMultiplier × TravelMultiplier × VehicleTypeMultiplier × PaymentModeMultiplier"
 }
