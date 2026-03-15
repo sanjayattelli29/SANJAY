@@ -17,6 +17,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs`;
 import * as Tesseract from 'tesseract.js';
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
+import { environment } from '../../../environments/environment';
 
 // register chartjs for commission analytics
 Chart.register(...registerables);
@@ -557,7 +558,7 @@ export class AgentDashboardPage implements OnInit {
                 }
             }
 
-            const BASE_URL = 'https://localhost:7140';
+            const BASE_URL = environment.apiUrl.replace('/api', '');
 
             for (const doc of documents) {
                 // Check all possible property names for the URL

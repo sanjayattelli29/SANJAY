@@ -2181,10 +2181,10 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         formData.append('customerContext', customerContext);  // Full customer object → n8n
 
         console.log(`[VoiceAgent] ── STEP 2: Sending to backend → policy:`, policy, '| customer:', freshUser);
-        console.log('[VoiceAgent] ── POST http://localhost:5078/api/VoiceAgent/Process');
+        console.log('[VoiceAgent] ── POST ' + environment.voiceAgentApiUrl);
 
         try {
-            const response = await this.http.post<any>('http://localhost:5078/api/VoiceAgent/Process', formData).toPromise();
+            const response = await this.http.post<any>(environment.voiceAgentApiUrl, formData).toPromise();
             console.log('[VoiceAgent] ── STEP 3: Backend response received:', response);
 
             if (response) {

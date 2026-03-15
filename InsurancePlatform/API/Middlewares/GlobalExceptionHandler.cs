@@ -2,7 +2,7 @@ using Application.Common.Exceptions;
 using Application.Common.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
-
+// please fix this 
 namespace API.Middlewares
 {
     public class GlobalExceptionHandler : IExceptionHandler

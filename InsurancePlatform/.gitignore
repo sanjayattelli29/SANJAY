@@ -1,8 +1,16 @@
-# Ignore sensitive configuration
-InsurancePlatform/API/appsettings.json
+# Visual Studio
+.vs/
+bin/
+obj/
 
-InsurancePlatform/API/appsettings.Development.json
-# .NET secrets
-**/appsettings.Development.json
-**/appsettings.Local.json
+# Test folders (not needed in deployment)
+*.Tests/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
 .env
+API/appsettings.json

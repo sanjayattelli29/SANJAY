@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // admin service for admin panel operations
 // talks to backend admin controller for admin stuff
@@ -11,7 +12,7 @@ export class AdminService {
     // http for making backend calls
     private http = inject(HttpClient);
     // admin controller url in backend
-    private apiUrl = 'https://localhost:7140/api/Admin';
+    private apiUrl = `${environment.apiUrl}/Admin`;
 
     // get all agents from backend users table filtered by role
     getAgents(): Observable<any[]> {
@@ -70,7 +71,7 @@ export class AdminService {
 
     // get payment records from report controller
     getUnifiedPayments(): Observable<any[]> {
-        return this.http.get<any[]>(`https://localhost:7140/api/Report/unified-payments?t=${Date.now()}`);
+        return this.http.get<any[]>(`${environment.apiUrl}/Report/unified-payments?t=${Date.now()}`);
     }
 
     // send email via n8n webhook external service not backend db

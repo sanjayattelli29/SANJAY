@@ -4,13 +4,10 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Data
 {
-    // this class creates the first set of data when website starts
     public static class DbInitializer
     {
-        // this method runs to setup roles and admin user
         public static async Task SeedAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
-            // setup all user roles like Admin and Customer
             var roles = new[] { UserRoles.Admin, UserRoles.Customer, UserRoles.Agent, UserRoles.ClaimOfficer };
 
             foreach (var role in roles)
@@ -21,7 +18,6 @@ namespace Infrastructure.Data
                 }
             }
 
-            // create a main admin user if not already there
             var adminEmail = "admin@insurance.com";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -36,8 +32,8 @@ namespace Infrastructure.Data
                     SecurityStamp = Guid.NewGuid().ToString()
                 };
 
-                // password for first login is Admin@123
                 var result = await userManager.CreateAsync(adminUser, "Admin@123");
+
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(adminUser, UserRoles.Admin);
@@ -46,3 +42,5 @@ namespace Infrastructure.Data
         }
     }
 }
+
+// this is the comeplte code

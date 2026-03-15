@@ -15,6 +15,7 @@ import { LocationMapComponent } from '../../components/location-map/location-map
 import * as pdfjsLib from 'pdfjs-dist';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs`;
 import * as Tesseract from 'tesseract.js';
+import { environment } from '../../../environments/environment';
 
 // n8n webhook for ai claim insights
 const N8N_WEBHOOK_URL = 'https://nextglidesol.app.n8n.cloud/webhook/claim-ai-insights';
@@ -614,7 +615,7 @@ export class ClaimsOfficerDashboardPage implements OnInit {
             let rawDocumentText = '';
             const dividers = '\n\n' + '='.repeat(30) + '\n\n';
 
-            const BASE_URL = 'https://localhost:7140';
+            const BASE_URL = environment.apiUrl.replace('/api', '');
 
             for (const doc of claim.documents) {
                 // Check all possible property names for the URL and prefix relative paths

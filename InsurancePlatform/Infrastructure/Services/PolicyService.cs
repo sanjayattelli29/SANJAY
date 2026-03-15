@@ -39,6 +39,13 @@ namespace Infrastructure.Services
             
             if (!File.Exists(path))
             {
+                // check in application directory (for production)
+                path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "policy-config.json");
+            }
+
+            if (!File.Exists(path))
+            {
+                // last resort: check root of application directory
                 path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "policy-config.json");
             }
 

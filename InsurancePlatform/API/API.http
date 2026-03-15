@@ -1,6 +1,8 @@
-@API_HostAddress = http://localhost:5078
+# Production Azure API
+@API_HostAddress = https://accisurebackend-ejg3c7e3efg6hre8.centralindia-01.azurewebsites.net
+
+# Local Development API (Unified Port)
+# @API_HostAddress = https://localhost:7140
 
 GET {{API_HostAddress}}/weatherforecast/
 Accept: application/json
-
-###

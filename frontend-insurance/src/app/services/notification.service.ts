@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as signalR from '@microsoft/signalr';
 import { AuthService } from './auth.service';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // notification interface for type safety
 export interface Notification {
@@ -26,9 +27,9 @@ export class NotificationService {
     // auth service to get jwt token for signalr
     private authService = inject(AuthService);
     // backend notification controller endpoint
-    private apiUrl = 'https://localhost:7140/api/Notifications';
+    private apiUrl = `${environment.apiUrl}/Notifications`;
     // signalr hub url for websocket notifications
-    private hubUrl = 'https://localhost:7140/notificationhub';
+    private hubUrl = environment.notificationHubUrl;
 
     // signalr connection for real-time push
     private hubConnection: signalR.HubConnection | null = null;

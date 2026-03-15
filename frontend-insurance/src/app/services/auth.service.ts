@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // auth service handles all login logout stuff for frontend
 // talks to asp.net backend api controllers for authentication
@@ -20,8 +21,8 @@ export class AuthService {
   private http = inject(HttpClient);
   // router for navigation after login/logout
   private router = inject(Router);
-  // backend api base url pointing to .net core api
-  private apiUrl = 'https://localhost:7140/api';
+   // backend api base url pointing to .net core api
+  private apiUrl = environment.apiUrl;
 
   // register new customer by sending data to auth controller in backend
   // hits Auth/register endpoint which creates user in db via controller

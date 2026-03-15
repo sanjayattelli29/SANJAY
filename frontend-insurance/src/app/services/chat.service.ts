@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as signalR from '@microsoft/signalr';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 // chat service handles real-time messaging using signalr
 // connects to backend signalr hub for live chat between users
@@ -15,9 +16,9 @@ export class ChatService {
     // auth service to get user token for signalr auth
     private authService = inject(AuthService);
     // backend chat controller endpoint
-    private apiUrl = 'https://localhost:7140/api/Chat';
+    private apiUrl = `${environment.apiUrl}/Chat`;
     // signalr hub url for websocket connection
-    private hubUrl = 'https://localhost:7140/chathub';
+    private hubUrl = environment.chatHubUrl;
 
     // signalr connection object for websocket
     private hubConnection: signalR.HubConnection | null = null;

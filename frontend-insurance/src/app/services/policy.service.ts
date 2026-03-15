@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // policy service handles insurance policy operations
 // connects to backend policy controller for db operations
@@ -11,7 +12,7 @@ export class PolicyService {
     // http client for api calls
     private http = inject(HttpClient);
     // backend policy controller base url
-    private apiUrl = 'https://localhost:7140/api/Policy';
+    private apiUrl = `${environment.apiUrl}/Policy`;
 
     // get policy config like categories tiers from backend
     // backend reads from db policy config table via ef core
@@ -40,7 +41,7 @@ export class PolicyService {
     // process payment for policy application
     // hits payment controller which updates policy status in db
     processPayment(applicationId: string, amount: number): Observable<any> {
-        return this.http.post(`https://localhost:7140/api/Payment/process`, { applicationId, amount });
+        return this.http.post(`${environment.apiUrl}/Payment/process`, { applicationId, amount });
     }
 
     // submit-documents for policy application
@@ -56,7 +57,7 @@ export class PolicyService {
 
     // agent gets list of customers assigned to them from backend db
     getAgentCustomers(): Observable<any[]> {
-        return this.http.get<any[]>(`https://localhost:7140/api/Agent/my-customers`);
+        return this.http.get<any[]>(`${environment.apiUrl}/Agent/my-customers`);
     }
 
     // send chat question to external n8n webhook for ai processing

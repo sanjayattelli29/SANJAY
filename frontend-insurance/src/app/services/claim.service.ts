@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // claim service handles all claim related operations
 // connects to backend claim controller which interacts with db
@@ -12,7 +13,7 @@ export class ClaimService {
     // http service to call backend api endpoints
     private http = inject(HttpClient);
     // backend claim api base url
-    private apiUrl = 'https://localhost:7140/api/Claim';
+    private apiUrl = `${environment.apiUrl}/Claim`;
 
     // Customer section - raise claim with files
     // sends formdata with documents to backend which stores in db via ef core

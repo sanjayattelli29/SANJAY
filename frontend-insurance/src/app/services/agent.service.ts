@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // agent service for agent related operations
 // communicates with backend agent controller
@@ -11,7 +12,7 @@ export class AgentService {
     // http client for api requests
     private http = inject(HttpClient);
     // backend agent api endpoint
-    private apiUrl = 'https://localhost:7140/api/Agent';
+    private apiUrl = `${environment.apiUrl}/Agent`;
 
     // get policy requests assigned to logged in agent from db
     getMyRequests(): Observable<any[]> {
