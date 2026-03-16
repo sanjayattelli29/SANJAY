@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 
@@ -9,7 +9,8 @@ import { Router, RouterModule } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './landing.page.html',
-  styleUrls: ['./landing.page.css']
+  styleUrls: ['./landing.page.css'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class LandingComponent implements AfterViewInit {
   // track which policy tab is active
@@ -22,6 +23,35 @@ export class LandingComponent implements AfterViewInit {
   // setup scroll animations after view loads
   ngAfterViewInit() {
     this.setupScrollAnimations();
+    this.removeSplineLogo();
+  }
+
+  // hacky but effective way to remove Spline branding since it's in a shadow root
+  private removeSplineLogo() {
+    const interval = setInterval(() => {
+      const viewer = this.el.nativeElement.querySelector('spline-viewer');
+      if (viewer && viewer.shadowRoot) {
+        // Try multiple common selectors for the spline logo/branding
+        const selectors = ['#logo', 'a[href*="spline.design"]', '.spline-watermark', 'div[style*="position: absolute; bottom: 10px; right: 10px;"]'];
+        let found = false;
+        
+        selectors.forEach(selector => {
+          const el = viewer.shadowRoot!.querySelector(selector);
+          if (el) {
+            (el as HTMLElement).style.display = 'none';
+            el.remove();
+            found = true;
+          }
+        });
+
+        if (found) {
+          clearInterval(interval);
+        }
+      }
+    }, 500);
+
+    // Stop checking after 15 seconds to be safe
+    setTimeout(() => clearInterval(interval), 15000);
   }
 
   // intersection observer to fade in elements on scroll
