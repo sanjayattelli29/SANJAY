@@ -133,9 +133,15 @@ export class CustomerRegisterPage implements OnInit {
         this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-otp', payload).subscribe({
             next: (res: any) => {
                 // webhook returns otp in response for verification
-                this.isOtpSent.set(true);
-                this.sentOtp.set(res.otp);
-                this.isOtpLoading.set(false);
+                // added null check to prevent crash if webhook returns null
+                if (res && res.otp) {
+                  this.isOtpSent.set(true);
+                  this.sentOtp.set(res.otp);
+                  this.isOtpLoading.set(false);
+                } else {
+                  this.otpErrorMessage.set('Received invalid response from server. Please try again.');
+                  this.isOtpLoading.set(false);
+                }
             },
             error: (err) => {
                 this.otpErrorMessage.set('Failed to send OTP. Please try again.');

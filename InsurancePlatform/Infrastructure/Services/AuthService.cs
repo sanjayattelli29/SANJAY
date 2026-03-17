@@ -17,15 +17,18 @@ namespace Infrastructure.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly IVapiService _vapiService;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IVapiService vapiService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _vapiService = vapiService;
         }
 
         // code to create a new customer account
@@ -57,6 +60,21 @@ namespace Infrastructure.Services
 
             // add user to customer role
             await _userManager.AddToRoleAsync(user, UserRoles.Customer);
+
+            // Trigger AI Agent Welcome Call after 90 seconds
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(90));
+                    await _vapiService.TriggerWelcomeCallAsync(user.PhoneNumber!, user.FullName!);
+                }
+                catch (Exception ex)
+                {
+                    // Log error or handle silently for now
+                    Console.WriteLine($"Vapi Call Trigger failed: {ex.Message}");
+                }
+            });
 
             return new AuthResponseDto { Status = "Success", Message = "Customer created successfully!" };
         }

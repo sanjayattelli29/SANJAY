@@ -90,6 +90,7 @@ namespace API
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IVoiceOrchestratorService, VoiceOrchestratorService>();
+            builder.Services.AddScoped<IVapiService, VapiService>();
 
             // SIGNALR
             builder.Services.AddSignalR()
