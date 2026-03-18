@@ -720,48 +720,68 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         }
     }
 
-    async extractNomineeAadharNumber(imageUrl: string) {
+    async extractNomineeAadharNumber(file: File) {
         this.isExtractingAadhar.set(true);
         try {
-            console.log('[VisionAPI] Extracting from URL:', imageUrl);
+            console.log('[VisionAPI] Extracting from local file:', file.name);
             
-            const res = await fetch(
-                `https://vision.googleapis.com/v1/images:annotate?key=${environment.googleVisionApiKey}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requests: [{
-                            image: { source: { imageUri: imageUrl } },
-                            features: [{ type: 'TEXT_DETECTION' }]
-                        }]
-                    })
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            
+            reader.onload = async () => {
+                try {
+                    const base64Content = (reader.result as string).split(',')[1];
+                    const res = await fetch(
+                        `https://vision.googleapis.com/v1/images:annotate?key=${environment.googleVisionApiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                requests: [{
+                                    image: { content: base64Content },
+                                    features: [{ type: 'TEXT_DETECTION' }]
+                                }]
+                            })
+                        }
+                    );
+
+                    const json = await res.json();
+                    const fullText = json.responses?.[0]?.fullTextAnnotation?.text || '';
+                    
+                    console.log('[VisionAPI] Full Text Result:', fullText);
+
+                    const cleanText = fullText.replace(/[\r\n\s]+/g, ' ');
+                    const spacedMatch = cleanText.match(/\b\d{4}\s\d{4}\s\d{4}\b/);
+                    const solidMatch = fullText.replace(/[^0-9]/g, '').match(/\d{12}/);
+
+                    let raw = null;
+                    if (spacedMatch) {
+                        raw = spacedMatch[0].replace(/\s/g, '');
+                    } else if (solidMatch) {
+                        raw = solidMatch[0];
+                    }
+
+                    if (raw && raw.length >= 12) {
+                        raw = raw.substring(0, 12);
+                        this.applicationForm.nominee.aadharNumber = raw;
+                        console.log('[VisionAPI] Successfully Extracted Aadhar:', raw);
+                    } else {
+                        console.warn('[VisionAPI] Could not detect a valid 12-digit Aadhar number.');
+                    }
+                } catch (error) {
+                    console.error('[VisionAPI] Extraction API Error:', error);
+                } finally {
+                    this.isExtractingAadhar.set(false);
                 }
-            );
+            };
 
-            const json = await res.json();
-            const fullText = json.responses?.[0]?.fullTextAnnotation?.text || '';
-            
-            console.log('[VisionAPI] Full Text Result:', fullText);
-
-            // Regex to find 12-digit Aadhar number
-            // 1. Match XXXX XXXX XXXX (spaced)
-            const spacedMatch = fullText.match(/\b\d{4}[\s]\d{4}[\s]\d{4}\b/);
-            // 2. Or match a solid 12 digits block
-            const solidMatch = fullText.replace(/\s/g, '').match(/\d{12}/);
-
-            const raw = spacedMatch ? spacedMatch[0].replace(/\s/g, '') : solidMatch?.[0] ?? null;
-
-            if (raw && raw.length === 12) {
-                this.applicationForm.nominee.aadharNumber = raw;
-                console.log('[VisionAPI] Successfully Extracted Aadhar:', raw);
-            } else {
-                console.warn('[VisionAPI] Could not detect a valid 12-digit Aadhar number.');
-            }
+            reader.onerror = (error) => {
+                console.error('[VisionAPI] FileReader Error:', error);
+                this.isExtractingAadhar.set(false);
+            };
 
         } catch (error) {
-            console.error('[VisionAPI] Extraction Error:', error);
-        } finally {
+            console.error('[VisionAPI] Setup Error:', error);
             this.isExtractingAadhar.set(false);
         }
     }
@@ -776,8 +796,8 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     this.aadharSuccess.set(true); // Show green success message
                     console.log('Nominee Aadhar uploaded successfully:', res.url);
                     
-                    // Trigger Vision API extraction using the ImageKit URL
-                    this.extractNomineeAadharNumber(res.url);
+                    // Trigger Vision API extraction using the original file
+                    this.extractNomineeAadharNumber(file);
                 },
                 error: (err) => {
                     console.error('Error uploading Aadhar to ImageKit:', err);

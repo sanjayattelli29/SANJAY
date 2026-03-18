@@ -42,9 +42,14 @@ export class AgentService {
         return this.http.post(webhookUrl, payload);
     }
 
-    // send policy data to ai analyser via n8n webhook
+    // send policy data to ai analyser via n8n webhook (legacy)
     sendToAIAnalyser(payload: any): Observable<any> {
         const webhookUrl = n8nWebhooks.agentAiInsights;
         return this.http.post(webhookUrl, payload);
+    }
+
+    // ✅ NEW: send raw files + JSON directly to Python FastAPI for extraction + Vertex AI
+    sendFilesToAIAnalyser(formData: FormData): Observable<any> {
+        return this.http.post(`${environment.pythonAiUrl}/analyze`, formData);
     }
 }

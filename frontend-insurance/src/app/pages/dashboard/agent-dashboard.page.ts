@@ -13,9 +13,7 @@ import { NotificationPanelComponent } from '../../components/notification-panel/
 import { Chart, registerables } from 'chart.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as pdfjsLib from 'pdfjs-dist';
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs`;
-import * as Tesseract from 'tesseract.js';
+// ✅ pdfjs and Tesseract removed — extraction now handled by Python backend
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
 import { environment } from '../../../environments/environment';
 
@@ -526,135 +524,100 @@ export class AgentDashboardPage implements OnInit {
         this.showDetailModal.set(true);
     }
 
-    // run ai analysis via n8n webhook
+    // ✅ UPDATED: Send raw files to Python — extraction happens server-side
     async runAIAnalysis(policy: any) {
         if (!policy || this.isAILoading()) return;
 
         this.isAILoading.set(true);
-        this.aiResult.set(null); // Clear previous result
+        this.aiResult.set(null);
 
         try {
-            // Document Extraction Logic (Robust)
-            let rawDocumentText = '';
-            const dividers = '\n\n' + '='.repeat(30) + '\n\n';
+            const BASE_URL = environment.apiUrl.replace('/api', '');
 
-            // Collect all possible documents
+            // Collect all documents
             const documents = [
                 ...(policy.fullDetails?.documents || []),
                 ...(policy.documents || [])
             ];
 
-            // Specifically include Nominee's Aadhar if it exists but isn't in documents array
+            // Include nominee Aadhar if not already in list
             if (policy.fullDetails?.nominee?.aadharCardUrl) {
                 const aadharUrl = policy.fullDetails.nominee.aadharCardUrl;
-                const hasAadhar = documents.some(d => (d.fileUrl || d.url) === aadharUrl);
-                if (!hasAadhar) {
+                const already = documents.some(d => (d.fileUrl || d.url) === aadharUrl);
+                if (!already) {
                     const isImg = aadharUrl.toLowerCase().match(/\.(png|jpg|jpeg|webp)$/);
                     documents.push({
                         documentType: 'AadharProof',
-                        fileName: isImg ? 'Nominee_Aadhar_Card.img' : 'Nominee_Aadhar_Card.pdf',
+                        fileName: isImg ? 'Nominee_Aadhar.jpg' : 'Nominee_Aadhar.pdf',
                         fileUrl: aadharUrl
                     });
                 }
             }
 
-            const BASE_URL = environment.apiUrl.replace('/api', '');
+            // Build metadata payloads
+            const claims = (this.customerClaims() || []).filter(c => c.policyApplicationId === policy.id);
+            const payments = (this.unifiedPayments() || []).filter(p => p.applicationId === policy.id);
 
+            const customerPayload = {
+                fullName: policy.fullDetails?.applicant?.fullName || policy.user?.fullName || 'N/A',
+                age: policy.fullDetails?.applicant?.age || policy.age || 0,
+                profession: policy.fullDetails?.applicant?.profession || policy.profession || 'Standard',
+                annualIncome: policy.fullDetails?.applicant?.annualIncome || policy.annualIncome || 0,
+                smokingHabit: policy.fullDetails?.applicant?.smokingHabit || policy.smokingHabit || 'None',
+                alcoholHabit: policy.fullDetails?.applicant?.alcoholHabit || policy.alcoholHabit || 'None',
+                vehicleType: policy.fullDetails?.applicant?.vehicleType || policy.vehicleType || 'None',
+                travelKmPerMonth: policy.fullDetails?.applicant?.travelKmPerMonth || policy.travelKmPerMonth || 0
+            };
+
+            const policyPayload = {
+                policyNumber: policy.id || 'N/A',
+                policyCategory: policy.policyCategory || '',
+                tierId: policy.tierId || '',
+                status: policy.status || '',
+                totalCoverageAmount: policy.totalCoverageAmount || 0,
+                remainingCoverageAmount: policy.remainingCoverageAmount || 0,
+                calculatedPremium: policy.calculatedPremium || 0,
+                paymentMode: policy.fullDetails?.paymentMode || 'N/A',
+                startDate: policy.startDate || 'N/A',
+                endDate: policy.expiryDate || 'N/A'
+            };
+
+            const claimsSummary = claims.length
+                ? claims.map(c => `${c.incidentType || 'Claim'} | Rs.${c.requestedAmount} | ${c.status} | ${c.submissionDate}`).join('\n')
+                : 'No claims filed';
+
+            const paymentsSummary = payments.length
+                ? payments.map(p => `Rs.${p.paidAmount} | ${p.paymentMode} | ${p.status} | ${p.lastPaymentDate || p.createdAt}`).join('\n')
+                : 'No payment records';
+
+            // ✅ Build FormData — Python will extract PDF/image text
+            const formData = new FormData();
+            formData.append('customer', JSON.stringify(customerPayload));
+            formData.append('policy', JSON.stringify(policyPayload));
+            formData.append('claimsSummary', claimsSummary);
+            formData.append('paymentsSummary', paymentsSummary);
+
+            // Fetch each document as a blob and attach
             for (const doc of documents) {
-                // Check all possible property names for the URL
-                let fileUrl: string = doc.fileUrl || doc.url || doc.documentUrl || doc.documentPath || doc.filePath || '';
-                
-                // If relative path, prefix with backend BASE_URL
+                let fileUrl: string = doc.fileUrl || doc.url || doc.documentUrl || doc.filePath || '';
                 if (fileUrl && !fileUrl.startsWith('http') && !fileUrl.startsWith('data:')) {
                     fileUrl = fileUrl.startsWith('/') ? `${BASE_URL}${fileUrl}` : `${BASE_URL}/${fileUrl}`;
                 }
-
                 if (!fileUrl) continue;
 
                 try {
                     const resp = await fetch(fileUrl);
-                    if (!resp.ok) throw new Error('Fetch failed');
-
-                    const contentType = resp.headers.get('content-type') ?? '';
-                    let content = '';
-
-                    const fileName = doc.fileName || doc.documentType || 'Document';
-                    const isPdf = contentType.includes('application/pdf') || fileName.toLowerCase().endsWith('.pdf');
-                    const isImage = contentType.includes('image/') || fileName.toLowerCase().match(/\.(png|jpg|jpeg|webp)$/);
-
-                    if (isPdf) {
-                        const buffer = await resp.arrayBuffer();
-                        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-                        let pdfText = '';
-                        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                            const page = await pdf.getPage(pageNum);
-                            const textContent = await page.getTextContent();
-                            pdfText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
-                        }
-                        content = `[PDF DOCUMENT: ${fileName}]\nEXTRACTED_TEXT:\n${pdfText.trim() || 'No readable text found in this PDF.'}`;
-                    } else if (isImage) {
-                        const { data: { text } } = await Tesseract.recognize(fileUrl, 'eng');
-                        content = `[IMAGE DOCUMENT: ${fileName}]\nOCR_EXTRACTED_TEXT:\n${text.trim() || 'No text detected in this image.'}`;
-                    } else if (contentType.includes('text') || fileName.toLowerCase().match(/\.(txt|json|xml)$/)) {
-                        content = await resp.text();
-                        content = `[TEXT DOCUMENT: ${fileName}]\nCONTENT:\n${content}`;
-                    } else {
-                        content = `[FILE REFERENCE: ${fileName}]\nURL: ${fileUrl}`;
-                    }
-                    rawDocumentText += (rawDocumentText ? dividers : '') + content;
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const blob = await resp.blob();
+                    const fileName = doc.fileName || doc.documentType || 'document';
+                    formData.append('files', blob, fileName);
                 } catch (fetchErr: any) {
-                    console.warn(`Could not fetch document ${doc.fileName}:`, fetchErr);
-                    rawDocumentText += (rawDocumentText ? dividers : '') + `[UNFETCHABLE FILE: ${doc.fileName || doc.documentType}]\nURL: ${fileUrl}\nERROR: ${fetchErr.message || fetchErr}`;
+                    console.warn(`Could not fetch document ${doc.fileName}:`, fetchErr.message);
                 }
             }
 
-            const claims = (this.customerClaims() || []).filter(c => c.policyApplicationId === policy.id);
-            const payments = (this.unifiedPayments() || []).filter(p => p.applicationId === policy.id);
-
-            const payload = {
-                customer: {
-                    fullName: policy.fullDetails?.applicant?.fullName || policy.user?.fullName || 'N/A',
-                    age: policy.fullDetails?.applicant?.age || policy.age || policy?.user?.age || 0,
-                    profession: policy.fullDetails?.applicant?.profession || policy.profession || 'Standard',
-                    annualIncome: policy.fullDetails?.applicant?.annualIncome || policy.annualIncome || policy?.user?.annualIncome || 0,
-                    smokingHabit: policy.fullDetails?.applicant?.smokingHabit || policy.smokingHabit || 'None',
-                    alcoholHabit: policy.fullDetails?.applicant?.alcoholHabit || policy.alcoholHabit || 'None',
-                    vehicleType: policy.fullDetails?.applicant?.vehicleType || policy.vehicleType || 'None',
-                    travelKmPerMonth: policy.fullDetails?.applicant?.travelKmPerMonth || policy.travelKmPerMonth || 0
-                },
-                policy: {
-                    policyNumber: policy.id || 'N/A',
-                    policyCategory: policy.policyCategory || '',
-                    tierId: policy.tierId || '',
-                    status: policy.status || '',
-                    totalCoverageAmount: policy.totalCoverageAmount || 0,
-                    remainingCoverageAmount: policy.remainingCoverageAmount || 0,
-                    calculatedPremium: policy.calculatedPremium || 0,
-                    paymentMode: policy.fullDetails?.paymentMode || 'N/A',
-                    startDate: policy.startDate || 'N/A',
-                    endDate: policy.expiryDate || 'N/A'
-                },
-                nominee: policy.fullDetails?.nominee || {},
-                location: {
-                    address: policy.fullDetails?.location?.address || 'N/A',
-                    area: policy.fullDetails?.location?.area || '',
-                    state: policy.fullDetails?.location?.state || 'N/A',
-                    district: policy.fullDetails?.location?.district || 'N/A',
-                    pincode: policy.fullDetails?.location?.pincode || 'N/A',
-                    latitude: policy.fullDetails?.location?.latitude || null,
-                    longitude: policy.fullDetails?.location?.longitude || null
-                },
-                claimsSummary: claims.length
-                    ? claims.map(c => `${c.incidentType || 'Claim'} | Rs.${c.requestedAmount} | ${c.status} | ${c.submissionDate}`).join('\n')
-                    : 'No claims filed',
-                paymentsSummary: payments.length
-                    ? payments.map(p => `Rs.${p.paidAmount} | ${p.paymentMode} | ${p.status} | ${p.lastPaymentDate || p.createdAt}`).join('\n')
-                    : 'No payment records',
-                documentsSummary: documents.map(d => d.documentType || d.fileName).join(', '),
-                rawDocumentText: rawDocumentText || 'No document content extracted'
-            };
-
-            this.agentService.sendToAIAnalyser(payload).subscribe({
+            // ✅ Send to Python — extraction + Vertex AI happens server-side
+            this.agentService.sendFilesToAIAnalyser(formData).subscribe({
                 next: (res) => {
                     this.aiResult.set(res);
                     this.isAILoading.set(false);
@@ -662,14 +625,16 @@ export class AgentDashboardPage implements OnInit {
                 error: (err) => {
                     console.error('AI Analysis failed:', err);
                     this.isAILoading.set(false);
-                    alert('AI Analysis failed to load. Please try again later.');
+                    alert('AI Analysis failed. Please try again.');
                 }
             });
+
         } catch (err) {
-            console.error('Document preparation failed:', err);
+            console.error('AI Analysis preparation failed:', err);
             this.isAILoading.set(false);
         }
     }
+
 
     generatePolicyTimeline(policy: any): any[] {
         if (!policy) return [];

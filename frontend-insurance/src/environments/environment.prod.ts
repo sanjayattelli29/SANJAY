@@ -12,6 +12,6 @@ export const environment = {
     VITE_GROQ_API_KEY: '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',
     new_elevenlabs_api: 'sk_03096496bb9d22d051b23d02debc7e51c89280b9588fbd7f',
     vapiPublicKey: '5094349c-e7e7-4805-bbaa-63733c7b34a0',
-    vapiAssistantId: 'c6fc9d80-9d40-4b3e-850f-5311c410cc82'
-
+    vapiAssistantId: 'c6fc9d80-9d40-4b3e-850f-5311c410cc82',
+    pythonAiUrl: 'http://localhost:8000' // Update this with Azure link later
 };
