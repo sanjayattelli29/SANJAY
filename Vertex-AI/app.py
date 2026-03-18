@@ -5,12 +5,27 @@ import vertexai
 from vertexai.generative_models import GenerativeModel
 import json, re, uuid, datetime, logging, os, io
 from typing import List, Optional
-import pdfplumber
-import pytesseract
+import json, re, uuid, datetime, logging, os, io, tempfile
+from typing import List, Optional
 import asyncio
-from PIL import Image
 
-load_dotenv()  # loads GOOGLE_APPLICATION_CREDENTIALS from .env
+load_dotenv()  # loads GOOGLE_APPLICATION_CREDENTIALS from .env if present
+
+# Support loading GCP Service Account JSON from Environment Variable for Cloud Deployment
+gcp_json = os.getenv("GCP_SERVICE_ACCOUNT_JSON")
+if gcp_json:
+    try:
+        # Validate JSON structure
+        json.loads(gcp_json)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode="w") as f:
+            f.write(gcp_json)
+            f.flush()
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = f.name
+            logging.info(f"Loaded GCP credentials from Environment Variable string to {f.name}")
+    except json.JSONDecodeError:
+        logging.error("GCP_SERVICE_ACCOUNT_JSON is not a valid JSON string")
+    except Exception as e:
+        logging.error(f"Failed to load GCP credentials from Environment Variable: {e}")
 
 app = FastAPI()
 
@@ -23,7 +38,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-vertexai.init(project="accisure-490603", location="us-central1")
+vertexai.init(
+    project=os.getenv("GOOGLE_CLOUD_PROJECT", "accisure-490603"),
+    location=os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+)
 model = GenerativeModel("gemini-2.5-flash")
 
 logging.basicConfig(
@@ -38,25 +56,6 @@ history = []
 
 # ─── Extraction Helpers ──────────────────────────────────────────────────────
 
-def extract_pdf(file_bytes: bytes) -> str:
-    """Extract text from a PDF using pdfplumber."""
-    text = ""
-    try:
-        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-            for page in pdf.pages:
-                text += (page.extract_text() or "") + "\n"
-    except Exception as e:
-        text = f"[PDF extraction error: {e}]"
-    return text.strip()
-
-
-def extract_image(file_bytes: bytes) -> str:
-    """Extract text from an image using Tesseract OCR."""
-    try:
-        image = Image.open(io.BytesIO(file_bytes))
-        return pytesseract.image_to_string(image).strip()
-    except Exception as e:
-        return f"[OCR extraction error: {e}]"
 
 
 def format_document(filename: str, text: str) -> str:
