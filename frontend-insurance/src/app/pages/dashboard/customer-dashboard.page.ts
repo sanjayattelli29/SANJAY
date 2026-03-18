@@ -18,6 +18,8 @@ import { NomineeVerificationComponent } from './customer-components/nominee-veri
 import { VoiceAgent } from './customer-components/voice-agent/voice-agent';
 import { CustomerPart1Component } from './customer-components/part1/customer-part1';
 import { CustomerPart2Component } from './customer-components/part2/customer-part2';
+import { AICallPopupComponent } from './customer-components/ai-call-popup.component';
+import { VapiService } from '../../services/vapi.service';
 import { SafePipe } from '../../pipes/safe.pipe';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -30,7 +32,7 @@ import { n8nWebhooks } from '../../../environments/n8n/n8n';
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, VoiceAgent, CustomerPart1Component, CustomerPart2Component],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, VoiceAgent, CustomerPart1Component, CustomerPart2Component, AICallPopupComponent],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })
@@ -40,6 +42,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     private policyService = inject(PolicyService);
     private claimService = inject(ClaimService);
     private chatService = inject(ChatService);
+    protected vapiService = inject(VapiService);
     private router = inject(Router);
     private http = inject(HttpClient);
 
@@ -302,7 +305,14 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     activeChatId = signal<string | null>(null);
     isVoiceMode = signal<boolean>(false);
     isVoiceProcessing = signal<boolean>(false);
+    isAiCallPopupOpen = signal<boolean>(false);
     private currentAudio: HTMLAudioElement | null = null; // tracks playing ElevenLabs audio
+
+    // Starts the Vapi AI call and opens the mini-bar popup
+    startAiVoiceCall() {
+        this.isAiCallPopupOpen.set(true);
+        this.vapiService.startCall();
+    }
 
     // policy detail modal legacy state
     showPolicyDetailModal = signal(false);
