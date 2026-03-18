@@ -27,7 +27,7 @@ namespace API.Middlewares
                 BadRequestException => (HttpStatusCode.BadRequest, exception.Message, null),
                 UnauthorizedException => (HttpStatusCode.Unauthorized, exception.Message, null),
                 ValidationException validationEx => (HttpStatusCode.BadRequest, validationEx.Message, validationEx.Errors),
-                _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred. Please try again later.", null)
+                _ => (HttpStatusCode.InternalServerError, exception.Message, null)
             };
 
             httpContext.Response.StatusCode = (int)statusCode;

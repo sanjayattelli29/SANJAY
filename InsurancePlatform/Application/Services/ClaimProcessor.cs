@@ -226,11 +226,10 @@ namespace Application.Services
 
         public async Task<AdminDashboardStatsDto> GetAdminStatsAsync()
         {
+            // Use projected queries or optimized counting instead of fetching full entities
             var allPolicies = await _policyRepository.GetAllApplicationsAsync();
-            var activePolicies = allPolicies.Where(pa => pa.Status == "Active").ToList();
             var allClaims = await _claimRepository.GetAllClaimsAsync();
-            var approvedClaims = allClaims.Where(c => c.Status == "Approved" || c.Status == "Paid").ToList();
-
+            
             var stats = new AdminDashboardStatsDto
             {
                 TotalCustomers = await _userManager.GetUsersInRoleAsync(UserRoles.Customer).ContinueWith(t => t.Result.Count),
@@ -240,10 +239,26 @@ namespace Application.Services
                 TotalPolicies = allPolicies.Count(),
                 TotalClaims = allClaims.Count(),
                 
-                TotalClaimedAmount = approvedClaims.Sum(c => c.ApprovedAmount),
+                TotalClaimedAmount = allClaims.Where(c => c.Status == "Approved" || c.Status == "Paid").Sum(c => c.ApprovedAmount),
                 TotalCoverageRaised = allPolicies.Sum(pa => pa.TotalCoverageAmount),
                 TotalPremiumCollected = allPolicies.Where(pa => pa.Status == "Active" || pa.Status == "AwaitingPayment").Sum(pa => pa.PaidAmount ?? 0),
-                TotalCommission = activePolicies.Sum(pa => pa.CalculatedPremium * 0.10m)
+                TotalCommission = allPolicies.Where(pa => pa.Status == "Active").Sum(pa => pa.CalculatedPremium * 0.10m),
+
+                PolicyStatusDistribution = allPolicies.GroupBy(p => p.Status)
+                    .Select(g => new StatusCountDto { Status = g.Key, Count = g.Count() }).ToList(),
+                
+                ClaimStatusDistribution = allClaims.GroupBy(c => c.Status)
+                    .Select(g => new StatusCountDto { Status = g.Key, Count = g.Count() }).ToList(),
+
+                PolicyCategoryDistribution = allPolicies.GroupBy(p => p.PolicyCategory)
+                    .Select(g => new CategoryStatDto { Category = g.Key, Count = g.Count() }).ToList(),
+
+                AgentPerformance = allPolicies.Where(p => p.AssignedAgent != null)
+                    .GroupBy(p => p.AssignedAgent!.Email.Split('@', StringSplitOptions.None)[0])
+                    .Select(g => new StatusCountDto { Status = g.Key, Count = g.Count() })
+                    .OrderByDescending(g => g.Count)
+                    .Take(5)
+                    .ToList()
             };
 
             stats.PolicyGrowth = allPolicies

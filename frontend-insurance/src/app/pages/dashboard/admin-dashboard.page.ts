@@ -25,6 +25,7 @@ import { AnalysisPoliciesSectionComponent } from './admin-components/analysis-po
 import { AnalysisCommandsSectionComponent } from './admin-components/analysis-commands-section.component';
 import { AnalysisPaymentsSectionComponent } from './admin-components/analysis-payments-section.component';
 import { EmailAutomationSectionComponent } from './admin-components/email-automation-section.component';
+import { AnalysisAISectionComponent } from './admin-components/analysis-ai-section.component';
 
 // admin dashboard main component
 // comprehensive admin panel for managing agents officers policies claims
@@ -46,6 +47,7 @@ import { EmailAutomationSectionComponent } from './admin-components/email-automa
         AnalysisCommandsSectionComponent,
         AnalysisPaymentsSectionComponent,
         EmailAutomationSectionComponent,
+        AnalysisAISectionComponent,
         LocationMapComponent
     ],
     templateUrl: './admin-dashboard.page.html'
@@ -139,10 +141,8 @@ export class AdminDashboardPage implements OnInit {
     loadInitialData() {
         this.loadAdminStats();
         this.loadConfig();
-        this.loadPolicyRequests();
-        this.loadPendingClaims();
-        // Load only what is needed immediately. Other tabs will lazy-load via setSection().
-        // Chart data will be loaded lazily to respect performance
+        // Removed eager loading of policy requests and pending claims to improve initial load speed
+        // These will be loaded lazily via setSection() when needed
     }
 
     // load policy configuration from backend
@@ -162,29 +162,24 @@ export class AdminDashboardPage implements OnInit {
 
         // init charts when viewing dashboard section
         if (section === 'dashboard') {
-            // Lazy load required inputs for dashboard charts if empty
-            if (this.policyRequests().length === 0) this.loadPolicyRequests();
-            if (this.allUsers().length === 0) this.loadAllUsers();
-            if (this.agents().length === 0) this.loadAgents();
-            if (this.officers().length === 0) this.loadOfficers();
-            if (this.allClaims().length === 0) this.loadAllClaims();
-
-            setTimeout(() => this.initCharts(), 500); // give data a moment to populate
+            // Dashboard now primarily relies on adminStats() for charts
+            // This avoids fetching thousands of user and claim records on boot
+            setTimeout(() => this.initCharts(), 500); 
         } else {
             this.destroyCharts();
         }
 
         if (section === 'policyRequests' && this.policyRequests().length === 0) this.loadPolicyRequests();
         if (section === 'claimRequests' && this.pendingClaims().length === 0) this.loadPendingClaims();
+        if (section === 'agents' && this.agents().length === 0) this.loadAgents();
+        if (section === 'officers' && this.officers().length === 0) this.loadOfficers();
         if (section === 'analysis-users' && this.allUsers().length === 0) this.loadAllUsers();
         if (section === 'analysis-commands' && this.allClaims().length === 0) this.loadAllClaims();
         if (section === 'analysis-payments' && this.unifiedPayments().length === 0) this.loadUnifiedPayments();
+        if (section === 'analysis-ai') { /* AI section manages its own data */ }
         if (section === 'email-automation') {
             if (this.allUsers().length === 0) {
-                this.adminService.getAllUsers().subscribe({
-                    next: (users) => this.allUsers.set(users.filter(u => u.role !== 'Customer')),
-                    error: (err) => console.error('Error loading automation users:', err)
-                });
+                this.loadAllUsers();
             }
         }
     }
@@ -220,10 +215,6 @@ export class AdminDashboardPage implements OnInit {
         this.adminService.getAllUsers().subscribe({
             next: (users) => {
                 this.allUsers.set(users);
-                // Also updateスタッフ list for email automation if that's the active section
-                if (this.activeSection() === 'email-automation') {
-                    this.allUsers.set(users.filter(u => u.role !== 'Customer'));
-                }
                 if (this.activeSection() === 'dashboard') this.initCharts();
             },
             error: (err) => console.error('Error loading users:', err)
@@ -285,18 +276,18 @@ export class AdminDashboardPage implements OnInit {
 
     private createBestPolicyChart() {
         const canvas = document.getElementById('bestPolicyChart') as HTMLCanvasElement;
-        if (!canvas) return;
-        const apps = this.policyRequests();
-        const categories: any = {};
-        apps.forEach(a => {
-            categories[a.policyCategory] = (categories[a.policyCategory] || 0) + 1;
-        });
+        const stats = this.adminStats();
+        if (!canvas || !stats) return;
+        
+        const labels = stats.policyCategoryDistribution?.map((d: any) => d.category) || [];
+        const data = stats.policyCategoryDistribution?.map((d: any) => d.count) || [];
+
         this.charts.push(new Chart(canvas, {
             type: 'pie',
             data: {
-                labels: Object.keys(categories),
+                labels: labels,
                 datasets: [{
-                    data: Object.values(categories),
+                    data: data,
                     backgroundColor: ['#4f46e5', '#f97316', '#10b981', '#6366f1', '#ec4899']
                 }]
             },
@@ -311,22 +302,19 @@ export class AdminDashboardPage implements OnInit {
 
     private createBestAgentChart() {
         const canvas = document.getElementById('bestAgentChart') as HTMLCanvasElement;
-        if (!canvas) return;
-        const apps = this.policyRequests();
-        const agentPerf: any = {};
-        apps.forEach(a => {
-            if (a.assignedAgent) {
-                const name = a.assignedAgent.email.split('@')[0];
-                agentPerf[name] = (agentPerf[name] || 0) + 1;
-            }
-        });
+        const stats = this.adminStats();
+        if (!canvas || !stats) return;
+
+        const labels = stats.agentPerformance?.map((d: any) => d.status) || [];
+        const data = stats.agentPerformance?.map((d: any) => d.count) || [];
+
         this.charts.push(new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: Object.keys(agentPerf),
+                labels: labels,
                 datasets: [{
                     label: 'Policies Assigned',
-                    data: Object.values(agentPerf),
+                    data: data,
                     backgroundColor: '#6366f1',
                     borderRadius: 8
                 }]
@@ -344,16 +332,15 @@ export class AdminDashboardPage implements OnInit {
 
     private createRatioChart() {
         const canvas = document.getElementById('ratioChart') as HTMLCanvasElement;
-        if (!canvas) return;
-        const totalUsers = this.allUsers().length;
-        const totalAgents = this.agents().length;
-        const totalOfficers = this.officers().length;
+        const stats = this.adminStats();
+        if (!canvas || !stats) return;
+        
         this.charts.push(new Chart(canvas, {
             type: 'doughnut',
             data: {
                 labels: ['Customers', 'Agents', 'Officers'],
                 datasets: [{
-                    data: [totalUsers - totalAgents - totalOfficers, totalAgents, totalOfficers],
+                    data: [stats.totalCustomers, stats.totalAgents, stats.totalClaimOfficers],
                     backgroundColor: ['#4f46e5', '#f97316', '#64748b']
                 }]
             },
@@ -366,22 +353,21 @@ export class AdminDashboardPage implements OnInit {
             }
         }));
     }
-
     private createClaimsChart() {
         const canvas = document.getElementById('claimsChart') as HTMLCanvasElement;
-        if (!canvas) return;
-        const claims = this.allClaims();
-        const statusCounts: any = {};
-        claims.forEach(c => {
-            statusCounts[c.status] = (statusCounts[c.status] || 0) + 1;
-        });
+        const stats = this.adminStats();
+        if (!canvas || !stats) return;
+
+        const labels = stats.claimStatusDistribution?.map((d: any) => d.status) || [];
+        const data = stats.claimStatusDistribution?.map((d: any) => d.count) || [];
+
         this.charts.push(new Chart(canvas, {
             type: 'polarArea',
             data: {
-                labels: Object.keys(statusCounts),
+                labels: labels,
                 datasets: [{
-                    data: Object.values(statusCounts),
-                    backgroundColor: ['#10b981', '#f97316', '#ef4444', '#6366f1']
+                    data: data,
+                    backgroundColor: ['#10b981', '#f97316', '#ef4444', '#6366f1', '#f59e0b']
                 }]
             },
             options: {

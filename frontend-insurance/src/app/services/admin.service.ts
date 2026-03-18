@@ -80,4 +80,9 @@ export class AdminService {
         const webhookUrl = n8nWebhooks.agentSendEmail;
         return this.http.post(webhookUrl, payload);
     }
+
+    // ask AI for data analysis using Semantic Kernel + Groq
+    askAI(prompt: string): Observable<{ answer: string }> {
+        return this.http.post<{ answer: string }>(`${this.apiUrl}/AI/ask`, { prompt });
+    }
 }

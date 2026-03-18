@@ -28,6 +28,16 @@ namespace Application.DTOs
         public List<StatPointDto> PolicyGrowth { get; set; } = new();
         public List<StatPointDto> RevenueTrends { get; set; } = new();
         public List<CategoryStatDto> ClaimsByCategory { get; set; } = new();
+        public List<StatusCountDto> PolicyStatusDistribution { get; set; } = new();
+        public List<StatusCountDto> ClaimStatusDistribution { get; set; } = new();
+        public List<CategoryStatDto> PolicyCategoryDistribution { get; set; } = new();
+        public List<StatusCountDto> AgentPerformance { get; set; } = new();
+    }
+
+    public class StatusCountDto
+    {
+        public string Status { get; set; } = string.Empty;
+        public int Count { get; set; }
     }
 
     public class StatPointDto
