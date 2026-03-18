@@ -41,7 +41,7 @@
             </button>
 
             <button (click)="setSection('pending'); sidebarOpen.set(false)"
-                [class.active]="activeSection() === 'pending'" class="sidebar-link w-full">
+                [class.active]="activeSection() === 'pending' || activeSection() === 'audit'" class="sidebar-link w-full">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -74,7 +74,8 @@
 
     <!-- Main Content wrapper -->
     <main class="grow flex flex-col h-screen overflow-hidden">
-        <!-- Modern Glassmorphism Header -->
+
+        <!-- Header -->
         <header class="bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 py-4 flex justify-between items-center z-20 shrink-0">
             <div class="flex items-center gap-4">
                 <button class="lg:hidden p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-500" (click)="sidebarOpen.set(true)">
@@ -82,22 +83,41 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
+
+                <!-- Back button — only visible on audit page -->
+                @if (activeSection() === 'audit') {
+                <button (click)="setSection('pending')"
+                    class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Queue
+                </button>
+                }
+
                 <div>
                     <h2 class="text-xl font-black text-brand-navy tracking-tighter uppercase" style="font-family:'Sora',sans-serif;">
-                        {{ activeSection() === 'dashboard' ? 'Claims Console' : 
-                           activeSection() === 'pending' ? 'Audit Queue' :
-                           activeSection() === 'history' ? 'Adjudication History' : 'Financials' }}
+                        {{ activeSection() === 'dashboard' ? 'Claims Console' :
+                           activeSection() === 'pending'   ? 'Audit Queue' :
+                           activeSection() === 'audit'     ? 'Claim Audit' :
+                           activeSection() === 'history'   ? 'Adjudication History' : 'Financials' }}
                     </h2>
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] hidden sm:block">
-                        {{ activeSection() === 'dashboard' ? 'Proprietary Claim Analytics & Integrity' : 'Intelligent Claims Distribution' }}
+                        @if (activeSection() === 'audit') {
+                            Reference: #{{ selectedClaim()?.id?.substring(0,12) }}
+                        } @else if (activeSection() === 'dashboard') {
+                            Proprietary Claim Analytics &amp; Integrity
+                        } @else {
+                            Intelligent Claims Distribution
+                        }
                     </p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4">
                 <app-notification-panel portalRole="ClaimOfficer"></app-notification-panel>
-                
-                <!-- Profile Dropdown Trigger -->
+
+                <!-- Profile Dropdown -->
                 <div class="relative">
                     <button (click)="toggleProfileDropdown()"
                         class="flex items-center gap-3 p-1.5 pr-4 hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100 group">
@@ -113,14 +133,12 @@
                         </svg>
                     </button>
 
-                    <!-- Dropdown Menu -->
                     @if (profileDropdownOpen()) {
                     <div class="absolute top-full right-0 mt-2 w-64 bg-white rounded-3xl shadow-2xl border border-slate-100 p-2 animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                         <div class="p-4 border-b border-slate-50 mb-2">
                             <p class="text-xs font-black text-brand-navy truncate">{{ user.email }}</p>
                             <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Authorized Claims Officer</p>
                         </div>
-
                         <button (click)="setSection('dashboard'); profileDropdownOpen.set(false)"
                             class="w-full text-left px-4 py-3 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-brand-orange flex items-center gap-3 transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,9 +146,7 @@
                             </svg>
                             Officer Profile
                         </button>
-
                         <div class="h-px bg-slate-50 my-1"></div>
-
                         <button (click)="logout()"
                             class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black text-rose-500 hover:bg-rose-50 flex items-center gap-3 transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,31 +155,28 @@
                             Sign Out Account
                         </button>
                     </div>
-                    
-                    <!-- Backdrop to close -->
                     <div class="fixed inset-0 z-40" (click)="profileDropdownOpen.set(false)"></div>
                     }
                 </div>
             </div>
         </header>
 
-        <!-- Main Content Area (Scrollable) -->
-        <div class="grow overflow-y-auto bg-[#f8fafc] p-6 lg:p-10">
+        <!-- ============================================================ -->
+        <!-- SCROLLABLE CONTENT AREA                                       -->
+        <!-- ============================================================ -->
+        <div class="grow overflow-y-auto bg-[#f8fafc] p-6 lg:p-10" #mainScroll>
             <div class="max-w-7xl mx-auto">
 
-                <!-- Overview Section -->
+                <!-- ===== DASHBOARD SECTION ===== -->
                 @if (activeSection() === 'dashboard') {
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <!-- High Performance Stats -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div (click)="setSection('pending')"
                             class="card p-6 border-none shadow-xl shadow-slate-200/50 bg-white group hover:scale-[1.02] transition-all cursor-pointer relative overflow-hidden">
                             <div class="absolute -right-4 -top-4 w-12 h-12 bg-orange-50 rounded-full group-hover:scale-150 transition-transform"></div>
                             <div class="flex items-center gap-3 mb-4 relative z-10">
                                 <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-brand-orange">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 </div>
                                 <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Pending Audit</p>
                             </div>
@@ -175,9 +188,7 @@
                             <div class="absolute -right-4 -top-4 w-12 h-12 bg-emerald-50 rounded-full group-hover:scale-150 transition-transform"></div>
                             <div class="flex items-center gap-3 mb-4 relative z-10">
                                 <div class="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4" />
-                                    </svg>
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4" /></svg>
                                 </div>
                                 <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Approved</p>
                             </div>
@@ -189,9 +200,7 @@
                             <div class="absolute -right-4 -top-4 w-12 h-12 bg-rose-50 rounded-full group-hover:scale-150 transition-transform"></div>
                             <div class="flex items-center gap-3 mb-4 relative z-10">
                                 <div class="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </div>
                                 <p class="text-[9px] uppercase font-black text-slate-400 tracking-widest">Declined</p>
                             </div>
@@ -202,9 +211,7 @@
                             <div class="absolute -right-4 -top-4 w-12 h-12 bg-white/10 rounded-full group-hover:scale-150 transition-transform"></div>
                             <div class="flex items-center gap-3 mb-4 relative z-10">
                                 <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-white">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                    </svg>
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                                 </div>
                                 <p class="text-[9px] uppercase font-black text-white/60 tracking-widest">Total Load</p>
                             </div>
@@ -212,9 +219,7 @@
                         </div>
                     </div>
 
-                    <!-- Analytics Grid (Refined Design) -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
-                        <!-- Chart 1: Settlement Velocity (Line) -->
                         <div class="card p-8 border-none shadow-2xl shadow-slate-200/30 bg-white relative overflow-hidden min-h-[400px]">
                             <div class="absolute top-0 left-0 w-2 h-full bg-emerald-500"></div>
                             <div class="flex items-center justify-between mb-8">
@@ -224,12 +229,9 @@
                                 </div>
                                 <div class="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-lg shadow-emerald-100 italic font-black">₹</div>
                             </div>
-                            <div class="grow h-[250px]">
-                                <canvas id="settlementChart"></canvas>
-                            </div>
+                            <div class="grow h-[250px]"><canvas id="settlementChart"></canvas></div>
                         </div>
 
-                        <!-- Chart 2: Workload Mix (Doughnut) -->
                         <div class="card p-8 border-none shadow-2xl shadow-slate-200/30 bg-white min-h-[400px]">
                             <div class="flex items-center justify-between mb-8">
                                 <div>
@@ -237,17 +239,12 @@
                                     <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Claim outcome segmentation</p>
                                 </div>
                                 <div class="w-10 h-10 bg-violet-50 rounded-2xl flex items-center justify-center text-violet-600 shadow-lg shadow-violet-100">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                                    </svg>
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /></svg>
                                 </div>
                             </div>
-                            <div class="grow h-[250px]">
-                                <canvas id="claimStatusChart"></canvas>
-                            </div>
+                            <div class="grow h-[250px]"><canvas id="claimStatusChart"></canvas></div>
                         </div>
 
-                        <!-- Chart 3: Priority Breakdown (Bar) -->
                         <div class="card p-8 border-none shadow-2xl shadow-slate-200/30 bg-white min-h-[400px]">
                             <div class="flex items-center justify-between mb-8">
                                 <div>
@@ -255,17 +252,12 @@
                                     <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Claim urgency metrics</p>
                                 </div>
                                 <div class="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shadow-lg shadow-amber-100">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 </div>
                             </div>
-                            <div class="grow h-[250px]">
-                                <canvas id="priorityChart"></canvas>
-                            </div>
+                            <div class="grow h-[250px]"><canvas id="priorityChart"></canvas></div>
                         </div>
 
-                        <!-- Chart 4: Incident Types -->
                         <div class="card p-8 border-none shadow-2xl shadow-slate-200/30 bg-white min-h-[400px]">
                             <div class="flex items-center justify-between mb-8">
                                 <div>
@@ -273,20 +265,16 @@
                                     <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Incident category distribution</p>
                                 </div>
                                 <div class="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-lg shadow-indigo-100">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                    </svg>
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                                 </div>
                             </div>
-                            <div class="grow h-[250px]">
-                                <canvas id="distributionChart"></canvas>
-                            </div>
+                            <div class="grow h-[250px]"><canvas id="distributionChart"></canvas></div>
                         </div>
                     </div>
                 </div>
                 }
 
-                <!-- Claims Requests Section -->
+                <!-- ===== AUDIT QUEUE SECTION ===== -->
                 @if (activeSection() === 'pending') {
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div class="card p-0 overflow-hidden shadow-2xl shadow-slate-200/50 border-none bg-white rounded-3xl">
@@ -316,7 +304,7 @@
                                         </td>
                                         <td class="px-8 py-6">
                                             <p class="text-xs font-black text-brand-navy">{{ claim.user?.email }}</p>
-                                            <p class="text-[9px] text-slate-400 font-bold uppercase">{{ claim.policy?.tierId }} Plan</p>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tight italic">{{ claim.policy?.tierId }} Plan</p>
                                         </td>
                                         <td class="px-8 py-6">
                                             <span class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-wider italic">
@@ -327,11 +315,13 @@
                                             <p class="text-xs font-black text-brand-orange italic">₹{{ claim.requestedAmount | number }}</p>
                                         </td>
                                         <td class="px-8 py-6 text-right">
-                                            <button (click)="openReviewModal(claim)"
+                                            <button (click)="openAuditPage(claim)"
                                                 class="bg-brand-navy text-white px-6 py-3 rounded-2xl text-[9px] font-black uppercase shadow-lg shadow-navy-100 hover:scale-105 transition-all active:scale-95">
-                                                Audit Now</button>
+                                                Audit Now
+                                            </button>
                                         </td>
-                                    </tr>}
+                                    </tr>
+                                    }
                                     } @empty {
                                     <tr>
                                         <td colspan="5" class="p-20 text-center text-slate-300 font-black uppercase italic tracking-widest text-xs bg-slate-50/20">
@@ -346,7 +336,559 @@
                 </div>
                 }
 
-                <!-- Decision History Section -->
+                <!-- ===== AUDIT PAGE (replaces popup) ===== -->
+                @if (activeSection() === 'audit' && selectedClaim()) {
+                <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-16">
+
+                    <!-- Page Header Bar -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Claim Reference</p>
+                                <p class="text-base font-black text-brand-navy font-mono tracking-tight">#{{ selectedClaim()?.id }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="px-4 py-2 bg-amber-50 text-amber-600 border border-amber-100 rounded-xl text-[9px] font-black uppercase tracking-widest">
+                                ● {{ selectedClaim()?.status }}
+                            </span>
+                            <span class="px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl text-[9px] font-black uppercase tracking-widest italic">
+                                {{ selectedClaim()?.incidentType }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- ── SECTION 1: Customer & Policy Overview ── -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">1</span>
+                            <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Customer &amp; Policy Overview</h3>
+                        </div>
+                        <div class="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <div class="bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Customer Contact</p>
+                                <p class="text-xs font-black text-brand-navy">{{ selectedClaim()?.user?.email }}</p>
+                                <p class="text-[10px] text-slate-500 mt-1">{{ selectedClaim()?.user?.phoneNumber || 'No phone provided' }}</p>
+                            </div>
+                            <div class="bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Policy Financials</p>
+                                <p class="text-xs font-black text-brand-navy">Total Coverage: ₹{{ selectedClaim()?.totalCoverage | number:'1.0-0' }}</p>
+                                <p class="text-[10px] text-emerald-600 font-bold mt-1">Remaining: ₹{{ selectedClaim()?.remainingCoverage | number:'1.0-0' }}</p>
+                            </div>
+                            <div class="bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Policy Details</p>
+                                <p class="text-xs font-black text-brand-navy">{{ selectedClaim()?.policy?.policyNumber || 'N/A' }}</p>
+                                <p class="text-[10px] text-indigo-600 font-bold mt-1 uppercase">{{ selectedClaim()?.policy?.tierId }} · {{ selectedClaim()?.policy?.policyCategory }}</p>
+                            </div>
+                            @if (selectedClaim()?.fullDetails?.location?.address) {
+                            <div class="md:col-span-2 lg:col-span-3 bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Policy Primary Address</p>
+                                <p class="text-xs font-black text-brand-navy mb-4 italic">{{ selectedClaim()?.fullDetails?.location?.address }}</p>
+                                <div class="rounded-xl overflow-hidden shadow-sm h-40">
+                                    <app-location-map
+                                        [lat]="selectedClaim()?.fullDetails?.location?.latitude"
+                                        [lng]="selectedClaim()?.fullDetails?.location?.longitude">
+                                    </app-location-map>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                        <!-- ── SECTION 2: Medical & Risk Profile ── -->
+                        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden h-full flex flex-col">
+                            <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">2</span>
+                                <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Medical &amp; Risk Profile</h3>
+                            </div>
+                            <div class="p-8 grow flex flex-col justify-center">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                                    <div class="bg-[#f8fafc] rounded-2xl p-4 text-center border border-slate-100">
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase mb-1">Age</p>
+                                        <p class="text-sm font-black text-brand-navy">{{ selectedClaim()?.fullDetails?.applicant?.age }} Yrs</p>
+                                    </div>
+                                    <div class="bg-[#f8fafc] rounded-2xl p-4 text-center border border-slate-100">
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase mb-1">Alcohol</p>
+                                        <p class="text-sm font-black text-brand-navy capitalize">{{ selectedClaim()?.fullDetails?.medicalProfile?.alcoholHabit || selectedClaim()?.fullDetails?.applicant?.alcoholHabit }}</p>
+                                    </div>
+                                    <div class="bg-[#f8fafc] rounded-2xl p-4 text-center border border-slate-100">
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase mb-1">Tobacco</p>
+                                        <p class="text-sm font-black text-brand-navy capitalize">{{ selectedClaim()?.fullDetails?.medicalProfile?.smokingHabit || selectedClaim()?.fullDetails?.applicant?.smokingHabit }}</p>
+                                    </div>
+                                    <div class="bg-[#f8fafc] rounded-2xl p-4 text-center border border-slate-100">
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase mb-1">Diabetes</p>
+                                        <p class="text-sm font-black text-brand-navy capitalize">{{ selectedClaim()?.fullDetails?.medicalProfile?.hasDiabetes || 'No' }}</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-[#f8fafc] rounded-2xl p-4 border border-slate-100">
+                                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Profession</p>
+                                        <p class="text-xs font-bold text-brand-navy">{{ selectedClaim()?.fullDetails?.applicant?.profession }}</p>
+                                    </div>
+                                    <div class="bg-[#f8fafc] rounded-2xl p-4 border border-slate-100 text-right">
+                                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Risk (KM/Month)</p>
+                                        <p class="text-xs font-bold text-brand-navy">{{ selectedClaim()?.fullDetails?.applicant?.travelKmPerMonth }} Kilometers</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── SECTION 3: Nominee Information ── -->
+                        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden h-full flex flex-col">
+                            <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">3</span>
+                                <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Nominee Information</h3>
+                            </div>
+                            <div class="p-8 grow flex flex-col justify-center">
+                                <div class="bg-[#f8fafc] rounded-2xl p-6 border border-slate-100 h-full flex flex-col justify-center">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <p class="text-sm font-black text-brand-navy">{{ selectedClaim()?.fullDetails?.nominee?.name }}</p>
+                                            <p class="text-[10px] text-slate-400">{{ selectedClaim()?.fullDetails?.nominee?.email }}</p>
+                                        </div>
+                                        <span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[8px] font-black uppercase">Primary Nominee</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200/50">
+                                        <div>
+                                            <p class="text-[8px] font-bold text-slate-400 uppercase">Phone</p>
+                                            <p class="text-[10px] font-bold text-brand-navy">{{ selectedClaim()?.fullDetails?.nominee?.phone }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[8px] font-bold text-slate-400 uppercase">Bank A/C</p>
+                                            <p class="text-[10px] font-bold text-brand-navy">{{ selectedClaim()?.fullDetails?.nominee?.bankAccount }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[8px] font-bold text-slate-400 uppercase">Relationship</p>
+                                            <p class="text-[10px] font-bold text-brand-navy capitalize">{{ selectedClaim()?.fullDetails?.nominee?.relationship }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ── SECTION 4: Incident Verification ── -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">4</span>
+                            <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Incident Verification</h3>
+                        </div>
+                        <div class="p-8 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                <div class="bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Incident Data</p>
+                                    <p class="text-sm font-bold text-brand-navy">{{ selectedClaim()?.incidentType }} — {{ selectedClaim()?.accidentCause || 'N/A' }}</p>
+                                    <p class="text-[10px] text-slate-500 font-medium mt-1">{{ selectedClaim()?.incidentDate | date:'longDate' }} {{ selectedClaim()?.incidentTime || '' }}</p>
+                                </div>
+                                <div class="bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Medical Support</p>
+                                    <p class="text-xs font-bold text-brand-navy">{{ selectedClaim()?.injuryType || 'N/A' }} ({{ selectedClaim()?.bodyPartInjured || 'N/A' }})</p>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">Admission: {{ selectedClaim()?.hospitalizationRequired ? 'Yes' : 'No' }}</p>
+                                    @if (selectedClaim()?.hospitalizationRequired) {
+                                    <p class="text-[10px] text-slate-400 mt-0.5">{{ selectedClaim()?.admissionDate | date:'shortDate' }} → {{ selectedClaim()?.dischargeDate | date:'shortDate' }}</p>
+                                    }
+                                </div>
+                                <div class="bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Hospital</p>
+                                    <p class="text-xs font-bold text-brand-navy">{{ selectedClaim()?.hospitalName }}</p>
+                                </div>
+                            </div>
+
+                            @if (selectedClaim()?.policeCaseFiled) {
+                            <div class="bg-rose-50/20 p-4 border-l-2 border-rose-500 rounded-r-xl rounded-l-sm">
+                                <p class="text-[10px] font-black text-rose-600 uppercase tracking-widest">Police FIR Registered</p>
+                                <p class="text-xs font-bold font-mono text-rose-700 mt-0.5">{{ selectedClaim()?.firNumber || 'Pending Input' }}</p>
+                            </div>
+                            }
+
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Statement of Incident</p>
+                                <p class="text-xs text-slate-600 leading-relaxed bg-[#f8fafc] p-4 rounded-2xl border border-slate-100">{{ selectedClaim()?.description }}</p>
+                            </div>
+
+                            <!-- Incident Location Map -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Incident Location</p>
+                                    <p class="text-sm font-bold text-brand-navy mb-2">{{ selectedClaim()?.incidentLocation }}</p>
+                                    <div class="rounded-2xl overflow-hidden border border-slate-100 shadow-sm h-40">
+                                        <app-location-map
+                                            [lat]="selectedClaim()?.latitude ?? null"
+                                            [lng]="selectedClaim()?.longitude ?? null"
+                                            [address]="selectedClaim()?.incidentLocation ?? null">
+                                        </app-location-map>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Hospital Location</p>
+                                    <p class="text-sm font-bold text-brand-navy mb-2">{{ selectedClaim()?.hospitalName }}</p>
+                                    <div class="rounded-2xl overflow-hidden border border-slate-100 shadow-sm h-40">
+                                        <app-location-map [address]="selectedClaim()?.hospitalName ?? null"></app-location-map>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── SECTION 5: Evidence Repository ── -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">5</span>
+                            <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Evidence Repository</h3>
+                            <span class="ml-auto text-[9px] text-slate-400 font-bold uppercase">{{ selectedClaim()?.documents?.length || 0 }} Support Files</span>
+                        </div>
+                        <div class="p-8">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                @for (doc of selectedClaim()?.documents; track doc.id) {
+                                <a [href]="doc.fileUrl" target="_blank"
+                                    class="flex items-center gap-4 p-4 bg-[#f8fafc] border border-slate-100 rounded-2xl hover:border-brand-orange/30 transition-all group shadow-sm">
+                                    <div class="w-11 h-11 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-bold group-hover:bg-brand-orange group-hover:text-white transition-all shrink-0">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="grow min-w-0">
+                                        <p class="text-xs font-black text-brand-navy truncate">{{ doc.fileName }}</p>
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 italic">{{ (doc.fileSize / 1024 / 1024) | number:'1.1-1' }} MB · Audit Reference</p>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                                } @empty {
+                                <div class="col-span-2 p-12 border-2 border-dashed border-slate-100 rounded-3xl text-center">
+                                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No Evidence Uploaded</p>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── SECTION 6: AI Analysis ── -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" #aiSection>
+                        <div class="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 text-[10px] font-black">6</span>
+                                <h3 class="text-[10px] font-black text-violet-700 uppercase tracking-widest">Forensic AI Analysis</h3>
+                            </div>
+                            @if (!aiInsights() && selectedClaim()?.documents?.length > 0) {
+                            <button (click)="getAIInsights(selectedClaim())" [disabled]="isAILoading()"
+                                class="flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-700 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.15em] shadow-xl shadow-indigo-100 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
+                                @if (isAILoading()) {
+                                <div class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span class="animate-pulse">Analyzing Documents...</span>
+                                } @else {
+                                <svg class="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 01-5.303 0l-.347-.347z" />
+                                </svg>
+                                Get AI Insights
+                                }
+                            </button>
+                            }
+                            @if (aiInsights()) {
+                            <div class="flex items-center gap-3">
+                                <span [class]="'px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ' +
+                                    (aiInsights()!.overallRiskLevel === 'LOW' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                     aiInsights()!.overallRiskLevel === 'MEDIUM' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-600 border-rose-100')">
+                                    ● {{ aiInsights()!.overallRiskLevel }} Risk
+                                </span>
+                                <button (click)="clearAIInsights()"
+                                    class="text-[9px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors">
+                                    Clear
+                                </button>
+                            </div>
+                            }
+                        </div>
+
+                        <!-- AI Loading State -->
+                        @if (isAILoading()) {
+                        <div class="p-16 flex flex-col items-center gap-4">
+                            <div class="w-14 h-14 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin"></div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Running forensic analysis on {{ selectedClaim()?.documents?.length }} documents...</p>
+                        </div>
+                        }
+
+                        <!-- AI Error -->
+                        @if (aiError() && !isAILoading()) {
+                        <div class="p-8">
+                            <div class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3">
+                                <div class="w-8 h-8 bg-white rounded-xl flex items-center justify-center text-rose-500 shadow-sm shrink-0">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-rose-600 uppercase tracking-widest">Analysis Failed</p>
+                                    <p class="text-xs text-rose-500 font-medium mt-0.5">{{ aiError() }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        }
+
+                        <!-- AI Not Yet Run -->
+                        @if (!aiInsights() && !isAILoading() && !aiError()) {
+                        <div class="p-16 text-center">
+                            <div class="w-16 h-16 bg-violet-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-violet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 01-5.303 0l-.347-.347z" />
+                                </svg>
+                            </div>
+                            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Click "Get AI Insights" above to run forensic analysis</p>
+                        </div>
+                        }
+
+                        <!-- AI Results — inline, no modal -->
+                        @if (aiInsights() && !isAILoading()) {
+                        <div class="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+                            <!-- Score Banner -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                                <div class="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl p-6 border border-violet-100 flex items-center justify-center gap-6 shadow-md">
+                                    <div class="relative w-24 h-24 shrink-0">
+                                        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                            <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(99,102,241,0.15)" stroke-width="3"/>
+                                            <circle cx="18" cy="18" r="15" fill="none"
+                                                [attr.stroke]="aiInsights()!.authenticityScore > 75 ? '#10b981' : aiInsights()!.authenticityScore > 50 ? '#f59e0b' : '#ef4444'"
+                                                stroke-width="3.5" stroke-linecap="round"
+                                                [attr.stroke-dasharray]="(aiInsights()!.authenticityScore * 94.2 / 100) + ' 94.2'"
+                                                class="transition-all duration-1000 ease-out"/>
+                                        </svg>
+                                        <span [class]="'absolute inset-0 flex flex-col items-center justify-center font-black ' + getRiskScoreColor(100 - aiInsights()!.authenticityScore)">
+                                            <span class="text-xl">{{ aiInsights()!.authenticityScore }}%</span>
+                                        </span>
+                                    </div>
+                                    <div class="text-center sm:text-left">
+                                        <p class="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-1">Authenticity Score</p>
+                                        <p class="text-xl font-black text-brand-navy leading-none">{{ getRiskLabel(100 - aiInsights()!.authenticityScore) }} Risk</p>
+                                    </div>
+                                </div>
+
+                                <div class="sm:col-span-2 bg-[#f8fafc] rounded-2xl p-6 border border-slate-100">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">AI Assessment</p>
+                                    <p class="text-sm text-slate-700 font-bold leading-relaxed italic">"{{ aiInsights()!.aiOpinion }}"</p>
+                                </div>
+                            </div>
+
+                            <!-- Settlement Recommendation -->
+                            <div class="bg-indigo-50 rounded-2xl p-6 border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Settlement Recommendation</p>
+                                    <p class="text-sm font-bold text-brand-navy leading-relaxed">{{ aiInsights()!.settlementRecommendation }}</p>
+                                </div>
+                                <div class="bg-white rounded-xl px-6 py-4 border border-indigo-100 text-center shrink-0">
+                                    <p class="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Suggested Range</p>
+                                    <p class="text-sm font-black text-indigo-700 mt-1">₹{{ aiInsights()!.suggestedAmountMin | number }} – ₹{{ aiInsights()!.suggestedAmountMax | number }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Fraud Signals -->
+                            @if (aiInsights()!.fraudSignals?.length) {
+                            <div class="bg-rose-50 rounded-2xl p-6 border border-rose-100">
+                                <h4 class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-3">Fraud / Risk Alerts</h4>
+                                <ul class="space-y-2">
+                                    @for (signal of aiInsights()!.fraudSignals; track signal) {
+                                    <li class="flex items-start gap-2 text-xs font-bold text-rose-700">
+                                        <svg class="w-4 h-4 text-rose-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        {{ signal }}
+                                    </li>
+                                    }
+                                </ul>
+                            </div>
+                            }
+
+                            <!-- 4-quadrant report grid -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="bg-[#f8fafc] p-5 rounded-2xl border border-slate-100 space-y-2">
+                                    <h5 class="text-[9px] font-black text-slate-400 uppercase">Verification Summary</h5>
+                                    <p class="text-[11px] text-slate-600 font-bold leading-relaxed">{{ aiInsights()!.claimVerificationSummary }}</p>
+                                </div>
+                                <div class="bg-[#f8fafc] p-5 rounded-2xl border border-slate-100 space-y-2">
+                                    <h5 class="text-[9px] font-black text-slate-400 uppercase">Document Authenticity</h5>
+                                    <p class="text-[11px] text-slate-600 font-bold leading-relaxed">{{ aiInsights()!.documentAuthenticityReport }}</p>
+                                </div>
+                                <div class="bg-[#f8fafc] p-5 rounded-2xl border border-slate-100 space-y-2">
+                                    <h5 class="text-[9px] font-black text-slate-400 uppercase">Medical Analysis</h5>
+                                    <p class="text-[11px] text-slate-600 font-bold leading-relaxed">{{ aiInsights()!.medicalReportAnalysis }}</p>
+                                </div>
+                                <div class="bg-[#f8fafc] p-5 rounded-2xl border border-slate-100 space-y-2">
+                                    <h5 class="text-[9px] font-black text-slate-400 uppercase">Financial Validation</h5>
+                                    <p class="text-[11px] text-slate-600 font-bold leading-relaxed">{{ aiInsights()!.financialValidationReport }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Policy & Profile -->
+                            <div class="space-y-3">
+                                <div class="bg-[#f8fafc] p-4 rounded-2xl border border-slate-100">
+                                    <h5 class="text-[10px] font-black text-brand-navy uppercase mb-1">Policy Eligibility &amp; Scope Check</h5>
+                                    <p class="text-xs text-slate-500 font-medium leading-relaxed">{{ aiInsights()!.policyEligibilityCheck }}</p>
+                                </div>
+                                <div class="bg-[#f8fafc] p-4 rounded-2xl border border-slate-100">
+                                    <h5 class="text-[10px] font-black text-brand-navy uppercase mb-1">Customer / Nominee Profile Validity</h5>
+                                    <p class="text-xs text-slate-500 font-medium leading-relaxed">{{ aiInsights()!.customerRiskProfile }} · {{ aiInsights()!.nomineeValidation }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Agent Recommendations -->
+                            <div class="bg-white rounded-2xl border border-slate-100 p-6 space-y-3">
+                                <h4 class="text-[10px] font-black text-brand-navy uppercase tracking-widest">Next Actions for Officer</h4>
+                                <div class="space-y-2">
+                                    @for (rec of aiInsights()!.agentRecommendations; track rec) {
+                                    <div class="flex items-center gap-3 p-3 bg-[#f8fafc] rounded-xl">
+                                        <span class="w-5 h-5 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0">{{ $index + 1 }}</span>
+                                        <p class="text-[11px] font-bold text-slate-600">{{ rec }}</p>
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Risk Dimensions Matrix -->
+                            <div>
+                                <h4 class="text-[10px] font-black text-brand-orange uppercase tracking-[0.2em] mb-3 ml-1">Risk Dimensions Matrix</h4>
+                                <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                                    <table class="w-full text-left">
+                                        <thead class="bg-[#f8fafc] text-[8px] font-black text-slate-400 uppercase border-b border-slate-100">
+                                            <tr>
+                                                <th class="px-6 py-3">Factor Dimension</th>
+                                                <th class="px-6 py-3">Value / Audit Note</th>
+                                                <th class="px-6 py-3 text-right">Magnitude Ratio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 text-[11px] font-black text-brand-navy">
+                                            @for (factor of aiInsights()!.riskFactors; track factor.factor) {
+                                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                                <td class="px-6 py-4">{{ factor.factor }}</td>
+                                                <td class="px-6 py-4 text-slate-500 font-medium text-[10px]">{{ factor.value }}</td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex items-center gap-2 justify-end">
+                                                        <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div [class]="'h-full rounded-full ' + (factor.riskLevelColor === 'green' ? 'bg-emerald-500' : factor.riskLevelColor === 'yellow' ? 'bg-amber-400' : 'bg-rose-500')"
+                                                                [style.width.%]="factor.riskPercentage"></div>
+                                                        </div>
+                                                        <span [class]="'text-[9px] font-bold ' + (factor.riskLevelColor === 'green' ? 'text-emerald-500' : factor.riskLevelColor === 'yellow' ? 'text-amber-500' : 'text-rose-500')">
+                                                            {{ factor.riskPercentage }}%
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+
+                    <!-- ── SECTION 7: Financial Request Data ── -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">7</span>
+                            <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Financial Request Data</h3>
+                        </div>
+                        <div class="p-8 space-y-6">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#f8fafc] rounded-2xl p-6 border border-slate-100">
+                                <div>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Requested Amount</p>
+                                    <p class="text-3xl font-black text-brand-orange italic">₹{{ selectedClaim()?.requestedAmount | number:'1.0-0' }}</p>
+                                </div>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-right">
+                                    <div>
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Hospital Bill</p>
+                                        <p class="text-xs font-black text-brand-navy">₹{{ selectedClaim()?.hospitalBill | number }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Medicines</p>
+                                        <p class="text-xs font-black text-brand-navy">₹{{ selectedClaim()?.medicines | number }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Other</p>
+                                        <p class="text-xs font-black text-brand-navy">₹{{ selectedClaim()?.otherExpenses | number }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Est. Total</p>
+                                        <p class="text-xs font-black text-emerald-600">₹{{ selectedClaim()?.estimatedMedicalCost | number }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Policy Balance: ₹{{ selectedClaim()?.policy?.remainingCoverageAmount | number }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── SECTION 8: Final Decision ── -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-lg bg-brand-navy/10 flex items-center justify-center text-brand-navy text-[10px] font-black">8</span>
+                            <h3 class="text-[10px] font-black text-brand-navy uppercase tracking-widest">Final Recommendation</h3>
+                        </div>
+                        <div class="p-8 space-y-6">
+
+                            <!-- Decision: Approved Amount -->
+                            <div>
+                                <p class="text-[10px] font-black text-brand-orange uppercase tracking-widest mb-3">Decision: Approved Amount</p>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-brand-navy text-lg">₹</span>
+                                    <input type="number" [(ngModel)]="reviewForm.approvedAmount"
+                                        class="w-full pl-12 pr-4 py-4 bg-[#f8fafc] border-2 border-orange-200 rounded-2xl font-black text-2xl text-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-orange/10 transition-all">
+                                </div>
+                                @if (aiInsights()) {
+                                <button (click)="applyAISuggestedAmount()"
+                                    class="mt-2 text-[9px] font-black text-violet-600 hover:text-violet-800 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    Apply AI suggested midpoint (₹{{ ((aiInsights()!.suggestedAmountMin + aiInsights()!.suggestedAmountMax) / 2) | number:'1.0-0' }})
+                                </button>
+                                }
+                            </div>
+
+                            <!-- Assessor Remarks -->
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Assessor Remarks</p>
+                                <textarea [(ngModel)]="reviewForm.remarks" rows="5"
+                                    placeholder="Document the rationale for your decision..."
+                                    class="input-field bg-[#f8fafc] w-full focus:ring-2 focus:ring-brand-orange/20"></textarea>
+                            </div>
+
+                            <!-- Action Buttons or Final Status -->
+                            @if (selectedClaim()?.status === 'PendingAssessment' || selectedClaim()?.status === 'Assigned' || selectedClaim()?.status === 'Pending') {
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                                <button (click)="submitReview('Approved')" [disabled]="isLoading()"
+                                    class="btn-primary w-full py-5 text-sm shadow-xl shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Submit Final Payout Approval
+                                </button>
+                                <button (click)="submitReview('Rejected')" [disabled]="isLoading()"
+                                    class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100 disabled:opacity-50">
+                                    Reject &amp; Terminate Claim
+                                </button>
+                            </div>
+                            } @else {
+                            <div [class]="'p-6 rounded-2xl text-center border ' +
+                                (selectedClaim()?.status === 'Approved' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700')">
+                                <p class="text-xs font-black uppercase tracking-widest">Assessment Finalized</p>
+                                <p class="text-sm font-bold mt-1">Claim {{ selectedClaim()?.status }} on {{ selectedClaim()?.processedAt | date }}</p>
+                            </div>
+                            }
+
+                            <p class="text-[9px] text-center text-slate-400 leading-relaxed italic">
+                                Final adjudication triggers immediate financial impact on sum insured and policy status.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+                }
+
+                <!-- ===== DECISION HISTORY SECTION ===== -->
                 @if (activeSection() === 'history') {
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div class="card p-0 overflow-hidden shadow-2xl shadow-slate-200/50 border-none bg-white rounded-3xl">
@@ -373,11 +915,9 @@
                                     @if (claim.status === 'Approved' || claim.status === 'Rejected') {
                                     <tr class="hover:bg-slate-50/30 transition-colors group">
                                         <td class="px-8 py-6 font-mono text-[10px] font-bold text-slate-400">#{{ claim.id.substring(0,8) }}</td>
+                                        <td class="px-8 py-6"><p class="text-xs font-black text-brand-navy">{{ claim.user?.email }}</p></td>
                                         <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-brand-navy">{{ claim.user?.email }}</p>
-                                        </td>
-                                        <td class="px-8 py-6">
-                                            <span [class]="'px-4 py-2 rounded-2xl font-black text-[9px] uppercase tracking-widest ' + 
+                                            <span [class]="'px-4 py-2 rounded-2xl font-black text-[9px] uppercase tracking-widest ' +
                                                 (claim.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100')">
                                                 {{ claim.status }}
                                             </span>
@@ -400,13 +940,14 @@
                 </div>
                 }
 
+                <!-- ===== SETTLEMENTS SECTION ===== -->
                 @if (activeSection() === 'payments') {
                 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div class="card p-0 overflow-hidden shadow-2xl shadow-slate-200/50 border-none bg-white rounded-3xl">
                         <div class="p-8 border-b border-slate-50 flex justify-between items-center">
                             <div>
                                 <h3 class="font-black text-brand-navy uppercase tracking-tight italic" style="font-family:'Sora',sans-serif;">Financial Logs</h3>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Premium & settlement audit trail</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Premium &amp; settlement audit trail</p>
                             </div>
                             <button (click)="loadUnifiedPayments()"
                                 class="bg-indigo-50 text-indigo-600 px-5 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-all active:scale-95">
@@ -440,12 +981,8 @@
                                             <p class="text-xs font-black text-indigo-600 italic">{{ pay.tierId }}</p>
                                             <p class="text-[9px] text-slate-400 font-bold uppercase">{{ pay.policyCategory }}</p>
                                         </td>
-                                        <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-brand-navy">₹{{ pay.totalCoverage | number }}</p>
-                                        </td>
-                                        <td class="px-8 py-6">
-                                            <p class="text-xs font-black text-emerald-600 italic">₹{{ pay.paidAmount | number }}</p>
-                                        </td>
+                                        <td class="px-8 py-6"><p class="text-xs font-black text-brand-navy">₹{{ pay.totalCoverage | number }}</p></td>
+                                        <td class="px-8 py-6"><p class="text-xs font-black text-emerald-600 italic">₹{{ pay.paidAmount | number }}</p></td>
                                         <td class="px-8 py-6 text-right">
                                             <button (click)="openInvoiceModal(pay)"
                                                 class="bg-brand-navy text-white px-5 py-2.5 rounded-2xl text-[9px] font-black uppercase transition-all hover:scale-105 active:scale-95">
@@ -460,547 +997,22 @@
                     </div>
                 </div>
                 }
+
             </div>
         </div>
     </main>
 
-    <!-- REVIEW MODAL -->
-    @if (showReviewModal() && selectedClaim()) {
-    <div class="fixed inset-0 bg-brand-navy/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-        <div
-            class="bg-white w-full max-w-7xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <!-- Modal Header -->
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <div>
-                    <h3 class="text-xl font-black text-brand-navy uppercase tracking-tight italic" style="font-family:'Sora',sans-serif;">Audit Assessment</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-0.5">Reference Registry: #{{ selectedClaim()?.id.substring(0,12) }}</p>
-                </div>
-                <button (click)="showReviewModal.set(false)"
-                    class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Modal Content (Scrollable) -->
-            <div class="grow overflow-y-auto p-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    <!-- Left: Details -->
-                    <div class="lg:col-span-8 space-y-10">
-                        <!-- 1. Customer & Policy Identity -->
-                        <section class="space-y-4">
-                            <h4 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Customer &
-                                Policy Overview</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-brand-gray rounded-2xl p-5 border border-slate-100">
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Customer Contact</p>
-                                    <p class="text-xs font-black text-brand-navy">{{ selectedClaim()?.user?.email }}</p>
-                                    <p class="text-[10px] text-slate-500 mt-1">
-                                        {{ selectedClaim()?.user?.phoneNumber || 'No phone provided' }}
-                                    </p>
-                                </div>
-                                <div class="bg-brand-gray rounded-2xl p-5 border border-slate-100">
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Policy Financials</p>
-                                    <p class="text-xs font-black text-brand-navy">Total Coverage: ₹{{
-                                        selectedClaim()?.totalCoverage | number:'1.0-0' }}</p>
-                                    <p class="text-[10px] text-emerald-600 font-bold mt-1">Remaining: ₹{{
-                                        selectedClaim()?.remainingCoverage | number:'1.0-0' }}</p>
-                                </div>
-                                <!-- Policy Registered Location -->
-                                @if (selectedClaim()?.fullDetails?.location?.address) {
-                                <div class="md:col-span-2 bg-brand-gray rounded-2xl p-5 border border-slate-100">
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Policy Primary Address
-                                    </p>
-                                    <p class="text-xs font-black text-brand-navy mb-4 italic italic">
-                                        {{ selectedClaim()?.fullDetails?.location?.address }}
-                                    </p>
-                                    <div class="rounded-xl overflow-hidden shadow-sm h-40">
-                                        <app-location-map [lat]="selectedClaim()?.fullDetails?.location?.latitude"
-                                            [lng]="selectedClaim()?.fullDetails?.location?.longitude">
-                                        </app-location-map>
-                                    </div>
-                                </div>
-                                }
-                            </div>
-                        </section>
-
-                        <!-- 2. Medical & Profession Profile -->
-                        <section class="space-y-4">
-                            <h4 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Medical &
-                                Risk Profile</h4>
-                            <div class="bg-brand-gray rounded-2xl p-6 border border-slate-100 space-y-4">
-                                <div class="grid grid-cols-4 gap-4 text-center">
-                                    <div>
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Age</p>
-                                        <p class="text-xs font-black text-brand-navy">{{
-                                            selectedClaim()?.fullDetails?.applicant?.age }} Yrs</p>
-                                    </div>
-                                    <div class="border-x border-slate-200">
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Alcohol</p>
-                                        <p class="text-xs font-black text-brand-navy capitalize">{{
-                                            selectedClaim()?.fullDetails?.medicalProfile?.alcoholHabit ||
-                                            selectedClaim()?.fullDetails?.applicant?.alcoholHabit }}</p>
-                                    </div>
-                                    <div class="border-r border-slate-200">
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Tobacco</p>
-                                        <p class="text-xs font-black text-brand-navy capitalize">{{
-                                            selectedClaim()?.fullDetails?.medicalProfile?.smokingHabit ||
-                                            selectedClaim()?.fullDetails?.applicant?.smokingHabit }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Diabetes</p>
-                                        <p class="text-xs font-black text-brand-navy capitalize">{{
-                                            selectedClaim()?.fullDetails?.medicalProfile?.hasDiabetes || 'No' }}</p>
-                                    </div>
-                                </div>
-                                <hr class="border-slate-100">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Profession</p>
-                                        <p class="text-xs font-bold text-brand-navy">{{
-                                            selectedClaim()?.fullDetails?.applicant?.profession }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Risk (KM/M)</p>
-                                        <p class="text-xs font-bold text-brand-navy">{{
-                                            selectedClaim()?.fullDetails?.applicant?.travelKmPerMonth }} Kilometers</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- 3. Nominee Details -->
-                        <section class="space-y-4">
-                            <h4 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Nominee
-                                Information</h4>
-                            <div class="bg-brand-gray rounded-2xl p-6 border border-slate-100">
-                                <div class="flex justify-between items-start mb-4">
-                                    <div>
-                                        <p class="text-sm font-black text-brand-navy">{{
-                                            selectedClaim()?.fullDetails?.nominee?.name }}</p>
-                                        <p class="text-[10px] text-slate-400">{{
-                                            selectedClaim()?.fullDetails?.nominee?.email }}</p>
-                                    </div>
-                                    <span
-                                        class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[8px] font-black uppercase">Primary
-                                        Nominee</span>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200/50">
-                                    <div>
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Phone</p>
-                                        <p class="text-[10px] font-bold text-brand-navy">{{
-                                            selectedClaim()?.fullDetails?.nominee?.phone }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase">Bank A/C</p>
-                                        <p class="text-[10px] font-bold text-brand-navy">{{
-                                            selectedClaim()?.fullDetails?.nominee?.bankAccount }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- 4. Incident Verification -->
-                        <section class="space-y-4">
-                            <h4 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Incident
-                                Verification</h4>
-                            <div class="bg-brand-gray rounded-2xl p-6 space-y-4 border border-slate-100">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Incident Data</p>
-                                    <p class="text-sm font-bold text-brand-navy">{{ selectedClaim()?.incidentType }} -
-                                        {{ selectedClaim()?.accidentCause || 'N/A' }}</p>
-                                    <p class="text-[10px] text-slate-500 font-medium">{{ selectedClaim()?.incidentDate |
-                                        date:'longDate' }} {{ selectedClaim()?.incidentTime || '' }}</p>
-                                    <div>
-                                        <p class="text-[9px] font-bold text-slate-400 uppercase">Medical Support</p>
-                                        <p class="text-xs font-bold text-brand-navy">{{ selectedClaim()?.injuryType ||
-                                            'N/A' }} ({{ selectedClaim()?.bodyPartInjured || 'N/A' }})</p>
-                                        <p class="text-[10px] text-slate-500 font-bold uppercase mt-1">Admission: {{
-                                            selectedClaim()?.hospitalizationRequired ? 'Yes' : 'No' }}</p>
-                                        @if (selectedClaim()?.hospitalizationRequired) {
-                                        <p class="text-[10px] text-slate-400">{{ selectedClaim()?.admissionDate |
-                                            date:'shortDate' }} -> {{ selectedClaim()?.dischargeDate | date:'shortDate'
-                                            }}</p>
-                                        }
-                                    </div>
-                                </div>
-                                @if (selectedClaim()?.policeCaseFiled) {
-                                <div
-                                    class="bg-white p-3 border-l-2 border-rose-500 text-rose-700 rounded-r-xl rounded-l-sm bg-rose-50/20">
-                                    <p class="text-[10px] font-black uppercase tracking-widest">Police FIR Registered
-                                    </p>
-                                    <p class="text-xs font-bold font-mono">{{ selectedClaim()?.firNumber || 'Pending
-                                        Input' }}</p>
-                                </div>
-                                }
-                                <hr class="border-slate-100">
-                                <div>
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Incident Location</p>
-                                    <p class="text-sm font-bold text-brand-navy">{{ selectedClaim()?.incidentLocation }}
-                                    </p>
-
-                                    <!-- Incident Visual Confirmation Map -->
-                                    <div
-                                        class="mt-2 rounded-2xl overflow-hidden border border-slate-100 shadow-sm h-32 relative z-0">
-                                        <app-location-map [lat]="selectedClaim()?.latitude ?? null"
-                                            [lng]="selectedClaim()?.longitude ?? null"
-                                            [address]="selectedClaim()?.incidentLocation ?? null">
-                                        </app-location-map>
-                                    </div>
-                                </div>
-                                <hr class="border-slate-100 my-4">
-                                <div>
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Hospital Location</p>
-                                    <p class="text-sm text-brand-navy font-bold">{{ selectedClaim()?.hospitalName }}</p>
-
-                                    <!-- Hospital Visual Confirmation Map -->
-                                    <div
-                                        class="mt-2 rounded-2xl overflow-hidden border border-slate-100 shadow-sm h-32 relative z-0">
-                                        <app-location-map [address]="selectedClaim()?.hospitalName ?? null">
-                                        </app-location-map>
-                                    </div>
-                                </div>
-                                <hr class="border-slate-100">
-                                <div>
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Financial Request Data</p>
-                                    <div class="flex justify-between items-center mt-1">
-                                        <p class="text-2xl font-black text-brand-orange italic">₹{{
-                                            selectedClaim()?.requestedAmount | number:'1.0-0' }}</p>
-                                        <div class="text-right text-[10px] font-bold text-slate-500">
-                                            <p>Bill: ₹{{ selectedClaim()?.hospitalBill | number }}</p>
-                                            <p>Med: ₹{{ selectedClaim()?.medicines | number }}</p>
-                                            <p>Other: ₹{{ selectedClaim()?.otherExpenses | number }}</p>
-                                            <p class="text-xs text-brand-navy mt-1">Est. Total: ₹{{
-                                                selectedClaim()?.estimatedMedicalCost | number }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr class="border-slate-100">
-                                <div class="p-4 bg-orange-50 rounded-xl border border-orange-100 relative z-50">
-                                    <p class="text-[9px] font-black text-brand-orange uppercase mb-2">Decision: Approved
-                                        Amount</p>
-                                    <div class="relative mt-2">
-                                        <span
-                                            class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-brand-navy text-lg">₹</span>
-                                        <input type="number" [(ngModel)]="reviewForm.approvedAmount"
-                                            class="w-full pl-16 pr-4 py-4 bg-white border-2 border-orange-200 rounded-2xl font-black text-2xl text-brand-navy focus:outline-none focus:ring-4 focus:ring-brand-orange/10 transition-all">
-                                    </div>
-                                    <p class="text-[8px] text-slate-400 mt-2 font-medium">Policy Balance: ₹{{
-                                        selectedClaim()?.policy?.remainingCoverageAmount | number }}</p>
-                                </div>
-                                <hr class="border-slate-100">
-
-                                <hr class="border-slate-100">
-                                <div>
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Statement of Incident</p>
-                                    <p class="text-xs text-slate-600 leading-relaxed mt-1">{{
-                                        selectedClaim()?.description }}</p>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- 5. Verification Documents -->
-                        <section class="space-y-6">
-                            <div
-                                class="flex items-center justify-between bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                                <div>
-                                    <h4 class="text-[10px] font-black text-brand-navy uppercase tracking-[0.2em]">
-                                        Evidence Repository</h4>
-                                    <p class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{{
-                                        selectedClaim()?.documents?.length || 0 }} Support Files</p>
-                                </div>
-                                <!-- AI Insights Button -->
-                                @if (selectedClaim()?.documents?.length > 0) {
-                                <button (click)="getAIInsights(selectedClaim())" [disabled]="isAILoading()"
-                                    class="flex items-center gap-2.5 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-700 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.15em] shadow-xl shadow-indigo-100 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
-                                    @if (isAILoading()) {
-                                    <div
-                                        class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin">
-                                    </div>
-                                    <span class="animate-pulse">Analyzing...</span>
-                                    } @else {
-                                    <svg class="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.75 3.75 0 01-5.303 0l-.347-.347z" />
-                                    </svg>
-                                    Get AI Insights
-                                    }
-                                </button>
-                                }
-                            </div>
-
-                            <div class="grid grid-cols-1 gap-3">
-                                @for (doc of selectedClaim()?.documents; track doc.id) {
-                                <a [href]="doc.fileUrl" target="_blank"
-                                    class="flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-2xl hover:border-brand-orange/30 transition-all group shadow-sm">
-                                    <div
-                                        class="w-11 h-11 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-bold group-hover:bg-brand-orange group-hover:text-white transition-all">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <div class="grow">
-                                        <p class="text-xs font-black text-brand-navy truncate max-w-[200px]">{{
-                                            doc.fileName }}</p>
-                                        <p
-                                            class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 italic">
-                                            {{ (doc.fileSize / 1024 / 1024) | number:'1.1-1' }} MB • Audit Reference
-                                        </p>
-                                    </div>
-                                    <svg class="w-4 h-4 text-slate-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                </a>
-                                } @empty {
-                                <div class="p-12 border-2 border-dashed border-slate-100 rounded-3xl text-center">
-                                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No
-                                        Evidence Uploaded</p>
-                                </div>
-                                }
-                            </div>
-
-                            <!-- AI Insights Results Panel -->
-                            @if (aiInsights()) {
-                            <div
-                                class="mt-8 rounded-[2rem] overflow-hidden border border-violet-100 shadow-2xl shadow-indigo-100/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <!-- Panel Glow Header -->
-                                <div
-                                    class="bg-gradient-to-r from-violet-600 via-indigo-600 to-brand-navy px-8 py-5 flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-md">
-                                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"
-                                                stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h5 class="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                                                Forensic AI Insights</h5>
-                                            <p class="text-[8px] text-white/60 font-bold uppercase">Automated Document
-                                                Adjudication</p>
-                                        </div>
-                                    </div>
-                                    <button (click)="clearAIInsights()"
-                                        class="text-white/40 hover:text-white transition-colors">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <div class="bg-white p-8 space-y-8">
-                                    <!-- Risk Circle & Settlement -->
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                                        <!-- Risk Gauge -->
-                                        <div
-                                            class="flex items-center gap-6 bg-slate-50/50 p-6 rounded-3xl border border-slate-50">
-                                            <div class="relative w-24 h-24 flex items-center justify-center">
-                                                <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                                                    <circle cx="18" cy="18" r="16" fill="none" stroke="#f1f5f9"
-                                                        stroke-width="3" />
-                                                    <circle cx="18" cy="18" r="16" fill="none"
-                                                        [attr.stroke]="getRiskScoreStroke(aiInsights()!.riskScore)"
-                                                        stroke-width="3.5" stroke-linecap="round"
-                                                        [attr.stroke-dasharray]="aiInsights()!.riskScore + ', 100'"
-                                                        class="transition-all duration-1000 ease-out" />
-                                                </svg>
-                                                <div class="absolute flex flex-col items-center">
-                                                    <span
-                                                        [class]="'text-lg font-black italic tracking-tighter ' + getRiskScoreColor(aiInsights()!.riskScore)">
-                                                        {{ aiInsights()!.riskScore }}%
-                                                    </span>
-                                                    <span
-                                                        [class]="'text-[8px] font-black uppercase tracking-widest ' + getRiskScoreColor(aiInsights()!.riskScore)">
-                                                        {{ getRiskLabel(aiInsights()!.riskScore) }} Risk
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <h6
-                                                    class="text-[10px] font-black text-brand-navy uppercase tracking-widest mb-1">
-                                                    Integrity Score</h6>
-                                                <p class="text-xs text-slate-500 leading-relaxed font-medium">Confidence
-                                                    in document authenticity and incident alignment.</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Settlement Range -->
-                                        <div class="space-y-4">
-                                            <div class="flex justify-between items-end">
-                                                <div>
-                                                    <p
-                                                        class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                                                        AI Recommendation</p>
-                                                    <p class="text-2xl font-black text-brand-navy italic">₹{{
-                                                        aiInsights()!.suggestedAmountMin | number:'1.0-0' }} <span
-                                                            class="text-slate-300 mx-1 text-lg">-</span> ₹{{
-                                                        aiInsights()!.suggestedAmountMax | number:'1.0-0' }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
-                                                <div class="h-full bg-indigo-500 shadow-lg shadow-indigo-200"
-                                                    style="width: 70%; margin-left: 15%"></div>
-                                            </div>
-                                            <p class="text-[9px] text-indigo-500 font-bold italic">Range calculated
-                                                against customer request of ₹{{ selectedClaim()?.requestedAmount |
-                                                number }}</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Summary List -->
-                                    <div class="space-y-3">
-                                        <h6 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                            Executive Summary</h6>
-                                        <div class="grid grid-cols-1 gap-2">
-                                            @for (point of aiInsights()!.summaryPoints; track $index) {
-                                            <div
-                                                class="flex items-start gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 group hover:bg-white hover:shadow-md transition-all">
-                                                <span
-                                                    class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">{{
-                                                    $index + 1 }}</span>
-                                                <p class="text-[11px] text-slate-600 font-bold leading-relaxed">{{ point
-                                                    }}</p>
-                                            </div>
-                                            }
-                                        </div>
-                                    </div>
-
-                                    <!-- Action Button -->
-                                    <button (click)="applyAISuggestedAmount()"
-                                        class="w-full py-4 bg-indigo-600 hover:bg-brand-navy text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]">
-                                        Apply Midpoint to Final Decision
-                                    </button>
-                                </div>
-                            </div>
-                            }
-
-                            <!-- AI Error Display -->
-                            @if (aiError()) {
-                            <div
-                                class="p-5 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-4 animate-in zoom-in-95">
-                                <div
-                                    class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-rose-500 shadow-sm shrink-0">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-black text-rose-600 uppercase tracking-widest">Analysis
-                                        Suspended</p>
-                                    <p class="text-xs text-rose-500 font-medium italic mt-1">{{ aiError() }}</p>
-                                </div>
-                            </div>
-                            }
-                        </section>
-                    </div>
-
-                    <!-- Right: Review Action -->
-                    <div
-                        class="lg:col-span-4 bg-slate-50/80 rounded-3xl p-8 space-y-8 border border-slate-100 h-fit sticky top-0">
-                        <div>
-                            <h4 class="text-[10px] font-black text-brand-navy uppercase tracking-widest mb-6">Final
-                                Recommendation</h4>
-                            <div class="space-y-6">
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assessment
-                                        Outcome</label>
-                                    <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
-                                        <p
-                                            class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1 italic">
-                                            Current Status</p>
-                                        <p class="text-sm font-black text-brand-navy">{{ selectedClaim()?.status }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Assessor
-                                        Remarks</label>
-                                    <textarea [(ngModel)]="reviewForm.remarks" rows="6"
-                                        placeholder="Document the rationale for your decision..."
-                                        class="input-field bg-white focus:ring-2 focus:ring-brand-orange/20"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Section for claim officer final decision actions -->
-                        <div class="pt-6 border-t border-slate-200 space-y-4">
-
-                            <!-- Check claim status: only allow review if claim is still under processing -->
-                            @if (selectedClaim()?.status === 'PendingAssessment' ||
-                            selectedClaim()?.status === 'Assigned' ||
-                            selectedClaim()?.status === 'Pending') {
-
-                            <!-- button to approve claim and trigger final payout process -->
-                            <!-- Calls submitReview('Approved') method in component .ts -->
-                            <button (click)="submitReview('Approved')" [disabled]="isLoading()"
-                                class="btn-primary w-full py-5 text-sm shadow-xl shadow-orange-200">
-                                Submit Final Payout Approval
-                            </button>
-
-                            <!-- Button to reject and terminate the claim & Calls submitReview('Rejected') to update claim status -->
-                            <button (click)="submitReview('Rejected')" [disabled]="isLoading()"
-                                class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100">
-                                Reject & Terminate Claim
-                            </button>
-
-                            } @else {
-
-                            <!-- Display final claim decision if claim already processed -->
-                            <div [class]="'p-6 rounded-2xl text-center border ' + 
-                            (selectedClaim()?.status === 'Approved' 
-                            ? 'approved-style' 
-                            : 'rejected-style')">
-
-                                <p class="text-xs font-black uppercase tracking-widest">
-                                    Assessment Finalized
-                                </p>
-
-                                <p class="text-sm font-bold mt-1">
-                                    Claim {{ selectedClaim()?.status }} on {{ selectedClaim()?.processedAt | date }}
-                                </p>
-                            </div>
-
-                            }
-
-                            <!-- Informational message about financial impact after final decision -->
-                            <p class="text-[9px] text-center text-slate-400 mt-4 leading-relaxed italic">
-                                Final adjudication triggers immediate financial impact on sum insured and policy status.
-                            </p>
-
-                        </div>
-
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    }
-    <!-- HISTORY DETAIL MODAL -->
+    <!-- ============================================================ -->
+    <!-- HISTORY DETAIL MODAL (kept as modal — read-only archive view) -->
+    <!-- ============================================================ -->
     @if (showHistoryDetailModal() && selectedHistoryClaim()) {
     <div class="fixed inset-0 bg-brand-navy/95 backdrop-blur-xl flex items-center justify-center z-[60] p-4">
-        <div
-            class="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-500">
-            <!-- Header -->
+        <div class="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in zoom-in-95 duration-500">
             <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                 <div>
                     <div class="flex items-center gap-3 mb-1">
                         <h3 class="text-2xl font-black text-brand-navy uppercase tracking-tighter italic" style="font-family:'Sora',sans-serif;">Archive Registry</h3>
-                        <span
-                            [class]="'px-4 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest border ' + 
+                        <span [class]="'px-4 py-1 rounded-2xl text-[9px] font-black uppercase tracking-widest border ' +
                             (selectedHistoryClaim()?.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100')">
                             ● {{ selectedHistoryClaim()?.status }}
                         </span>
@@ -1009,268 +1021,69 @@
                 </div>
                 <button (click)="showHistoryDetailModal.set(false)"
                     class="w-12 h-12 flex items-center justify-center hover:bg-slate-200 rounded-full transition-all text-slate-400 group">
-                    <svg class="w-6 h-6 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M6 18L18 6M6 6l12 12" />
+                    <svg class="w-6 h-6 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-
-            <!-- Content -->
-            <div class="grow overflow-y-auto p-10 custom-scrollbar">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    <!-- Left Column: Primary Entities -->
-                    <div class="space-y-8">
-                        <!-- Entity Branch: Customer -->
-                        <div class="relative pl-6 border-l-2 border-brand-orange/20 space-y-4">
-                            <div
-                                class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-orange shadow-lg shadow-orange-200">
-                            </div>
-                            <h4 class="text-[10px] font-black text-brand-orange uppercase tracking-[0.2em] mb-4">
-                                Customer Integrity</h4>
-                            <div class="card p-6 border-none shadow-xl shadow-slate-200/40 bg-brand-gray/50">
-                                <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Email Identity</p>
-                                <p class="text-sm font-black text-brand-navy break-all">{{
-                                    selectedHistoryClaim()?.user?.email }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Entity Branch: Agent -->
-                        <div class="relative pl-6 border-l-2 border-indigo-200 space-y-4">
-                            <div
-                                class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-500 shadow-lg shadow-indigo-200">
-                            </div>
-                            <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-4">Servicing
-                                Agent</h4>
-                            <div class="card p-6 border-none shadow-xl shadow-slate-200/40 bg-brand-gray/50">
-                                <p class="text-[9px] font-black text-slate-400 uppercase mb-3">Managed By</p>
-                                <p class="text-sm font-black text-brand-navy">{{
-                                    selectedHistoryClaim()?.policy?.assignedAgent?.email || 'System Default' }}</p>
-                                <div class="mt-4 pt-4 border-t border-slate-200/50">
-                                    <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Performance Category
-                                    </p>
-                                    <p class="text-xs font-bold text-indigo-600 uppercase">Certified Partner</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nominee -->
-                        <div class="relative pl-6 border-l-2 border-emerald-200 space-y-4">
-                            <div
-                                class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-emerald-500 shadow-lg shadow-emerald-200">
-                            </div>
-                            <h4 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4">
-                                Beneficiary</h4>
-                            <div class="card p-6 border-none shadow-xl shadow-slate-200/40 bg-brand-gray/50">
-                                <p class="text-sm font-black text-brand-navy">{{
-                                    selectedHistoryClaim()?.fullDetails?.nominee?.nomineeName }}</p>
-                                <p class="text-sm font-black text-brand-navy">{{
-                                    selectedHistoryClaim()?.fullDetails?.nominee?.nomineeEmail }}</p>
-                                <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tighter italic">
-                                    Relationship Verified</p>
-                                <p class="text-[10px] text-slate-600 mt-3 font-mono font-bold">{{
-                                    selectedHistoryClaim()?.fullDetails?.nominee?.nomineeBankAccountNumber }}</p>
-                            </div>
-                        </div>
+            <div class="grow overflow-y-auto p-8 space-y-6 bg-slate-50/20">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Customer</p>
+                        <p class="text-xs font-black text-brand-navy">{{ selectedHistoryClaim()?.user?.email }}</p>
                     </div>
-
-                    <!-- Center Column: Risk & Incident -->
-                    <div class="lg:col-span-2 space-y-10">
-                        <!-- Policy Overview -->
-                        <div class="bg-brand-navy rounded-[2rem] p-8 text-white relative overflow-hidden group">
-                            <div
-                                class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full group-hover:scale-110 transition-transform">
-                            </div>
-                            <div class="relative z-10 flex justify-between items-start mb-6">
-                                <div>
-                                    <h4
-                                        class="text-[10px] font-black text-brand-orange uppercase tracking-[0.3em] mb-4">
-                                        Policy Blueprint</h4>
-                                    <p class="text-3xl font-black italic tracking-tighter">{{
-                                        selectedHistoryClaim()?.policy?.policyCategory }}</p>
-                                    <p class="text-xs font-bold text-slate-400 uppercase mt-1 tracking-widest">{{
-                                        selectedHistoryClaim()?.policy?.tierId }} Configuration</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                                        Coverage Ratio</p>
-                                    <p class="text-xl font-black text-emerald-400 italic">₹{{
-                                        selectedHistoryClaim()?.remainingCoverage | number }} / ₹{{
-                                        selectedHistoryClaim()?.totalCoverage | number }}</p>
-                                </div>
-                            </div>
-
-                            <!-- Integrated Policy Location Map -->
-                            @if (selectedHistoryClaim()?.fullDetails?.location?.address) {
-                            <div
-                                class="relative z-10 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Policy
-                                    Primary Address</p>
-                                <p class="text-[10px] font-bold text-white/80 mb-3 truncate">{{
-                                    selectedHistoryClaim()?.fullDetails?.location?.address }}</p>
-                                <div class="h-32 rounded-xl overflow-hidden shadow-2xl">
-                                    <app-location-map [lat]="selectedHistoryClaim()?.fullDetails?.location?.latitude"
-                                        [lng]="selectedHistoryClaim()?.fullDetails?.location?.longitude">
-                                    </app-location-map>
-                                </div>
-                            </div>
-                            }
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <!-- Medical Profile -->
-                            <div class="card p-8 border-none shadow-2xl shadow-slate-200/40 bg-slate-50/50">
-                                <h4 class="text-[10px] font-black text-brand-navy uppercase tracking-[0.2em] mb-6">
-                                    Medical Audit</h4>
-                                <div class="space-y-4">
-                                    <div class="flex justify-between items-center text-xs">
-                                        <span class="font-bold text-slate-400 uppercase">Tobacco Logic</span>
-                                        <span class="font-black text-brand-navy capitalize">{{
-                                            selectedHistoryClaim()?.fullDetails?.medicalProfile?.smokingHabit ||
-                                            selectedHistoryClaim()?.fullDetails?.applicant?.smokingHabit }}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center text-xs">
-                                        <span class="font-bold text-slate-400 uppercase">Alcohol Metric</span>
-                                        <span class="font-black text-brand-navy capitalize">{{
-                                            selectedHistoryClaim()?.fullDetails?.medicalProfile?.alcoholHabit ||
-                                            selectedHistoryClaim()?.fullDetails?.applicant?.alcoholHabit }}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center text-xs">
-                                        <span class="font-bold text-slate-400 uppercase">Age verified</span>
-                                        <span class="font-black text-brand-navy">{{
-                                            selectedHistoryClaim()?.fullDetails?.applicant?.age }} Years</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Incident Verification -->
-                            <div class="card p-8 border-none shadow-2xl shadow-slate-200/40 bg-slate-50/50">
-                                <h4 class="text-[10px] font-black text-brand-navy uppercase tracking-[0.2em] mb-6">Event
-                                    Forensics</h4>
-                                <div class="space-y-4 text-xs">
-                                    <div>
-                                        <p class="font-bold text-slate-400 uppercase mb-1">Incident Logistics</p>
-                                        <p class="font-black text-indigo-600 uppercase tracking-tight">{{
-                                            selectedHistoryClaim()?.incidentType }}</p>
-                                        <p class="text-[10px] text-slate-500 italic">{{
-                                            selectedHistoryClaim()?.incidentDate | date:'dd MMM yyyy' }}</p>
-                                        <p class="text-[10px] text-slate-500 font-bold mt-2">{{
-                                            selectedHistoryClaim()?.hospitalName }}</p>
-
-                                        <!-- Incident Map Visual -->
-                                        <div class="mt-4 h-32 rounded-xl overflow-hidden border border-slate-200">
-                                            <app-location-map [lat]="selectedHistoryClaim()?.latitude ?? null"
-                                                [lng]="selectedHistoryClaim()?.longitude ?? null"
-                                                [address]="selectedHistoryClaim()?.incidentLocation ?? null">
-                                            </app-location-map>
-                                        </div>
-                                    </div>
-                                    <div class="pt-4 border-t border-slate-200/50">
-                                        <p class="font-bold text-slate-400 uppercase mb-1">Reported Rationale</p>
-                                        <p class="italic text-slate-600 line-clamp-2 leading-relaxed">{{
-                                            selectedHistoryClaim()?.description }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Documents Section -->
-                        <div class="space-y-4">
-                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Evidence
-                                Repository</h4>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                @for (doc of selectedHistoryClaim()?.documents; track doc.id) {
-                                <a [href]="doc.fileUrl" target="_blank"
-                                    class="card p-4 border-none shadow-xl shadow-slate-200/30 bg-white hover:scale-105 transition-all group overflow-hidden">
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="w-8 h-8 bg-brand-navy text-white rounded-lg flex items-center justify-center group-hover:bg-brand-orange transition-colors">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <div class="overflow-hidden">
-                                            <p class="text-[9px] font-black text-brand-navy uppercase truncate">{{
-                                                doc.fileName }}</p>
-                                            <p class="text-[8px] text-slate-400 font-bold">READY TO VIEW</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                }
-                            </div>
-                        </div>
-
-                        <!-- Financial Verdict -->
-                        <div
-                            class="bg-slate-900 rounded-[2rem] p-8 text-white flex items-center justify-between border-b-4 border-brand-orange shadow-2xl">
-                            <div>
-                                <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">Final
-                                    Settlement Verdict</h4>
-                                <p class="text-xs text-slate-400 font-medium max-w-sm">{{
-                                    selectedHistoryClaim()?.remarks || 'No remarks provided for this settlement.' }}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] font-black text-brand-orange uppercase tracking-widest mb-1">
-                                    Approved Payout</p>
-                                <p class="text-4xl font-black italic tracking-tighter">₹{{
-                                    (selectedHistoryClaim()?.approvedAmount || 0) | number }}</p>
-                            </div>
-                        </div>
+                    <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Approved Amount</p>
+                        <p class="text-lg font-black text-brand-orange italic">₹{{ selectedHistoryClaim()?.approvedAmount | number }}</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Processed At</p>
+                        <p class="text-xs font-black text-brand-navy">{{ selectedHistoryClaim()?.processedAt | date:'longDate' }}</p>
                     </div>
                 </div>
+                @if (selectedHistoryClaim()?.remarks) {
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-2">Officer Remarks</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">{{ selectedHistoryClaim()?.remarks }}</p>
+                </div>
+                }
             </div>
-
-            <div class="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+            <div class="p-6 border-t border-slate-100 bg-slate-50/30 flex justify-end">
                 <button (click)="showHistoryDetailModal.set(false)"
-                    class="bg-brand-navy text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-navy-200 hover:bg-slate-800 transition-all active:scale-95">Dismiss
-                    Archive</button>
+                    class="bg-brand-navy text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95">
+                    Close Registry
+                </button>
             </div>
         </div>
     </div>
     }
 
-    <!-- Invoice Modal -->
+    <!-- ============================================================ -->
+    <!-- INVOICE MODAL (kept as modal — quick action)                  -->
+    <!-- ============================================================ -->
     @if (showInvoiceModal() && selectedPayment()) {
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <!-- Simplified Header -->
-            <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+    <div class="fixed inset-0 bg-brand-navy/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+            <div class="p-8 border-b border-slate-100 flex justify-between items-center">
                 <div>
-                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        Premium Invoice
-                        <span
-                            class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-black">Verified</span>
-                    </h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Transaction History
-                        Record</p>
+                    <h3 class="text-lg font-black text-brand-navy uppercase tracking-tight italic" style="font-family:'Sora',sans-serif;">Premium Invoice</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">AcciSure Insurance Policy</p>
                 </div>
-                <button (click)="showInvoiceModal.set(false)"
-                    class="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                <button (click)="showInvoiceModal.set(false)" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-
-            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <!-- Compact Settlement Box -->
+            <div class="p-6 space-y-4">
                 <div class="bg-indigo-50/50 border border-indigo-100 p-6 rounded-2xl flex justify-between items-center">
                     <div>
-                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Settlement Amount
-                        </p>
-                        <h4 class="text-2xl font-black text-indigo-600 mt-1">₹{{ selectedPayment().paidAmount | number
-                            }}</h4>
+                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Settlement Amount</p>
+                        <h4 class="text-2xl font-black text-indigo-600 mt-1">₹{{ selectedPayment().paidAmount | number }}</h4>
                     </div>
                     <div class="text-right">
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Date</p>
-                        <p class="text-xs font-bold text-slate-600 mt-1">{{ selectedPayment().nextPaymentDate |
-                            date:'mediumDate' }}</p>
+                        <p class="text-xs font-bold text-slate-600 mt-1">{{ selectedPayment().nextPaymentDate | date:'mediumDate' }}</p>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
                         <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Policyholder</p>
@@ -1278,32 +1091,24 @@
                     </div>
                     <div class="space-y-1 text-right">
                         <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Transaction ID</p>
-                        <p class="text-xs font-mono font-bold text-slate-700">{{ selectedPayment().transactionId ||
-                            'Awaiting Sync' }}</p>
+                        <p class="text-xs font-mono font-bold text-slate-700">{{ selectedPayment().transactionId || 'Awaiting Sync' }}</p>
                     </div>
                 </div>
-
                 <div class="pt-4 border-t border-slate-50 space-y-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Plan
-                            Category</span>
-                        <span class="text-[10px] font-black text-slate-700 uppercase">{{
-                            selectedPayment().policyCategory }}</span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Plan Category</span>
+                        <span class="text-[10px] font-black text-slate-700 uppercase">{{ selectedPayment().policyCategory }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Plan Tier</span>
-                        <span class="text-[10px] font-black text-slate-700 uppercase italic">{{ selectedPayment().tierId
-                            }}</span>
+                        <span class="text-[10px] font-black text-slate-700 uppercase italic">{{ selectedPayment().tierId }}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active
-                            Coverage</span>
-                        <span class="text-[10px] font-black text-emerald-600">₹{{ selectedPayment().currentCoverage |
-                            number }}</span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active Coverage</span>
+                        <span class="text-[10px] font-black text-emerald-600">₹{{ selectedPayment().currentCoverage | number }}</span>
                     </div>
                 </div>
             </div>
-
             <div class="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
                 <button (click)="generateInvoicePDF(selectedPayment())"
                     class="grow bg-brand-orange text-white py-3.5 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-orange-100 hover:brightness-110 active:scale-95 transition-all">
@@ -1317,4 +1122,5 @@
         </div>
     </div>
     }
+
 </div>

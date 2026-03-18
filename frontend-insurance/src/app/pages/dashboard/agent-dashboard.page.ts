@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ import autoTable from 'jspdf-autotable';
 // ✅ pdfjs and Tesseract removed — extraction now handled by Python backend
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
 import { environment } from '../../../environments/environment';
+import { AiAgentPolicyAnalysisComponent } from './ai-agent-policy-analysis/ai-agent-policy-analysis.component';
 
 // register chartjs for commission analytics
 Chart.register(...registerables);
@@ -25,7 +26,7 @@ Chart.register(...registerables);
 @Component({
     selector: 'app-agent-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, LocationMapComponent],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, LocationMapComponent, AiAgentPolicyAnalysisComponent],
     templateUrl: './agent-dashboard.page.html'
 })
 export class AgentDashboardPage implements OnInit {
@@ -49,6 +50,8 @@ export class AgentDashboardPage implements OnInit {
     user = this.authService.getUser();
     // active dashboard section
     activeSection = signal('dashboard');
+    // previous dashboard section for back navigation
+    previousSection = signal('dashboard');
     // mobile sidebar toggle
     sidebarOpen = signal(false);
     // more service injections
@@ -61,6 +64,8 @@ export class AgentDashboardPage implements OnInit {
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
     profileDropdownOpen = signal(false);
+
+    @ViewChild('mainScroll') mainScrollRef!: ElementRef<HTMLDivElement>;
 
     toggleProfileDropdown() {
         this.profileDropdownOpen.update(v => !v);
@@ -153,7 +158,12 @@ export class AgentDashboardPage implements OnInit {
     }
 
     setSection(section: string) {
+        this.previousSection.set(this.activeSection());
         this.activeSection.set(section);
+        // Assuming scrollToTop() is a method that scrolls the main content to the top
+        // If not, you might need to implement it or remove this line.
+        // For example: this.mainScrollRef.nativeElement.scrollTop = 0;
+        // this.scrollToTop();
         this.message.set({ type: '', text: '' });
         this.destroyCharts();
         if (section === 'dashboard') {
@@ -666,7 +676,7 @@ export class AgentDashboardPage implements OnInit {
             next: (res) => {
                 this.isProcessing.set(false);
                 this.showDetailModal.set(false);
-                this.showUnifiedDetail.set(false); // Also close unified modal
+                this.setSection('policyRequests'); 
                 this.message.set({ type: 'success', text: `Policy ${status} successfully!` });
                 this.loadPolicyRequests();
                 setTimeout(() => this.message.set({ type: '', text: '' }), 3000);
@@ -846,7 +856,8 @@ export class AgentDashboardPage implements OnInit {
         details.policy.monthlyPremium = (policy.calculatedPremium || 0) / 12;
 
         this.selectedUnifiedDetail.set(details);
-        this.showUnifiedDetail.set(true);
+        this.activeSection.set('unifiedReview');
+        this.scrollToTop();
     }
 
     // Email Feature State
@@ -873,6 +884,28 @@ export class AgentDashboardPage implements OnInit {
         } else {
             alert('Aadhar card document not available.');
         }
+    }
+
+    getUnifiedDocuments(): any[] {
+        const detail = this.selectedUnifiedDetail();
+        if (!detail?.policy) return [];
+
+        const policyDocs = Array.isArray(detail.policy.documents) ? detail.policy.documents : [];
+        const fullDetailsDocs = Array.isArray(detail.policy.fullDetails?.documents)
+            ? detail.policy.fullDetails.documents
+            : [];
+
+        const combined = [...fullDetailsDocs, ...policyDocs].filter(Boolean);
+        const seen = new Set<string>();
+
+        return combined.filter((doc: any) => {
+            const key = `${doc.fileUrl || doc.url || ''}|${doc.fileName || ''}|${doc.documentType || ''}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
     }
 
     generateInvoicePDF(payment: any) {
@@ -1037,6 +1070,12 @@ export class AgentDashboardPage implements OnInit {
         doc.text('AcciSure Insurance - Protecting Your Brighter Tomorrow', 105, 285, { align: 'center' });
 
         doc.save(`AcciSure_Invoice_${payment.transactionId?.substring(0, 8) || 'Doc'}.pdf`);
+    }
+
+    private scrollToTop() {
+        setTimeout(() => {
+            this.mainScrollRef?.nativeElement?.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
     }
 
     logout() {

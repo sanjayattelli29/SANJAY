@@ -3,8 +3,9 @@
 # AcciSure/
 # CompleteAccidentInsurance/
 # frontend-insurance/
-accisure-490603-a7fc0ba7649d.json
 # Ignore sensitive configuration
+accisure-490603-a7fc0ba7649d.json
+Vertex-AI/accisure-490603-a7fc0ba7649d.json
 InsurancePlatform/API/appsettings.json
 InsurancePlatform/API/appsettings.Development.json
 # .NET secrets
@@ -31,3 +32,4 @@ bin/
 obj/
 *.user
 *.suo
+appsettings.json
