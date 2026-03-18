@@ -1,6 +1,7 @@
 import { Component, signal, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { n8nWebhooks } from '../../../environments/n8n/n8n';
 
 // message interface for chat
 interface Message {
@@ -37,7 +38,7 @@ export class ChatbotComponent implements AfterViewChecked {
     isLoading = signal(false);
 
     // n8n webhook url for ai chat processing
-    private readonly WEBHOOK_URL = 'https://nextglidesol.app.n8n.cloud/webhook/chatbot-bot-1';
+    private readonly WEBHOOK_URL = n8nWebhooks.chatbotBot;
 
     // toggle chat window open/closed
     toggleChat(): void {

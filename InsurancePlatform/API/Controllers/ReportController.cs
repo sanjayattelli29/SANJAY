@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,18 +11,18 @@ namespace API.Controllers
     [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Agent},{UserRoles.ClaimOfficer}")]
     public class ReportController : ControllerBase
     {
-        private readonly IPolicyService _policyService;
+        private readonly IPolicyManager _policyManager;
 
-        public ReportController(IPolicyService policyService)
+        public ReportController(IPolicyManager policyManager)
         {
-            _policyService = policyService;
+            _policyManager = policyManager;
         }
 
         // get the big list of everyone's payments
         [HttpGet("unified-payments")]
         public async Task<IActionResult> GetUnifiedPayments()
         {
-            var reports = await _policyService.GetUnifiedPaymentsAsync();
+            var reports = await _policyManager.GetUnifiedPaymentsAsync();
             return Ok(reports);
         }
     }

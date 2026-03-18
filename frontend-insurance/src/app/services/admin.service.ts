@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { n8nWebhooks } from '../../environments/n8n/n8n';
 
 // admin service for admin panel operations
 // talks to backend admin controller for admin stuff
@@ -76,7 +77,7 @@ export class AdminService {
 
     // send email via n8n webhook external service not backend db
     sendAdminEmail(payload: { toEmail: string, subject: string, htmlBody: string }): Observable<any> {
-        const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/agent-send-email";
+        const webhookUrl = n8nWebhooks.agentSendEmail;
         return this.http.post(webhookUrl, payload);
     }
 }

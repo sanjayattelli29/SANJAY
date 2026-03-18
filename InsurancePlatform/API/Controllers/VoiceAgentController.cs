@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
-using Application.Interfaces;
+using Application.Interfaces.Services;
 
 namespace API.Controllers
 {
@@ -18,9 +18,9 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class VoiceAgentController : ControllerBase
     {
-        private readonly IVoiceOrchestratorService _voiceService;
+        private readonly IVoiceOrchestrator _voiceService;
 
-        public VoiceAgentController(IVoiceOrchestratorService voiceService)
+        public VoiceAgentController(IVoiceOrchestrator voiceService)
         {
             _voiceService = voiceService;
         }

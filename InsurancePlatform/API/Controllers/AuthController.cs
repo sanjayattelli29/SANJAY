@@ -1,5 +1,6 @@
 using Application.DTOs;
-using Application.Interfaces;
+using Application.Interfaces.Services;
+using Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +11,11 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IIdentityService _identityService;
         private readonly IFileStorageService _fileStorageService;
-        public AuthController(IAuthService authService, IFileStorageService fileStorageService)
+        public AuthController(IIdentityService identityService, IFileStorageService fileStorageService)
         {
-            _authService = authService;
+            _identityService = identityService;
             _fileStorageService = fileStorageService;
         }
 
@@ -22,7 +23,7 @@ namespace API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterCustomerDto registerDto)
         {
-            var result = await _authService.RegisterCustomerAsync(registerDto);
+            var result = await _identityService.RegisterCustomerAsync(registerDto);
             if (result.Status == "Error")
             {
                 return BadRequest(result);
@@ -34,7 +35,7 @@ namespace API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var result = await _authService.LoginAsync(loginDto);
+            var result = await _identityService.LoginAsync(loginDto);
             if (result.Status == "Error")
             {
                 return Unauthorized(result);
@@ -46,7 +47,7 @@ namespace API.Controllers
         [HttpPost("complete-kyc/{userId}")]
         public async Task<IActionResult> CompleteKyc(string userId)
         {
-            var result = await _authService.CompleteKycAsync(userId);
+            var result = await _identityService.CompleteKycAsync(userId);
             if (result.Status == "Error")
             {
                 return BadRequest(result);
@@ -73,7 +74,7 @@ namespace API.Controllers
                 var uploadResult = await _fileStorageService.UploadFileAsync(stream, dto.FileName, "/profile-images");
 
                 // save the CDN url to the user record
-                var updateResult = await _authService.UpdateProfileImageAsync(dto.UserId, uploadResult.FileUrl);
+                var updateResult = await _identityService.UpdateProfileImageAsync(dto.UserId, uploadResult.FileUrl);
                 if (updateResult.Status == "Error")
                     return BadRequest(updateResult);
 

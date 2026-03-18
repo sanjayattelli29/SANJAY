@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,11 +11,11 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class ChatController : ControllerBase
 {
-    private readonly IChatService _chatService;
+    private readonly ISupportChatService _supportChatService;
 
-    public ChatController(IChatService chatService)
+    public ChatController(ISupportChatService supportChatService)
     {
-        _chatService = chatService;
+        _supportChatService = supportChatService;
     }
 
     // get all active chats for the logged in person
@@ -28,7 +28,7 @@ public class ChatController : ControllerBase
         if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(role))
             return Unauthorized();
 
-        var chats = await _chatService.GetUserChatListAsync(userId, role);
+        var chats = await _supportChatService.GetUserChatListAsync(userId, role);
         return Ok(chats);
     }
 
@@ -36,7 +36,7 @@ public class ChatController : ControllerBase
     [HttpGet("{policyId}")]
     public async Task<IActionResult> GetChatHistory(string policyId)
     {
-        var chat = await _chatService.GetChatHistoryAsync(policyId);
+        var chat = await _supportChatService.GetChatHistoryAsync(policyId);
         if (chat == null) return NotFound();
 
         return Ok(new
@@ -60,7 +60,7 @@ public class ChatController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        var chat = await _chatService.GetOrCreateChatAsync(request.PolicyId, request.CustomerId, request.AgentId);
+        var chat = await _supportChatService.GetOrCreateChatAsync(request.PolicyId, request.CustomerId, request.AgentId);
         return Ok(chat);
     }
 
@@ -71,7 +71,7 @@ public class ChatController : ControllerBase
         var role = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(role)) return Unauthorized();
 
-        await _chatService.MarkMessagesAsReadAsync(policyId, role);
+        await _supportChatService.MarkMessagesAsReadAsync(policyId, role);
         return Ok();
     }
 }

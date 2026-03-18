@@ -1,8 +1,8 @@
 using Domain.Entities;
 
-namespace Application.Interfaces
+namespace Application.Interfaces.Services
 {
-    public interface INotificationService
+    public interface ISystemNotifier
     {
         Task SendNotificationAsync(string userId, string title, string message, string type = "General");
         Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId);

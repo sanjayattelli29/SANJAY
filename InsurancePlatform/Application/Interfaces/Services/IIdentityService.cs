@@ -1,9 +1,9 @@
 using Application.DTOs;
 
-namespace Application.Interfaces
+namespace Application.Interfaces.Services
 {
     // this interface lists all the things about user account management
-    public interface IAuthService
+    public interface IIdentityService
     {
         // register a new customer in system
         Task<AuthResponseDto> RegisterCustomerAsync(RegisterCustomerDto registerDto);

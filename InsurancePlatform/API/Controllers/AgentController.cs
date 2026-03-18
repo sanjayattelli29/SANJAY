@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +12,11 @@ namespace API.Controllers
     [Authorize(Roles = UserRoles.Agent)]
     public class AgentController : ControllerBase
     {
-        private readonly IPolicyService _policyService;
+        private readonly IPolicyManager _policyManager;
 
-        public AgentController(IPolicyService policyService)
+        public AgentController(IPolicyManager policyManager)
         {
-            _policyService = policyService;
+            _policyManager = policyManager;
         }
 
         // get the insurance applications assigned to me
@@ -26,7 +26,7 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
 
-            var requests = await _policyService.GetAgentApplicationsAsync(agentId);
+            var requests = await _policyManager.GetAgentApplicationsAsync(agentId);
             return Ok(requests);
         }
 
@@ -37,7 +37,7 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
 
-            var success = await _policyService.ReviewApplicationAsync(request.ApplicationId, request.Status, agentId);
+            var success = await _policyManager.ReviewApplicationAsync(request.ApplicationId, request.Status, agentId);
             if (!success) return BadRequest(new { Message = "Review failed" });
             
             return Ok(new { Message = $"Application {request.Status} successfully" });
@@ -50,7 +50,7 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
 
-            var customers = await _policyService.GetAgentCustomersAsync(agentId);
+            var customers = await _policyManager.GetAgentCustomersAsync(agentId);
             return Ok(customers);
         }
 
@@ -61,7 +61,7 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
 
-            var stats = await _policyService.GetAgentCommissionStatsAsync(agentId);
+            var stats = await _policyManager.GetAgentCommissionStatsAsync(agentId);
             return Ok(stats);
         }
 
@@ -72,7 +72,7 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(agentId)) return Unauthorized();
 
-            var analytics = await _policyService.GetAgentAnalyticsAsync(agentId);
+            var analytics = await _policyManager.GetAgentAnalyticsAsync(agentId);
             return Ok(analytics);
         }
     }

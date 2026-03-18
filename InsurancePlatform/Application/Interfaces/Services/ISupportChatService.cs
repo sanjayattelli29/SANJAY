@@ -1,9 +1,9 @@
 using Domain.Entities;
 
-namespace Application.Interfaces;
+namespace Application.Interfaces.Services;
 
 // this interface handles the chat functions for agent and customer
-public interface IChatService
+public interface ISupportChatService
 {
     // get a list of all chats for a user
     Task<IEnumerable<Chat>> GetUserChatListAsync(string userId, string role);

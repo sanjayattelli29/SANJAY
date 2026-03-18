@@ -1,6 +1,8 @@
 using API.Hubs;
 using Infrastructure.Hubs;
-using Application.Interfaces;
+using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
+using Application.Interfaces.Infrastructure;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Services;
@@ -12,6 +14,9 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using API.Middlewares;
 using Application.Services;
+using Infrastructure.Repositories;
+using Infrastructure.Broadcasters;
+using Infrastructure.ExternalServices;
 
 namespace API
 {
@@ -83,14 +88,20 @@ namespace API
 
             // SERVICES
             builder.Services.AddHttpClient();
-            builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IPolicyService, PolicyService>();
-            builder.Services.AddScoped<IFileStorageService, ImageKitFileStorageService>();
-            builder.Services.AddScoped<IClaimService, ClaimService>();
-            builder.Services.AddScoped<IChatService, ChatService>();
-            builder.Services.AddScoped<INotificationService, NotificationService>();
-            builder.Services.AddScoped<IVoiceOrchestratorService, VoiceOrchestratorService>();
-            builder.Services.AddScoped<IVapiService, VapiService>();
+            builder.Services.AddScoped<ITokenService, JwtTokenService>();
+            builder.Services.AddScoped<IIdentityService, IdentityService>();
+            builder.Services.AddScoped<IPolicyRepository, PolicyRepository>();
+            builder.Services.AddScoped<IPolicyManager, PolicyManager>();
+            builder.Services.AddScoped<IFileStorageService, ImageKitStorage>();
+            builder.Services.AddScoped<IClaimRepository, ClaimRepository>();
+            builder.Services.AddScoped<IClaimProcessor, ClaimProcessor>();
+            builder.Services.AddScoped<IChatRepository, ChatRepository>();
+            builder.Services.AddScoped<ISupportChatService, SupportChatService>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+            builder.Services.AddScoped<INotificationBroadcaster, SignalRNotificationBroadcaster>();
+            builder.Services.AddScoped<ISystemNotifier, SystemNotifier>();
+            builder.Services.AddScoped<IVoiceOrchestrator, VoiceOrchestrator>();
+            builder.Services.AddScoped<IVapiService, VapiClient>();
 
             // SIGNALR
             builder.Services.AddSignalR()

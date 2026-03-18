@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
+import { n8nWebhooks } from '../../../environments/n8n/n8n';
 
 // customer registration page with otp verification
 // multi-step form with email validation via external webhook
@@ -130,7 +131,7 @@ export class CustomerRegisterPage implements OnInit {
         };
 
         // call external n8n webhook to send email with otp
-        this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-otp', payload).subscribe({
+        this.http.post(n8nWebhooks.sendOtp, payload).subscribe({
             next: (res: any) => {
                 // webhook returns otp in response for verification
                 // added null check to prevent crash if webhook returns null

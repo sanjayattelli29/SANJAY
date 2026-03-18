@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +10,11 @@ namespace API.Controllers
     [Authorize]
     public class PaymentController : ControllerBase
     {
-        private readonly IPolicyService _policyService;
+        private readonly IPolicyManager _policyManager;
 
-        public PaymentController(IPolicyService policyService)
+        public PaymentController(IPolicyManager policyManager)
         {
-            _policyService = policyService;
+            _policyManager = policyManager;
         }
 
         // customer sends money through this
@@ -28,7 +28,7 @@ namespace API.Controllers
             var transactionId = "TXN-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
 
             // update the system that payment is done
-            var success = await _policyService.ProcessPaymentAsync(request.ApplicationId, request.Amount, transactionId);
+            var success = await _policyManager.ProcessPaymentAsync(request.ApplicationId, request.Amount, transactionId);
             
             if (!success) return BadRequest(new { Message = "Payment processing failed. Ensure policy is in AwaitingPayment status." });
 

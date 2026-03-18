@@ -1,5 +1,5 @@
 using Application.DTOs;
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +14,11 @@ namespace API.Controllers
     [Authorize]
     public class ClaimController : ControllerBase
     {
-        private readonly IClaimService _claimService;
+        private readonly IClaimProcessor _claimProcessor;
 
-        public ClaimController(IClaimService claimService)
+        public ClaimController(IClaimProcessor claimProcessor)
         {
-            _claimService = claimService;
+            _claimProcessor = claimProcessor;
         }
 
         // --- Customer Endpoints ---
@@ -36,7 +36,7 @@ namespace API.Controllers
             try
             {
                 // Call application service to process claim creation
-                var result = await _claimService.RaiseClaimAsync(userId, request);
+                var result = await _claimProcessor.RaiseClaimAsync(userId, request);
                 return Ok(result);
             }
             catch (System.Exception ex)
@@ -56,7 +56,7 @@ namespace API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
 
-            var claims = await _claimService.GetCustomerClaimsAsync(userId);
+            var claims = await _claimProcessor.GetCustomerClaimsAsync(userId);
             return Ok(claims);
         }
 
@@ -67,7 +67,7 @@ namespace API.Controllers
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> GetPendingClaims()
         {
-            var claims = await _claimService.GetPendingClaimsAsync();
+            var claims = await _claimProcessor.GetPendingClaimsAsync();
             return Ok(claims);
         }
 
@@ -76,7 +76,7 @@ namespace API.Controllers
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> GetClaimOfficers()
         {
-            var officers = await _claimService.GetClaimOfficersWithWorkloadAsync();
+            var officers = await _claimProcessor.GetClaimOfficersWithWorkloadAsync();
             return Ok(officers);
         }
 
@@ -85,7 +85,7 @@ namespace API.Controllers
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> AssignOfficer([FromBody] AssignOfficerRequest request)
         {
-            var result = await _claimService.AssignClaimOfficerAsync(request.ClaimId, request.OfficerId);
+            var result = await _claimProcessor.AssignClaimOfficerAsync(request.ClaimId, request.OfficerId);
             if (!result) return BadRequest(new { Message = "Assignment failed." });
             return Ok(new { Message = "Officer assigned successfully." });
         }
@@ -100,7 +100,7 @@ namespace API.Controllers
             var officerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (officerId == null) return Unauthorized();
 
-            var requests = await _claimService.GetOfficerClaimsAsync(officerId);
+            var requests = await _claimProcessor.GetOfficerClaimsAsync(officerId);
             return Ok(requests);
         }
 
@@ -112,7 +112,7 @@ namespace API.Controllers
             var officerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (officerId == null) return Unauthorized();
 
-            var result = await _claimService.ReviewClaimAsync(request.ClaimId, request.Status, officerId, request.Remarks, request.ApprovedAmount);
+            var result = await _claimProcessor.ReviewClaimAsync(request.ClaimId, request.Status, officerId, request.Remarks, request.ApprovedAmount);
             if (!result) return BadRequest(new { Message = "Review failed." });
             return Ok(new { Message = $"Claim {request.Status} successfully." });
         }
@@ -127,7 +127,7 @@ namespace API.Controllers
             var agentId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (agentId == null) return Unauthorized();
 
-            var claims = await _claimService.GetAgentClaimsAsync(agentId);
+            var claims = await _claimProcessor.GetAgentClaimsAsync(agentId);
             return Ok(claims);
         }
 
@@ -135,7 +135,7 @@ namespace API.Controllers
         [HttpGet("policy/{policyId}")]
         public async Task<IActionResult> GetClaimByPolicyId(string policyId)
         {
-            var claim = await _claimService.GetClaimByPolicyIdAsync(policyId);
+            var claim = await _claimProcessor.GetClaimByPolicyIdAsync(policyId);
             return Ok(claim);
         }
     }

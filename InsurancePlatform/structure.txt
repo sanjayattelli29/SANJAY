@@ -1,0 +1,78 @@
+InsurancePlatform Backend Structure (Clean Architecture)
+======================================================
+
++---API
+|   +---Controllers          (Refined Business Controllers)
+|   |       AdminController.cs
+|   |       AgentController.cs
+|   |       AuthController.cs
+|   |       ChatController.cs
+|   |       ClaimController.cs
+|   |       DashboardController.cs
+|   |       NotificationsController.cs
+|   |       PaymentController.cs
+|   |       PolicyController.cs
+|   |       ReportController.cs
+|   |       VoiceAgentController.cs
+|   +---Hubs                 (SignalR Real-time Hubs)
+|   |       ChatHub.cs
+|   \---Program.cs           (DI Container Configuration)
+|
++---Application
+|   +---DTOs                 (Data Transfer Objects)
+|   |       AgentAnalyticsDto.cs
+|   |       AgentCommissionDto.cs
+|   |       AgentWorkloadDto.cs
+|   |       AuthResponseDto.cs
+|   |       PolicyApplicationRequest.cs
+|   |       PolicyConfigurationDto.cs
+|   |       UnifiedPaymentDto.cs
+|   |       ...
+|   +---Interfaces
+|   |   +---Infrastructure   (External Integration Contracts)
+|   |   |       IFileStorageService.cs
+|   |   |       IOCRService.cs
+|   |   |       IVapiService.cs
+|   |   +---Repositories     (Data Access Contracts)
+|   |   |       IClaimRepository.cs
+|   |   |       IPolicyRepository.cs
+|   |   \---Services         (Business Logic Contracts)
+|   |           IClaimProcessor.cs
+|   |           IIdentityService.cs
+|   |           IPolicyManager.cs
+|   |           ISupportChatService.cs
+|   |           ISystemNotifier.cs
+|   |           IVoiceOrchestrator.cs
+|   \---Services             (Use-Case Implementations)
+|           ClaimProcessor.cs
+|           IdentityService.cs
+|           PolicyManager.cs
+|           SupportChatService.cs
+|           SystemNotifier.cs
+|           VoiceOrchestrator.cs
+|
++---Domain
+|   +---Entities             (Pure Domain Objects)
+|   |       ApplicationUser.cs
+|   |       InsuranceClaim.cs
+|   |       PolicyApplication.cs
+|   |       PolicyConfiguration.cs
+|   |       ...
+|   \---Enums                (Domain Enumerations)
+|           UserRoles.cs
+|
++---Infrastructure
+|   +---Data                 (Persistence Layer)
+|   |       ApplicationDbContext.cs
+|   +---ExternalServices     (Third-party Integrations)
+|   |       ImageKitFileStorageService.cs
+|   |       VapiService.cs
+|   \---Repositories         (Abstractions Implementations)
+|           ClaimRepository.cs
+|           PolicyRepository.cs
+|
+\---Tests                    (Verification Layer)
+    +---API.Tests
+    +---Application.Tests
+    +---Domain.Tests
+    \---Infrastructure.Tests

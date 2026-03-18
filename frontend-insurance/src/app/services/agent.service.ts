@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { n8nWebhooks } from '../../environments/n8n/n8n';
 
 // agent service for agent related operations
 // communicates with backend agent controller
@@ -37,13 +38,13 @@ export class AgentService {
 
     // send email via n8n webhook external integration
     sendAgentEmail(payload: { toEmail: string, subject: string, htmlBody: string }): Observable<any> {
-        const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/agent-send-email";
+        const webhookUrl = n8nWebhooks.agentSendEmail;
         return this.http.post(webhookUrl, payload);
     }
 
     // send policy data to ai analyser via n8n webhook
     sendToAIAnalyser(payload: any): Observable<any> {
-        const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/agent-ai-insights";
+        const webhookUrl = n8nWebhooks.agentAiInsights;
         return this.http.post(webhookUrl, payload);
     }
 }

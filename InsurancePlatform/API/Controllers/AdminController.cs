@@ -1,5 +1,5 @@
-﻿using Application.DTOs;
-using Application.Interfaces;
+using Application.DTOs;
+using Application.Interfaces.Services;
 using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,22 +12,22 @@ namespace API.Controllers
     [Authorize(Roles = UserRoles.Admin)]
     public class AdminController : ControllerBase
     {
-        private readonly IAuthService _authService;
-        private readonly IPolicyService _policyService;
-        private readonly IClaimService _claimService;
+        private readonly IIdentityService _identityService;
+        private readonly IPolicyManager _policyManager;
+        private readonly IClaimProcessor _claimProcessor;
 
-        public AdminController(IAuthService authService, IPolicyService policyService, IClaimService claimService)
+        public AdminController(IIdentityService identityService, IPolicyManager policyManager, IClaimProcessor claimProcessor)
         {
-            _authService = authService;
-            _policyService = policyService;
-            _claimService = claimService;
+            _identityService = identityService;
+            _policyManager = policyManager;
+            _claimProcessor = claimProcessor;
         }
 
         // adds a new agent to the system
         [HttpPost("create-agent")]
         public async Task<IActionResult> CreateAgent([FromBody] CreateAgentDto agentDto)
         {
-            var result = await _authService.CreateAgentAsync(agentDto);
+            var result = await _identityService.CreateAgentAsync(agentDto);
             return Ok(result);
         }
 
@@ -35,7 +35,7 @@ namespace API.Controllers
         [HttpPost("create-claim-officer")]
         public async Task<IActionResult> CreateClaimOfficer([FromBody] CreateClaimOfficerDto claimOfficerDto)
         {
-            var result = await _authService.CreateClaimOfficerAsync(claimOfficerDto);
+            var result = await _identityService.CreateClaimOfficerAsync(claimOfficerDto);
             return Ok(result);
         }
 
@@ -43,7 +43,7 @@ namespace API.Controllers
         [HttpGet("agents")]
         public async Task<IActionResult> GetAgents()
         {
-            var result = await _authService.GetUsersByRoleAsync(UserRoles.Agent);
+            var result = await _identityService.GetUsersByRoleAsync(UserRoles.Agent);
             return Ok(result);
         }
 
@@ -51,7 +51,7 @@ namespace API.Controllers
         [HttpGet("claim-officers")]
         public async Task<IActionResult> GetClaimOfficers()
         {
-            var result = await _authService.GetUsersByRoleAsync(UserRoles.ClaimOfficer);
+            var result = await _identityService.GetUsersByRoleAsync(UserRoles.ClaimOfficer);
             return Ok(result);
         }
 
@@ -59,7 +59,7 @@ namespace API.Controllers
         [HttpDelete("delete-user/{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
-            var result = await _authService.DeleteUserAsync(id);
+            var result = await _identityService.DeleteUserAsync(id);
             return Ok(result);
         }
 
@@ -67,7 +67,7 @@ namespace API.Controllers
         [HttpGet("policy-requests")]
         public async Task<IActionResult> GetAllPolicyRequests()
         {
-            var requests = await _policyService.GetAllApplicationsAsync();
+            var requests = await _policyManager.GetAllApplicationsAsync();
             return Ok(requests);
         }
 
@@ -75,7 +75,7 @@ namespace API.Controllers
         [HttpGet("agents-with-load")]
         public async Task<IActionResult> GetAgentsWithLoad()
         {
-            var agents = await _policyService.GetAgentsWithWorkloadAsync();
+            var agents = await _policyManager.GetAgentsWithWorkloadAsync();
             return Ok(agents);
         }
 
@@ -83,7 +83,7 @@ namespace API.Controllers
         [HttpPost("assign-agent")]
         public async Task<IActionResult> AssignAgent([FromBody] AssignAgentRequest request)
         {
-            var success = await _policyService.AssignAgentAsync(request.ApplicationId, request.AgentId);
+            var success = await _policyManager.AssignAgentAsync(request.ApplicationId, request.AgentId);
             if (!success) return BadRequest(new { Message = "Assignment failed" });
             return Ok(new { Message = "Agent assigned successfully" });
         }
@@ -92,7 +92,7 @@ namespace API.Controllers
         [HttpGet("all-users")]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _authService.GetAllUsersAsync();
+            var users = await _identityService.GetAllUsersAsync();
             return Ok(users);
         }
 
@@ -100,7 +100,7 @@ namespace API.Controllers
         [HttpGet("all-claims")]
         public async Task<IActionResult> GetAllClaimsMaster()
         {
-            var claims = await _claimService.GetAllClaimsAsync();
+            var claims = await _claimProcessor.GetAllClaimsAsync();
             return Ok(claims);
         }
 
@@ -108,7 +108,7 @@ namespace API.Controllers
         [HttpGet("admin-stats")]
         public async Task<IActionResult> GetAdminStats()
         {
-            var stats = await _claimService.GetAdminStatsAsync();
+            var stats = await _claimProcessor.GetAdminStatsAsync();
             return Ok(stats);
         }
     }

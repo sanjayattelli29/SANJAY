@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,21 +14,21 @@ namespace API.Controllers
     [ApiController]
     public class NotificationsController : ControllerBase
     {
-        private readonly INotificationService _notificationService;
-        private readonly IPolicyService _policyService;
-        private readonly IClaimService _claimService;
+        private readonly ISystemNotifier _systemNotifier;
+        private readonly IPolicyManager _policyManager;
+        private readonly IClaimProcessor _claimProcessor;
         private readonly UserManager<ApplicationUser> _userManager;
 
         // constructor to get services we need
         public NotificationsController(
-            INotificationService notificationService, 
-            IPolicyService policyService, 
-            IClaimService claimService,
+            ISystemNotifier systemNotifier, 
+            IPolicyManager policyManager, 
+            IClaimProcessor claimProcessor,
             UserManager<ApplicationUser> userManager)
         {
-            _notificationService = notificationService;
-            _policyService = policyService;
-            _claimService = claimService;
+            _systemNotifier = systemNotifier;
+            _policyManager = policyManager;
+            _claimProcessor = claimProcessor;
             _userManager = userManager;
         }
 
@@ -51,7 +51,7 @@ namespace API.Controllers
             if (user == null) return Unauthorized();
 
             // step 1: get real notifications saved in database for this user
-            var allNotifications = (await _notificationService.GetUserNotificationsAsync(userId)).ToList();
+            var allNotifications = (await _systemNotifier.GetUserNotificationsAsync(userId)).ToList();
 
             // FALLBACK: if nothing found by ID, try finding by Name (Email) if available in claims
             if (allNotifications.Count == 0)
@@ -59,7 +59,7 @@ namespace API.Controllers
                 var userName = User.Identity?.Name;
                 if (!string.IsNullOrEmpty(userName) && userName != userId)
                 {
-                    var fallbackNotifications = await _notificationService.GetUserNotificationsAsync(userName);
+                    var fallbackNotifications = await _systemNotifier.GetUserNotificationsAsync(userName);
                     allNotifications.AddRange(fallbackNotifications);
                 }
             }
@@ -98,7 +98,7 @@ namespace API.Controllers
             if (checkCustomer)
             {
                 // get all policies customer has bought
-                var userPolicies = await _policyService.GetUserPoliciesAsync(userId);
+                var userPolicies = await _policyManager.GetUserPoliciesAsync(userId);
                 // for each policy that needs payment still
                 foreach (var policy in userPolicies.Where(p => p.Status == "AwaitingPayment"))
                 {
@@ -113,7 +113,7 @@ namespace API.Controllers
             if (checkAdmin)
             {
                 // get all policy applications that nobody is working on yet
-                var allApps = await _policyService.GetAllApplicationsAsync();
+                var allApps = await _policyManager.GetAllApplicationsAsync();
                 foreach (var app in allApps.Where(a => a.Status == "Pending"))
                 {
                     // alert admin to assign an agent to this
@@ -122,7 +122,7 @@ namespace API.Controllers
                 }
 
                 // get all claims that also need someone assigned
-                var allClaims = await _claimService.GetAllClaimsAsync();
+                var allClaims = await _claimProcessor.GetAllClaimsAsync();
                 foreach (var claim in allClaims.Where(c => c.Status == "Pending"))
                 {
                     // alert admin to assign an officer to check this claim
@@ -134,7 +134,7 @@ namespace API.Controllers
             // Agent Sync: Assigned & Pending Payments
             if (checkAgent)
             {
-                var agentApps = await _policyService.GetAgentApplicationsAsync(userId);
+                var agentApps = await _policyManager.GetAgentApplicationsAsync(userId);
                 foreach (var app in agentApps.Where(a => a.Status == "Assigned" || a.Status == "AwaitingPayment"))
                 {
                     string title = app.Status == "Assigned" ? "New Assignment 📁" : "Pending Order 💳";
@@ -149,7 +149,7 @@ namespace API.Controllers
             // Claims Officer Sync: Assigned & Pending Claims
             if (checkOfficer)
             {
-                var officerClaims = await _claimService.GetOfficerClaimsAsync(userId);
+                var officerClaims = await _claimProcessor.GetOfficerClaimsAsync(userId);
                 foreach (var claim in officerClaims.Where(c => c.Status == "Assigned"))
                 {
                     AddVirtualNotification(notifications, userId, $"OFF:Claim:{claim.Id}", "New Claim Assignment 🔍", 
@@ -192,7 +192,7 @@ namespace API.Controllers
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             // count notifications where IsRead is false
-            var count = await _notificationService.GetUnreadCountAsync(userId);
+            var count = await _systemNotifier.GetUnreadCountAsync(userId);
             return Ok(count);
         }
 
@@ -201,7 +201,7 @@ namespace API.Controllers
         public async Task<IActionResult> MarkAsRead(Guid id)
         {
             // update the database to set IsRead = true
-            await _notificationService.MarkAsReadAsync(id);
+            await _systemNotifier.MarkAsReadAsync(id);
             return Ok();
         }
 
@@ -214,7 +214,7 @@ namespace API.Controllers
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             // update all user's notifications to IsRead = true
-            await _notificationService.MarkAllAsReadAsync(userId);
+            await _systemNotifier.MarkAllAsReadAsync(userId);
             return Ok();
         }
     }

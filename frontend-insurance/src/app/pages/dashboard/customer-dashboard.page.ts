@@ -22,6 +22,7 @@ import { SafePipe } from '../../pipes/safe.pipe';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { environment } from '../../../environments/environment';
+import { n8nWebhooks } from '../../../environments/n8n/n8n';
 
 // customer dashboard main page component
 // handles policy buying, claim raising, viewing policies and claims
@@ -1773,7 +1774,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     }),
                     invoiceLink: permanentUrl
                 };
-                this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-invoice', payload)
+                this.http.post(n8nWebhooks.sendInvoice, payload)
                     .subscribe({
                         next: (res) => console.log('Invoice email sent with working link:', res),
                         error: (err) => console.error('Invoice email failed:', err)

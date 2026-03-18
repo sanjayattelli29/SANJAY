@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Application.Interfaces.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace API.Hubs;
@@ -6,11 +6,11 @@ namespace API.Hubs;
 // this code handles the real-time chat connection
 public class ChatHub : Hub
 {
-    private readonly IChatService _chatService;
+    private readonly ISupportChatService _supportChatService;
 
-    public ChatHub(IChatService chatService)
+    public ChatHub(ISupportChatService supportChatService)
     {
-        _chatService = chatService;
+        _supportChatService = supportChatService;
     }
 
     // joins a specific chat group based on policy id
@@ -23,7 +23,7 @@ public class ChatHub : Hub
     public async Task SendMessage(string policyId, string senderId, string senderRole, string message)
     {
         // save the message to our database first
-        var savedMessage = await _chatService.SaveMessageAsync(policyId, senderId, senderRole, message);
+        var savedMessage = await _supportChatService.SaveMessageAsync(policyId, senderId, senderRole, message);
 
         // send it out to everyone currently online in this chat
         await Clients.Group(policyId).SendAsync("ReceiveMessage", new

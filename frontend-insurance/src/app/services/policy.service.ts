@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { n8nWebhooks } from '../../environments/n8n/n8n';
 
 // policy service handles insurance policy operations
 // connects to backend policy controller for db operations
@@ -63,7 +64,7 @@ export class PolicyService {
     // send chat question to external n8n webhook for ai processing
     // not backend db just external integration
     sendChatQuestion(payload: any): Observable<any> {
-        const webhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/chatbot-agent-1";
+        const webhookUrl = n8nWebhooks.chatbotAgent;
         return this.http.post(webhookUrl, payload);
     }
 

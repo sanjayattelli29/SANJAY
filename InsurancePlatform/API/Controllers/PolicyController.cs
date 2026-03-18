@@ -1,5 +1,6 @@
 using Application.DTOs;
-using Application.Interfaces;
+using Application.Interfaces.Services;
+using Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,12 +13,12 @@ namespace API.Controllers
     [Authorize]
     public class PolicyController : ControllerBase
     {
-        private readonly IPolicyService _policyService;
+        private readonly IPolicyManager _policyManager;
         private readonly IFileStorageService _fileStorageService;
 
-        public PolicyController(IPolicyService policyService, IFileStorageService fileStorageService)
+        public PolicyController(IPolicyManager policyManager, IFileStorageService fileStorageService)
         {
-            _policyService = policyService;
+            _policyManager = policyManager;
             _fileStorageService = fileStorageService;
         }
 
@@ -26,7 +27,7 @@ namespace API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetConfiguration()
         {
-            var config = await _policyService.GetConfigurationAsync();
+            var config = await _policyManager.GetConfigurationAsync();
             return Ok(config);
         }
 
@@ -36,7 +37,7 @@ namespace API.Controllers
         {
             try
             {
-                var premium = await _policyService.CalculatePremiumAsync(request);
+                var premium = await _policyManager.CalculatePremiumAsync(request);
                 return Ok(new { Premium = premium });
             }
             catch (Exception ex)
@@ -54,7 +55,7 @@ namespace API.Controllers
 
             try
             {
-                var result = await _policyService.ApplyForPolicyAsync(userId, request);
+                var result = await _policyManager.ApplyForPolicyAsync(userId, request);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -69,7 +70,7 @@ namespace API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var policies = await _policyService.GetUserPoliciesAsync(userId);
+            var policies = await _policyManager.GetUserPoliciesAsync(userId);
             return Ok(policies);
         }
 
@@ -79,7 +80,7 @@ namespace API.Controllers
         {
             try
             {
-                var result = await _policyService.SubmitPolicyDocumentsAsync(request);
+                var result = await _policyManager.SubmitPolicyDocumentsAsync(request);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -96,7 +97,7 @@ namespace API.Controllers
             try
             {
                 using var stream = file.OpenReadStream();
-                var url = await _policyService.UploadGeneralFileAsync(stream, file.FileName, folder);
+                var url = await _policyManager.UploadGeneralFileAsync(stream, file.FileName, folder);
                 return Ok(new { Url = url });
             }
             catch (Exception ex)
@@ -118,7 +119,7 @@ namespace API.Controllers
 
                 var uploadResult = await _fileStorageService.UploadFileAsync(stream, dto.FileName, "/invoices");
                 
-                await _policyService.UpdateInvoiceUrlAsync(dto.ApplicationId, uploadResult.FileUrl);
+                await _policyManager.UpdateInvoiceUrlAsync(dto.ApplicationId, uploadResult.FileUrl);
 
                 return Ok(new { invoiceUrl = uploadResult.FileUrl });
             }

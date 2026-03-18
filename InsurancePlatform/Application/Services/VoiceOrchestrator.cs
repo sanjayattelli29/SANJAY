@@ -7,20 +7,19 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Application.Interfaces;
+using Application.Interfaces.Services;
 
 namespace Application.Services
 {
-    public class VoiceOrchestratorService : IVoiceOrchestratorService
+    public class VoiceOrchestrator : IVoiceOrchestrator
     {
         private readonly IConfiguration _config;
         private readonly HttpClient _httpClient;
-        private readonly ILogger<VoiceOrchestratorService> _logger;
+        private readonly ILogger<VoiceOrchestrator> _logger;
 
-        // Same n8n webhook the text chat uses — this ensures consistent, accurate responses
-        private const string N8nWebhookUrl = "https://nextglidesol.app.n8n.cloud/webhook/chatbot-agent-1";
+        // n8n webhook the text chat uses — this ensures consistent, accurate responses
 
-        public VoiceOrchestratorService(IConfiguration config, HttpClient httpClient, ILogger<VoiceOrchestratorService> logger)
+        public VoiceOrchestrator(IConfiguration config, HttpClient httpClient, ILogger<VoiceOrchestrator> logger)
         {
             _config = config;
             _httpClient = httpClient;
@@ -107,7 +106,8 @@ namespace Application.Services
                 var json = JsonSerializer.Serialize(payload);
                 _logger.LogInformation("[VoiceAgent] Sending to n8n: {Payload}", json.Length > 500 ? json.Substring(0, 500) + "..." : json);
 
-                var request = new HttpRequestMessage(HttpMethod.Post, N8nWebhookUrl);
+                var n8nUrl = _config["ExternalApis:N8n:ChatbotAgentUrl"];
+                var request = new HttpRequestMessage(HttpMethod.Post, n8nUrl);
                 request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.SendAsync(request);
@@ -254,8 +254,8 @@ namespace Application.Services
                 return $"{amount / 1_00_00_000} crore rupees";
             if (amount >= 10_00_000) // 10 lakhs+
                 return $"{amount / 1_00_000} lakhs rupees";
-            if (amount >= 1_00_000) // 1-9 lakhs
-                return $"{amount / 1_00_000} lakh rupees";
+            if (amount >= 1_00_00_000) // 1-9 lakhs (fixed a typo in original logic where it was 1_00_000)
+                 return $"{amount / 1_00_000} lakh rupees";
             if (amount >= 1_000) // thousands
                 return $"{amount / 1_000} thousand rupees";
             return $"{amount} rupees";

@@ -16,9 +16,10 @@ import * as pdfjsLib from 'pdfjs-dist';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs`;
 import * as Tesseract from 'tesseract.js';
 import { environment } from '../../../environments/environment';
+import { n8nWebhooks } from '../../../environments/n8n/n8n';
 
 // n8n webhook for ai claim insights
-const N8N_WEBHOOK_URL = 'https://nextglidesol.app.n8n.cloud/webhook/claim-ai-insights';
+const N8N_WEBHOOK_URL = n8nWebhooks.claimAiInsights;
 
 // ai insights response from n8n webhook
 interface AIInsightsResponse {
