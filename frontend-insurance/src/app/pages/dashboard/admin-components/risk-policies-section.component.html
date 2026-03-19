@@ -1,0 +1,225 @@
+<div class="space-y-12">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-xl md:text-2xl font-black text-brand-navy tracking-tight">Policies & Risk Framework</h2>
+            <p class="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-widest mt-0.5">Underwriting guidelines and current offering configuration</p>
+        </div>
+    </div>
+
+    <!-- Section 1: Policies -->
+    <div class="space-y-6">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-4">
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 tracking-tight">Active Policy Tiers (6)</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @for (policy of allPolicies; track policy.tierId) {
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
+                <!-- Card Top Border / Accent -->
+                <div class="h-1.5 bg-gradient-to-r" [className]="'h-1.5 bg-gradient-to-r ' + getTierColor(policy.tierName)"></div>
+                
+                <div class="p-6 flex-grow flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ policy.categoryName }}</p>
+                            <h4 class="text-lg font-black text-brand-navy mt-0.5">{{ policy.tierName }}</h4>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border" 
+                              [className]="'text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ' + getTierBadgeStyle(policy.tierName)">
+                            {{ policy.tierId }}
+                        </span>
+                    </div>
+
+                    <!-- Coverage -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Max Coverage</p>
+                        <p class="text-xl font-black text-emerald-600">₹{{ policy.baseCoverageAmount | number }}</p>
+                    </div>
+
+                    <!-- Premium -->
+                    <div class="space-y-1 mb-6">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Base Premium</p>
+                        <p class="text-lg font-black text-slate-800">₹{{ policy.basePremiumAmount | number }} <span class="text-[11px] font-bold text-slate-400 not-italic">/ Year</span></p>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Validity: {{ policy.validityInYears }} Year{{ policy.validityInYears > 1 ? 's' : '' }}</p>
+                    </div>
+
+                    <!-- Benefits -->
+                    <div class="space-y-2 flex-grow">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Key Benefits Included</p>
+                        @for (benefit of policy.benefits; track benefit) {
+                        <div class="flex items-start gap-2 text-xs text-slate-600 font-semibold">
+                            <span class="text-emerald-500 font-bold">✓</span>
+                            <span>{{ benefit }}</span>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            } @empty {
+            <div class="col-span-3 p-10 text-center text-slate-400 italic font-bold bg-white rounded-3xl border border-dashed border-slate-200">
+                No policy tiers available in config.
+            </div>
+            }
+        </div>
+    </div>
+
+    <!-- Section 2: Risk Factors -->
+    <div class="space-y-6">
+        <div class="flex items-center gap-2 border-b border-slate-100 pb-4">
+            <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 tracking-tight">Risk & Multiplier Framework</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Age Multipliers -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">A</div>
+                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Age Multipliers</h4>
+                </div>
+                <div class="space-y-2">
+                    @for (item of riskFactors.ageMultipliers; track item.minAge) {
+                    <div class="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors">
+                        <span class="text-xs font-bold text-slate-600">{{ item.minAge }} - {{ item.maxAge }} years</span>
+                        <span class="text-xs font-black" [class.text-emerald-600]="item.multiplier === 1" [class.text-amber-600]="item.multiplier > 1">x{{ item.multiplier }}</span>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Lifestyle Multipliers (Alcohol & Smoking) -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs">L</div>
+                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Lifestyle Multipliers</h4>
+                </div>
+                
+                <!-- Alcohol -->
+                <div class="space-y-2">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest border-b pb-1">Alcohol Habits</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        @for (item of riskFactors.alcoholMultiplier | keyvalue; track item.key) {
+                        <div class="bg-slate-50 p-3 rounded-xl text-center">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase">{{ item.key }}</p>
+                            <p class="text-base font-black text-brand-navy mt-1">x{{ item.value }}</p>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Smoking -->
+                <div class="space-y-2">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest border-b pb-1">Smoking Habits</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        @for (item of riskFactors.smokingMultiplier | keyvalue; track item.key) {
+                        <div class="bg-slate-50 p-3 rounded-xl text-center">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase">{{ item.key }}</p>
+                            <p class="text-base font-black text-brand-navy mt-1">x{{ item.value }}</p>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profession Multipliers (Full Width Scrollable or Grid) -->
+            <div class="col-span-1 md:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">P</div>
+                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Profession Multipliers</h4>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    @for (item of riskFactors.professionMultipliers; track item.profession) {
+                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all">
+                        <span class="text-xs font-bold text-slate-600 truncate mr-2">{{ item.profession }}</span>
+                        <span class="text-xs font-black text-indigo-600">x{{ item.multiplier }}</span>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Travel & Vehicle Multipliers -->
+            <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Travel Card -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">T</div>
+                        <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Travel Multipliers</h4>
+                    </div>
+                    <div class="space-y-2">
+                        @for (item of riskFactors.travelFrequencyMultiplier; track item.maxKmPerMonth) {
+                        <div class="flex justify-between items-center p-2 rounded-lg border-b border-slate-50">
+                            <span class="text-xs font-bold text-slate-500">Up to {{ item.maxKmPerMonth | number }} KM/Month</span>
+                            <span class="text-xs font-black text-slate-800">x{{ item.multiplier }}</span>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Vehicle Card -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-xs">V</div>
+                        <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Vehicle Multipliers</h4>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
+                        @for (item of riskFactors.vehicleTypeMultiplier; track item.vehicleType) {
+                        <div class="flex justify-between items-center p-2 hover:bg-slate-50 rounded-lg">
+                            <span class="text-xs font-bold text-slate-600">{{ item.vehicleType }}</span>
+                            <span class="text-xs font-black text-slate-800">x{{ item.multiplier }}</span>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        <!-- Premium Formula Summary -->
+        <div class="mt-8 bg-slate-50 border border-slate-200/60 rounded-3xl p-6 shadow-sm">
+            <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Premium Calculation Framework</h4>
+            <div class="flex flex-col gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/50 shadow-sm">
+                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Standard Formula</p>
+                    <p class="text-sm font-black text-slate-800 font-sora leading-relaxed">
+                        {{ config?.premiumFormula }}
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-white rounded-2xl border border-slate-200/50 shadow-sm">
+                        <span class="text-[10px] font-black uppercase text-slate-400">Coverage Rules Limit</span>
+                        <p class="text-xs font-bold text-slate-700 mt-1">
+                            {{ config?.coverageRules?.maxCoverageBasedOnIncome?.description }}
+                        </p>
+                        <div class="mt-2 text-xs text-slate-500">Multiplier Coefficient: <span class="font-black text-emerald-600">x{{ config?.coverageRules?.maxCoverageBasedOnIncome?.multiplier }}</span></div>
+                    </div>
+                    
+                    <div class="p-4 bg-white rounded-2xl border border-slate-200/50 shadow-sm">
+                        <span class="text-[10px] font-black uppercase text-slate-400">Payment Mode Discounts/Loads</span>
+                        <div class="flex flex-col gap-1.5 mt-2">
+                            <div class="flex justify-between text-xs font-bold text-slate-600">
+                                <span>Monthly</span>
+                                <span class="text-slate-800">x{{ config?.paymentModeMultipliers?.monthly }}</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-bold text-slate-600">
+                                <span>Half-Yearly</span>
+                                <span class="text-slate-800">x{{ config?.paymentModeMultipliers?.halfYearly }}</span>
+                            </div>
+                            <div class="flex justify-between text-xs font-bold text-slate-600">
+                                <span>Yearly (Discounted)</span>
+                                <span class="font-black text-emerald-600">x{{ config?.paymentModeMultipliers?.yearly }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

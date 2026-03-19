@@ -15,6 +15,8 @@ using System.Text;
 using API.Middlewares;
 using Application.Services;
 using Infrastructure.Repositories;
+using Infrastructure.ExternalServices;
+using Infrastructure.Broadcasters;
 
 namespace API
 {

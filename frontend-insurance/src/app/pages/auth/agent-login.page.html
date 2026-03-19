@@ -1,47 +1,137 @@
-<div class="min-h-screen flex flex-col items-center justify-center p-6 bg-brand-gray text-slate-900 font-sans">
-    <div class="mb-8 flex items-center gap-2">
-        <div class="w-8 h-8 bg-brand-orange rounded-full flex items-center justify-center font-bold text-lg text-white">
-            I</div>
-        <span
-            class="text-xl font-black tracking-tight text-brand-navy underline decoration-brand-orange decoration-4">AcciSure</span>
-    </div>
-
-    <div class="card w-full max-w-md shadow-xl border-none">
-        <div class="mb-6 p-4 bg-orange-50 rounded-lg border-l-4 border-brand-orange">
-            <h2 class="text-xl font-bold text-brand-navy">Agent Portal</h2>
-            <p class="text-slate-500 text-xs text-balance">Access your insurance portal and policy portfolio.</p>
+<div class="min-h-screen flex">
+    <!-- LEFT PANEL - Marketing/Sales Content -->
+    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+        style="background: radial-gradient(ellipse at 50% 50%, #fff7ed 0%, #ffedd5 55%, #ffe4b5 100%);">
+        
+        <!-- Subtle Grid Overlay -->
+        <div class="absolute inset-0 opacity-20"
+            style="background-image: linear-gradient(rgba(234, 88, 12, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(234, 88, 12, 0.1) 1px, transparent 1px); background-size: 60px 60px;">
         </div>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-            <div>
-                <label class="block text-sm font-bold text-brand-navy mb-2 uppercase tracking-wide">Agent Email</label>
-                <input type="email" formControlName="emailId" placeholder="agent@insurance.com" class="input-field"
-                    [class.border-red-500]="loginForm.get('emailId')?.invalid && loginForm.get('emailId')?.touched">
+        <div class="relative z-10 flex flex-col justify-center px-8 xl:px-16 py-8 text-brand-navy">
+            <!-- Logo -->
+            <div class="mb-8 flex items-center gap-2.5">
+                <div class="flex items-center">
+                    <div style="width: 16px; height: 16px; background: #ea580c; border-radius: 3px; transform: rotate(45deg);"></div>
+                    <div style="width: 16px; height: 16px; background: #9a3412; border-radius: 3px; transform: rotate(45deg); margin-left: -5px; opacity: 0.8;"></div>
+                </div>
+                <span class="text-xl font-black tracking-tight" style="font-family: 'Sora', sans-serif;">AcciSure</span>
+                <span class="text-[10px] font-black uppercase tracking-widest bg-brand-orange text-white px-2 py-0.5 rounded ml-2">Agent</span>
             </div>
-            <div>
-                <label class="block text-sm font-bold text-brand-navy mb-2 uppercase tracking-wide">Secure
-                    Password</label>
-                <div class="relative">
-                    <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" class="input-field pr-10"
-                        [class.border-red-500]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-                    <button type="button" (click)="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-green-600 transition-colors">
-                        <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                    </button>
+
+            <!-- Headline -->
+            <h1 class="text-3xl xl:text-4xl font-black mb-2 leading-tight" style="font-family: 'Sora', sans-serif;">
+                Drive Your Insurance<br>Portfolio Growth
+            </h1>
+            <p class="text-sm text-slate-600 mb-8 max-w-md">
+                Access your agent dashboard and manage policy pipelines efficiently.
+            </p>
+
+            <!-- Steps / Features -->
+            <div class="space-y-4 mb-8">
+                <!-- Point 1 -->
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shadow-lg"
+                        style="box-shadow: 0 6px 20px rgba(234, 88, 12, 0.3);">1</div>
+                    <div class="pt-1">
+                        <h3 class="font-bold text-base mb-0.5" style="font-family: 'Sora', sans-serif;">Track Policy Pipelines</h3>
+                        <p class="text-xs text-slate-500">Monitor active and pending applications</p>
+                    </div>
+                </div>
+
+                <!-- Dotted Line -->
+                <div class="ml-5 h-5 border-l-2 border-dashed border-orange-300"></div>
+
+                <!-- Point 2 -->
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shadow-lg"
+                        style="box-shadow: 0 6px 20px rgba(234, 88, 12, 0.3);">2</div>
+                    <div class="pt-1">
+                        <h3 class="font-bold text-base mb-0.5" style="font-family: 'Sora', sans-serif;">Client Lifecycle Management</h3>
+                        <p class="text-xs text-slate-500">Direct support and relationship maintenance</p>
+                    </div>
+                </div>
+
+                <!-- Dotted Line -->
+                <div class="ml-5 h-5 border-l-2 border-dashed border-orange-300"></div>
+
+                <!-- Point 3 -->
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shadow-lg"
+                        style="box-shadow: 0 6px 20px rgba(234, 88, 12, 0.3);">3</div>
+                    <div class="pt-1">
+                        <h3 class="font-bold text-base mb-0.5" style="font-family: 'Sora', sans-serif;">Maximize Commission Payouts</h3>
+                        <p class="text-xs text-slate-500">Earn multipliers based on volume performance</p>
+                    </div>
                 </div>
             </div>
 
-            <div *ngIf="errorMessage()" class="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
-                {{ errorMessage() }}
+            <!-- Stats Security -->
+            <div class="flex gap-3">
+                <div class="flex-1 bg-white/60 backdrop-blur-md rounded-xl p-3 border border-orange-100 shadow-sm">
+                    <div class="text-xl font-black mb-0.5 text-brand-orange" style="font-family: 'Sora', sans-serif;">24/7</div>
+                    <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Access Framework</div>
+                </div>
+                <div class="flex-1 bg-white/60 backdrop-blur-md rounded-xl p-3 border border-orange-100 shadow-sm">
+                    <div class="text-xl font-black mb-0.5 flex items-center gap-1 text-brand-orange" style="font-family: 'Sora', sans-serif;">
+                        Instant <span class="text-emerald-500 text-sm">✓</span>
+                    </div>
+                    <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Dashboard Analytics</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL - Login Form -->
+    <div class="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 lg:p-8 bg-white">
+        <!-- Mobile Logo -->
+        <div class="lg:hidden mb-6 flex items-center gap-2">
+            <div class="flex items-center">
+                <div style="width: 14px; height: 14px; background: #ea580c; border-radius: 3px; transform: rotate(45deg);"></div>
+                <div style="width: 14px; height: 14px; background: #9a3412; border-radius: 3px; transform: rotate(45deg); margin-left: -4px; opacity: 0.8;"></div>
+            </div>
+            <span class="text-xl font-black tracking-tight" style="font-family: 'Sora', sans-serif; color: #0f1f14;">AcciSure</span>
+            <span class="text-[9px] font-black uppercase tracking-widest bg-brand-orange text-white px-1.5 py-0.5 rounded ml-1">Agent</span>
+        </div>
+
+        <div class="w-full max-w-md">
+            <div class="mb-6 p-4 bg-orange-50 rounded-2xl border-l-4 border-brand-orange">
+                <h2 class="text-xl font-bold font-sora text-brand-navy">Agent Portal</h2>
+                <p class="text-slate-400 text-xs">Access your insurance portal and policy portfolio.</p>
             </div>
 
-            <button type="submit" [disabled]="loginForm.invalid || isLoading()" class="btn-primary w-full shadow-lg">
-                {{ isLoading() ? 'Logging in...' : 'Enter Agent Dashboard' }}
-            </button>
-        </form>
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold mb-1.5 text-brand-navy">Agent Email</label>
+                    <input type="email" formControlName="emailId" placeholder="agent@insurance.com" class="input-field"
+                        [class.border-red-500]="loginForm.get('emailId')?.invalid && loginForm.get('emailId')?.touched">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1.5 text-brand-navy">Secure Password</label>
+                    <div class="relative">
+                        <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" class="input-field pr-10"
+                            [class.border-red-500]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                        <button type="button" (click)="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-green-600 transition-colors">
+                            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                        </button>
+                    </div>
+                </div>
 
-        <div class="mt-8 text-center text-xs text-slate-400">
-            <a routerLink="/" class="hover:text-brand-orange hover:underline transition-colors">Return to Main Site</a>
+                <div *ngIf="errorMessage()" class="p-2.5 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100">
+                    {{ errorMessage() }}
+                </div>
+
+                <button type="submit" [disabled]="loginForm.invalid || isLoading()" 
+                        class="w-full py-2.5 rounded-xl font-bold text-white transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                        style="background: linear-gradient(135deg, #ea580c, #c2410c); font-family: 'Sora', sans-serif; box-shadow: 0 4px 20px rgba(234, 88, 12, 0.25);">
+                    {{ isLoading() ? 'Logging in...' : 'Enter Agent Dashboard' }}
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-gray-200 text-center text-xs text-slate-400">
+                <a routerLink="/" class="hover:text-brand-orange hover:underline transition-colors">Return to Landing Page</a>
+            </div>
         </div>
     </div>
 </div>
