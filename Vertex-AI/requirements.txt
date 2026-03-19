@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-python-dotenv
-google-cloud-aiplatform
-PyMuPDF
-python-multipart
-gunicorn   

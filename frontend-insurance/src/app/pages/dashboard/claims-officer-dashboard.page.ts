@@ -544,7 +544,9 @@ export class ClaimsOfficerDashboardPage implements OnInit {
             });
 
             if (!response.ok) {
-                throw new Error(`Vertex AI backend error: ${response.status}`);
+                const errorBody = await response.text();
+                console.error('Vertex AI Detailed Error:', errorBody);
+                throw new Error(`Vertex AI backend error: ${response.status} - ${errorBody}`);
             }
 
             const result: ClaimAIInsightsResponse = await response.json();

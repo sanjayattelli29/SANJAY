@@ -1,1 +1,6 @@
 accisure-490603-a7fc0ba7649d.json
+node_modules/
+.env
+__pycache__/
+*.pyc
+.DS_Store

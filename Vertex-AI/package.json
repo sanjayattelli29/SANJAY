@@ -1,0 +1,17 @@
+{
+  "name": "vertex-ai-node",
+  "version": "1.0.0",
+  "description": "Vertex AI Backend in Node.js",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "dotenv": "^16.4.5",
+    "@google-cloud/vertexai": "^1.1.0",
+    "pdf-parse": "^1.1.1",
+    "cors": "^2.8.5"
+  }
+}
