@@ -98,14 +98,6 @@
                 </svg>
                 Payments
             </button>
-            <button (click)="setSection('analysis-ai'); sidebarOpen.set(false)"
-                [class.active]="activeSection() === 'analysis-ai'" class="sidebar-link w-full">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3M6.343 6.343l-.707-.707M12 21v-1M17.657 17.657l-.707-.707M6.343 17.657l-.707-.707M17.657 6.343l-.707-.707" />
-                </svg>
-                AI Analysis
-            </button>
 
             <!-- Section Label -->
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-3 pt-4 pb-2">Administration</p>
@@ -264,9 +256,6 @@
                 <app-email-automation-section [allUsers]="allUsers()" (refreshUsers)="loadAllUsers()"
                     (sendEmail)="openEmailForm($event)">
                 </app-email-automation-section>
-                } @if (activeSection() === 'analysis-ai') {
-                <app-analysis-ai-section class="block h-full overflow-y-auto">
-                </app-analysis-ai-section>
                 }
             </div>
         </div>

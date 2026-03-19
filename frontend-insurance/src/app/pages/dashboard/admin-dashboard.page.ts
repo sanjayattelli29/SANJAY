@@ -25,7 +25,6 @@ import { AnalysisPoliciesSectionComponent } from './admin-components/analysis-po
 import { AnalysisCommandsSectionComponent } from './admin-components/analysis-commands-section.component';
 import { AnalysisPaymentsSectionComponent } from './admin-components/analysis-payments-section.component';
 import { EmailAutomationSectionComponent } from './admin-components/email-automation-section.component';
-import { AnalysisAISectionComponent } from './admin-components/analysis-ai-section.component';
 
 // admin dashboard main component
 // comprehensive admin panel for managing agents officers policies claims
@@ -47,7 +46,6 @@ import { AnalysisAISectionComponent } from './admin-components/analysis-ai-secti
         AnalysisCommandsSectionComponent,
         AnalysisPaymentsSectionComponent,
         EmailAutomationSectionComponent,
-        AnalysisAISectionComponent,
         LocationMapComponent
     ],
     templateUrl: './admin-dashboard.page.html'
@@ -176,7 +174,6 @@ export class AdminDashboardPage implements OnInit {
         if (section === 'analysis-users' && this.allUsers().length === 0) this.loadAllUsers();
         if (section === 'analysis-commands' && this.allClaims().length === 0) this.loadAllClaims();
         if (section === 'analysis-payments' && this.unifiedPayments().length === 0) this.loadUnifiedPayments();
-        if (section === 'analysis-ai') { /* AI section manages its own data */ }
         if (section === 'email-automation') {
             if (this.allUsers().length === 0) {
                 this.loadAllUsers();

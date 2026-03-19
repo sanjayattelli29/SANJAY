@@ -15,10 +15,6 @@ using System.Text;
 using API.Middlewares;
 using Application.Services;
 using Infrastructure.Repositories;
-using Infrastructure.Broadcasters;
-using Infrastructure.ExternalServices;
-using Microsoft.SemanticKernel;
-using Application.Plugins;
 
 namespace API
 {
@@ -104,33 +100,6 @@ namespace API
             builder.Services.AddScoped<ISystemNotifier, SystemNotifier>();
             builder.Services.AddScoped<IVoiceOrchestrator, VoiceOrchestrator>();
             builder.Services.AddScoped<IVapiService, VapiClient>();
-
-            // Register Semantic Kernel with Groq
-            builder.Services.AddScoped<Kernel>(sp =>
-            {
-                var kernelBuilder = Kernel.CreateBuilder();
-                kernelBuilder.AddOpenAIChatCompletion(
-                    modelId: builder.Configuration["Groq:ModelId"]!,
-                    apiKey: builder.Configuration["Groq:ApiKey"]!,
-                    endpoint: new Uri("https://api.groq.com/openai/v1")
-                );
-
-                // Build kernel first
-                var kernel = kernelBuilder.Build();
-
-                // Inject DatabasePlugin with its dependencies from DI
-                var policyRepo = sp.GetRequiredService<IPolicyRepository>();
-                var claimRepo = sp.GetRequiredService<IClaimRepository>();
-                var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
-
-                var plugin = new DatabasePlugin(policyRepo, claimRepo, userManager);
-                kernel.Plugins.AddFromObject(plugin, "Database");
-
-                return kernel;
-            });
-
-            // Register AIAnalysisService
-            builder.Services.AddScoped<IAIAnalysisService, AIAnalysisService>();
 
             // SIGNALR
             builder.Services.AddSignalR()
