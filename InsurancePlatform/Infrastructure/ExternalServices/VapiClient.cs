@@ -37,7 +37,7 @@ namespace Infrastructure.ExternalServices
                 phoneNumberId = phoneNumberId,
                 customer = new
                 {
-                    number = phoneNumber,
+                    number = phoneNumber.StartsWith("+") ? phoneNumber : $"+91{phoneNumber}",
                     name = customerName
                 }
             };
@@ -52,10 +52,21 @@ namespace Infrastructure.ExternalServices
             try
             {
                 var response = await _httpClient.PostAsync($"{baseUrl}/call", requestContent);
+                var responseString = await response.Content.ReadAsStringAsync();
+                
+                System.IO.File.WriteAllText(@"c:\Sanjay\vapi_debug.txt", 
+                    $"Status: {response.StatusCode}\n" +
+                    $"Response: {responseString}\n" +
+                    $"URL: {baseUrl}/call\n" +
+                    $"Body: {JsonSerializer.Serialize(requestBody)}");
+
                 return response.IsSuccessStatusCode;
             }
-            catch
+            catch (Exception ex)
             {
+                System.IO.File.WriteAllText(@"c:\Sanjay\vapi_debug.txt", 
+                    $"Exception: {ex.Message}\n" +
+                    $"Stack: {ex.StackTrace}");
                 return false;
             }
         }

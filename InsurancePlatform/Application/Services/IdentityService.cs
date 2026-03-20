@@ -18,18 +18,21 @@ namespace Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ITokenService _tokenService;
+        private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _scopeFactory;
         private readonly IVapiService _vapiService;
 
         public IdentityService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ITokenService tokenService,
-            IVapiService vapiService)
+            IVapiService vapiService,
+            Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokenService = tokenService;
             _vapiService = vapiService;
+            _scopeFactory = scopeFactory;
         }
 
         public async Task<AuthResponseDto> RegisterCustomerAsync(RegisterCustomerDto registerDto)
@@ -56,16 +59,25 @@ namespace Application.Services
 
             await _userManager.AddToRoleAsync(user, UserRoles.Customer);
 
+            var phoneNumber = user.PhoneNumber!;
+            var fullName = user.FullName!;
+
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(90));
-                    await _vapiService.TriggerWelcomeCallAsync(user.PhoneNumber!, user.FullName!);
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var scopedVapi = scope.ServiceProvider.GetService(typeof(IVapiService)) as IVapiService;
+                        if (scopedVapi != null)
+                        {
+                            await scopedVapi.TriggerWelcomeCallAsync(phoneNumber, fullName);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Vapi Call Trigger failed: {ex.Message}");
+                    Console.WriteLine($"Background Vapi Support failed: {ex.Message}");
                 }
             });
 
