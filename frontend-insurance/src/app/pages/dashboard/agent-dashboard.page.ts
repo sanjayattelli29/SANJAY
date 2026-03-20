@@ -667,6 +667,21 @@ export class AgentDashboardPage implements OnInit {
         return slots;
     }
 
+    getNextPaymentDetails(policy: any): { amount: number, date: any } {
+        if (!policy) return { amount: 0, date: null };
+        const mode = (policy.paymentMode || 'yearly').toLowerCase();
+        const total = policy.calculatedPremium || 0;
+        const paid = policy.paidAmount || 0;
+        
+        if (paid >= total) return { amount: 0, date: 'Fully Paid' };
+        
+        let periodic = total;
+        if (mode === 'monthly') periodic = total / 12;
+        else if (mode === 'halfyearly') periodic = total / 2;
+        
+        return { amount: periodic, date: policy.nextPaymentDate };
+    }
+
     reviewApplication(status: 'Approved' | 'Rejected') {
         const app = this.selectedApplication();
         if (!app) return;

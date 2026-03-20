@@ -730,8 +730,10 @@
                                     <tr class="bg-slate-50 text-slate-400 font-bold uppercase tracking-widest border-b border-slate-100">
                                         <th class="px-6 py-4">Customer</th>
                                         <th class="px-6 py-4">Policy Type</th>
-                                        <th class="px-6 py-4">Premium Paid</th>
-                                        <th class="px-6 py-4 text-emerald-600">Commission (10%)</th>
+                                        <th class="px-6 py-4">Total Amount</th>
+                                        <th class="px-6 py-4">Amount Paid</th>
+                                        <th class="px-6 py-4">Next Payment</th>
+                                        <th class="px-6 py-4 text-emerald-600">Commission</th>
                                         <th class="px-6 py-4 text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -740,7 +742,11 @@
                                     <tr class="hover:bg-slate-50/50 transition-colors">
                                         <td class="px-6 py-4 font-bold text-brand-navy">{{ policy.user?.email }}</td>
                                         <td class="px-6 py-4 font-bold text-slate-500">{{ policy.policyCategory }} - {{ policy.tierId }}</td>
-                                        <td class="px-6 py-4 font-black">₹{{ policy.calculatedPremium | number:'1.0-0' }}
+                                        <td class="px-6 py-4 font-bold">₹{{ policy.calculatedPremium | number:'1.0-0' }}</td>
+                                        <td class="px-6 py-4 font-black text-emerald-600">₹{{ policy.paidAmount || 0 | number:'1.0-0' }}</td>
+                                        <td class="px-6 py-4 space-y-1">
+                                            <p class="font-black text-slate-700">₹{{ getNextPaymentDetails(policy).amount | number:'1.0-0' }}</p>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase">{{ getNextPaymentDetails(policy).date === 'Fully Paid' ? 'Fully Paid' : (getNextPaymentDetails(policy).date | date:'dd MMM yyyy') }}</p>
                                         </td>
                                         <td class="px-6 py-4 font-black text-emerald-600 bg-emerald-50/30">₹{{ (policy.calculatedPremium * 0.10) | number:'1.0-0' }}</td>
                                         <td class="px-6 py-4 text-right">
@@ -749,13 +755,13 @@
                                     </tr>
                                     } @empty {
                                     <tr>
-                                        <td colspan="5" class="p-12 text-center text-slate-400 font-bold italic">No active policies with commission yet.</td>
+                                        <td colspan="7" class="p-12 text-center text-slate-400 font-bold italic">No active policies with commission yet.</td>
                                     </tr>
                                     }
                                 </tbody>
                                 <tfoot>
                                     <tr class="bg-emerald-50/20 border-t-2 border-emerald-100 font-black text-brand-navy">
-                                        <td colspan="3" class="px-6 py-4 text-right uppercase tracking-widest text-[10px]">Grand Total Commission:</td>
+                                        <td colspan="5" class="px-6 py-4 text-right uppercase tracking-widest text-[10px]">Grand Total Commission:</td>
                                         <td class="px-6 py-4 text-lg text-emerald-600">₹{{ commissionData().totalCommission | number:'1.0-2' }}</td>
                                         <td></td>
                                     </tr>

@@ -112,7 +112,7 @@ export class NotificationPanelComponent implements OnInit {
         if (t.includes('POLICY:')) return 'POLICY UPDATE';
         if (t.includes('CLAIM:')) return 'CLAIM ALERT';
         if (t.includes('POLICYAPPLICATION')) return 'APPLICATION UPDATE';
-        if (t.includes('COMMISSION')) return 'COMMISSION EARNED 💰';
+        if (t.includes('COMM')) return 'COMMISSION EARNED 💰';
         return type.includes(':') ? type.split(':').pop()!.toUpperCase() : type.toUpperCase();
     }
 }

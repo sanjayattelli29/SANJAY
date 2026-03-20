@@ -1312,13 +1312,22 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         this.activeView.set('policy-details');
     }
 
+    getPeriodicPaymentAmount(pol: any): number {
+        if (!pol) return 0;
+        const mode = (pol.paymentMode || 'yearly').toLowerCase().replace(/[\s\-_]+/g, '');
+        const total = pol.calculatedPremium || 0;
+        if (mode === 'monthly') return total / 12;
+        if (mode === 'halfyearly') return total / 2;
+        return total;
+    }
 
     // This function processes the premium payment for a policy from the detailed policy view and activates the policy upon successful payment.
     payPremiumFromDetails() {
         const pol = this.detailedPolicy();
         if (!pol) return;
 
-        if (!confirm(`Confirm payment of ₹${pol.calculatedPremium} for ${pol.tierId} policy?`)) return;
+        const amount = this.getPeriodicPaymentAmount(pol);
+        if (!confirm(`Confirm payment of ₹${amount.toFixed(2)} for ${pol.tierId} policy?`)) return;
 
         this.executePayment();
     }
@@ -1329,7 +1338,8 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         if (!pol) return;
 
         this.isPaying.set(true);
-        this.policyService.processPayment(pol.id, pol.calculatedPremium).subscribe({
+        const amountToPay = this.getPeriodicPaymentAmount(pol);
+        this.policyService.processPayment(pol.id, amountToPay).subscribe({
             next: () => {
                 this.isPaying.set(false);
                 this.showPaymentModal.set(false);
@@ -1416,10 +1426,11 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         const pol = this.selectedPolicy();
         if (!pol) return;
 
-        if (!confirm(`Confirm payment of ₹${pol.calculatedPremium} for ${pol.tierId} policy?`)) return;
+        const amount = this.getPeriodicPaymentAmount(pol);
+        if (!confirm(`Confirm payment of ₹${amount.toFixed(2)} for ${pol.tierId} policy?`)) return;
 
         this.isPaying.set(true);
-        this.policyService.processPayment(pol.id, pol.calculatedPremium).subscribe({
+        this.policyService.processPayment(pol.id, amount).subscribe({
             next: (res) => {
                 this.isPaying.set(false);
                 this.showPolicyDetailModal.set(false);
@@ -1776,10 +1787,10 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
             startY: 80,
             head: [['Description', 'Amount']],
             body: [
-                ['Initial Premium Payment', `INR ${pol.calculatedPremium}`],
+                ['Premium Payment', `INR ${this.getPeriodicPaymentAmount(pol)}`],
                 ['Service Tax (GST)', 'Included'],
             ],
-            foot: [['Total Paid', `INR ${pol.calculatedPremium}`]],
+            foot: [['Total Paid', `INR ${this.getPeriodicPaymentAmount(pol)}`]],
             theme: 'striped',
             headStyles: { fillColor: [1, 33, 67] }
         });
@@ -1798,7 +1809,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     phoneNumber: user.phone || 'Not Provided',
                     policyId: pol.id,
                     policyName: pol.tierId || pol.policyName || 'Accidental Insurance Policy',
-                    amount: pol.calculatedPremium,
+                    amount: this.getPeriodicPaymentAmount(pol),
                     paymentDate: new Date().toLocaleDateString('en-IN', {
                         day: '2-digit', month: 'short', year: 'numeric'
                     }),
@@ -1813,11 +1824,16 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
             error: (uploadErr) => {
                 console.error('Invoice PDF upload failed. Sending email with fallback.', uploadErr);
                 // Fallback to sending email even if upload failed (link might be broken but email gets through)
-                this.http.post('https://nextglidesol.app.n8n.cloud/webhook/send-invoice', {
+                this.http.post('https://sanjay29n8n.app.n8n.cloud/webhook/send-invoice', {
                     customerEmail: user.email,
                     customerName: user.name || user.email,
                     phoneNumber: user.phone || 'Not Provided',
                     policyId: pol.id,
+                    policyName: pol.tierId || pol.policyName || 'Accidental Insurance Policy',
+                    amount: this.getPeriodicPaymentAmount(pol),
+                    paymentDate: new Date().toLocaleDateString('en-IN', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                    }),
                     invoiceLink: `https://ik.imagekit.io/nextbyteind/invoices/Invoice_${pol.id}.pdf`
                 }).subscribe();
             }

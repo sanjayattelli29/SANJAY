@@ -359,7 +359,7 @@ namespace Application.Services
             {
                 decimal commission = app.CalculatedPremium * 0.10m;
                 await _systemNotifier.SendNotificationAsync(app.AssignedAgentId, "Commission Earned 💰", 
-                    $"Customer {customerEmail} has paid for their {app.TierId} policy. You earned {commission:C} commission!", $"AGENT:Commission:{applicationId}");
+                    $"Customer {customerEmail} has paid for their {app.TierId} policy. You earned {commission:C} commission!", $"AGENT:Comm:{applicationId}");
             }
             else
             {

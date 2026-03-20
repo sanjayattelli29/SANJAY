@@ -2868,7 +2868,7 @@
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Amount
                             Due</p>
                         <h4 class="text-3xl text-white italic tracking-tighter">₹{{
-                            ctx.detailedPolicy()?.calculatedPremium | number }}</h4>
+                            ctx.getPeriodicPaymentAmount(ctx.detailedPolicy()) | number }}</h4>
                         <p class="text-[9px] font-bold text-brand-orange uppercase mt-2 tracking-widest italic">{{
                             ctx.detailedPolicy()?.policyName }} Plan Coverage</p>
                     </div>

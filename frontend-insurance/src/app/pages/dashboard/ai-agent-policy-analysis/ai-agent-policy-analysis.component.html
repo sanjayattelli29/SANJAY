@@ -121,81 +121,45 @@
             </div>
         </div>
 
-        <!-- 3. Diagnostic Breakdowns (2x2 Grid) -->
-        <div class="space-y-4">
-            <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-200/50 pb-2">Categorical Diagnostics</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                <div class="bg-indigo-50/30 p-5 rounded-2xl border border-indigo-100/50">
-                    <p class="text-[10px] text-indigo-500 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg> Policy Structure
-                    </p>
-                    <p class="text-[11px] text-slate-600 font-medium leading-relaxed text-left">
-                        {{ analysisResult().policyAnalysis || analysisResult().claimsReport || 'No specific policy anomalies detected.' }}
-                    </p>
-                </div>
-
-                <div class="bg-sky-50/30 p-5 rounded-2xl border border-sky-100/50">
-                    <p class="text-[10px] text-sky-500 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg> Behavior Metrics
-                    </p>
-                    <p class="text-[11px] text-slate-600 font-medium leading-relaxed text-left">
-                        {{ analysisResult().userBehaviorAnalysis || analysisResult().paymentsReport || 'Normal payment & engagement behavior observed.' }}
-                    </p>
-                </div>
-
-                <div class="bg-amber-50/30 p-5 rounded-2xl border border-amber-100/50">
-                    <p class="text-[10px] text-amber-600 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2" />
-                    </svg> Beneficiary Risk
-                    </p>
-                    <p class="text-[11px] text-slate-600 font-medium leading-relaxed text-left">
-                        {{ analysisResult().nomineeRiskAnalysis || 'Nominee profiles verified against primary claimant.' }}
-                    </p>
-                </div>
-
-                <div class="bg-rose-50/30 p-5 rounded-2xl border border-rose-100/50">
-                    <p class="text-[10px] text-rose-500 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg> Lifestyle Baseline
-                    </p>
-                    <p class="text-[11px] text-slate-600 font-medium leading-relaxed text-left">
-                        {{ analysisResult().lifestyleRiskAnalysis || 'Habits fall within standard underwriting acceptable margins.' }}
-                    </p>
+        <!-- 3. Critical Mismatches Found -->
+        <div *ngIf="analysisResult().mismatches?.length" class="space-y-4">
+            <h4 class="text-[11px] font-black text-rose-500 uppercase tracking-[0.2em] border-b border-rose-200/50 pb-2">Critical Mismatches Found</h4>
+            <div class="bg-rose-50/50 p-4 rounded-2xl border border-rose-100 shadow-sm space-y-3">
+                <div *ngFor="let m of analysisResult().mismatches" class="flex items-start gap-2.5">
+                    <svg class="w-4 h-4 text-rose-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p class="text-xs text-rose-700 font-semibold leading-relaxed">{{ m }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- 4. Mandatory Verifications (Documentation Summary) -->
-        <div class="space-y-4 pb-6">
+        <!-- 4. Missing Information -->
+        <div *ngIf="analysisResult().missingData?.length" class="space-y-4">
+            <h4 class="text-[11px] font-black text-amber-600 uppercase tracking-[0.2em] border-b border-amber-200/50 pb-2">Missing Information / Items</h4>
+            <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-100 shadow-sm space-y-3">
+                <div *ngFor="let md of analysisResult().missingData" class="flex items-start gap-2.5">
+                    <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 011-18 0 9 9 0 011 18z" />
+                    </svg>
+                    <p class="text-xs text-amber-700 font-semibold leading-relaxed">{{ md }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Document Verification Reports -->
+        <div *ngIf="analysisResult().analysisSummaries" class="space-y-4 pb-10">
             <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-200/50 pb-2">Document Proof Validation</h4>
 
             <div class="space-y-3">
-                <div class="bg-white p-4 rounded-xl border-l-4 border-l-brand-orange border-y border-r border-slate-100 shadow-sm">
-                    <p class="text-[9px] text-slate-400 font-black uppercase mb-1">Medical Assessment</p>
-                    <p class="text-[11px] text-slate-700 italic">{{ analysisResult().medicalReportSummary || 'No significant red flags derived from OCR data.' }}</p>
+                <div *ngIf="analysisResult().analysisSummaries.documentConsistency" class="bg-white p-5 rounded-2xl border-l-4 border-l-indigo-500 border-y border-r border-slate-100 shadow-sm hover:shadow-md transition-all">
+                    <p class="text-[9px] text-indigo-500 font-black uppercase tracking-wider mb-1">Document Consistency Report</p>
+                    <p class="text-xs text-slate-700 italic font-medium leading-relaxed">{{ analysisResult().analysisSummaries.documentConsistency }}</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl border-l-4 border-l-emerald-400 border-y border-r border-slate-100 shadow-sm">
-                    <p class="text-[9px] text-slate-400 font-black uppercase mb-1">Income & Fiscal Solvency</p>
-                    <p class="text-[11px] text-slate-700 italic">{{ analysisResult().incomeCertificateValidationSummary || 'Income declaration aligns with provided fiscal endpoints.' }}</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl border-l-4 border-l-cyan-400 border-y border-r border-slate-100 shadow-sm">
-                    <p class="text-[9px] text-slate-400 font-black uppercase mb-1">Chronological Age Proof</p>
-                    <p class="text-[11px] text-slate-700 italic">{{ analysisResult().ageProofVerificationSummary || 'DOB matching uniformly across identity submissions.' }}</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl border-l-4 border-l-indigo-400 border-y border-r border-slate-100 shadow-sm">
-                    <p class="text-[9px] text-slate-400 font-black uppercase mb-1">State Identity Verification</p>
-                    <p class="text-[11px] text-slate-700 italic">{{ analysisResult().identityProofValidationSummary || 'National Identity artifacts validate successfully via metadata heuristics.' }}</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl border-l-4 border-l-rose-400 border-y border-r border-slate-100 shadow-sm">
-                    <p class="text-[9px] text-slate-400 font-black uppercase mb-1">Cumulative Risk Synopsis</p>
-                    <p class="text-[11px] text-slate-700 italic font-bold">{{ analysisResult().overallRiskSummary || 'Based on the provided aggregate vectors, the application is deemed ' + analysisResult().overallRiskLevel + ' risk for processing.' }}</p>
+                
+                <div *ngIf="analysisResult().analysisSummaries.overall" class="bg-white p-5 rounded-2xl border-l-4 border-l-emerald-500 border-y border-r border-slate-100 shadow-sm hover:shadow-md transition-all">
+                    <p class="text-[9px] text-emerald-500 font-black uppercase tracking-wider mb-1">Detailed Document Assessment</p>
+                    <p class="text-xs text-slate-700 italic font-medium leading-relaxed">{{ analysisResult().analysisSummaries.overall }}</p>
                 </div>
             </div>
         </div>

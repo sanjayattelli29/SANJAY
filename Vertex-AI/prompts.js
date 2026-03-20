@@ -107,7 +107,9 @@ Evaluation criteria:
 - Claimant behavior (first-time claim vs. repeat, time since policy purchase)
 
 STRICT RULES:
-- Always estimate the fair market value range of the claimed amount (\`suggestedAmountMin\` and \`suggestedAmountMax\`) strictly based on the submitted bills, even if you recommend REJECTION overall due to policy rules or fraud. In the latter case, you can advise paying INR 0 in your settlementRecommendation text, but keep these numeric properties linked to the expense total so officers see the claimed value accurately.
+- Always estimate the fair market value range of the claimed amount (\`suggestedAmountMin\` and \`suggestedAmountMax\`) strictly based on the submitted itemized bill values provided in \`claimData\` (\`hospitalBill\` + \`medicines\` + \`otherExpenses\`) cross-verified against documents.
+
+- The suggested range MUST NOT exceed the sum of these bill values unless a specific document explicitly supports an additional approved or itemized sum that is missing from the JSON payload. Do NOT inflate the recommended range due to noisy OCR text that differs significantly from structured JSON quantities.
 
 - If bills are missing/unclear, make a reasonable estimate based on the requested amount and local healthcare costs described in claimsData.
 
