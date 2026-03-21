@@ -5,5 +5,6 @@ export const n8nWebhooks = {
     claimAiInsights: 'https://sanjay29n8n.app.n8n.cloud/webhook/claim-ai-insights',
     agentSendEmail: 'https://sanjay29n8n.app.n8n.cloud/webhook/agent-send-email',
     agentAiInsights: 'https://sanjay29n8n.app.n8n.cloud/webhook/agent-ai-insights',
-    sendInvoice: 'https://sanjay29n8n.app.n8n.cloud/webhook/send-invoice'
+    sendInvoice: 'https://sanjay29n8n.app.n8n.cloud/webhook/send-invoice',
+    vapiOnboardingCall: 'https://sanjay29n8n.app.n8n.cloud/webhook/vapi-onboarding'
 };

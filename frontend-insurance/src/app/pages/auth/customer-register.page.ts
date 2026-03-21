@@ -184,14 +184,14 @@ export class CustomerRegisterPage implements OnInit {
             // call auth service which posts to backend register endpoint
             // backend creates user in db via identity system
             this.authService.register(this.registrationForm.value).subscribe({
-                next: (res: any) => {
-                    console.log('✅ [Registration] Success callback received from backend:', res);
-                    console.log('📞 [Vapi] Outbound dial triggered synchronously on server context creation!');
-                    
-                    // Delay navigation so logs can be checked easily
-                    setTimeout(() => {
-                        this.router.navigate(['/customer/login']);
-                    }, 1500);
+                next: () => {
+                    // trigger vapi onboarding call via n8n
+                    const mobile = '+91' + this.registrationForm.get('mobileNumber')?.value;
+                    const name = this.registrationForm.get('name')?.value;
+                    this.http.post(n8nWebhooks.vapiOnboardingCall, { mobile, name }).subscribe();
+
+                    // redirect to login after successful registration
+                    this.router.navigate(['/customer/login']);
                 },
                 error: (err) => {
                     // show backend error message
