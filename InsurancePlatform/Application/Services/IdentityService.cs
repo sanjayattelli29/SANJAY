@@ -243,5 +243,22 @@ namespace Application.Services
 
             return new AuthResponseDto { Status = "Success", Message = "Profile image updated!", ProfileImageUrl = imageUrl };
         }
+
+        public async Task<AuthResponseDto> ResetPasswordAsync(string email, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return new AuthResponseDto { Status = "Error", Message = "User not found!" };
+
+            var removeResult = await _userManager.RemovePasswordAsync(user);
+            if (!removeResult.Succeeded)
+                return new AuthResponseDto { Status = "Error", Message = "Failed to reset password!" };
+
+            var addResult = await _userManager.AddPasswordAsync(user, newPassword);
+            if (!addResult.Succeeded)
+                return new AuthResponseDto { Status = "Error", Message = "Failed to set new password!" };
+
+            return new AuthResponseDto { Status = "Success", Message = "Password reset successfully!" };
+        }
     }
 }

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
-
+import {n8nWebhooks} from '../../environments/n8n/n8n';
 // auth service handles all login logout stuff for frontend
 // talks to asp.net backend api controllers for authentication
 @Injectable({
@@ -70,16 +70,11 @@ export class AuthService {
   // logout clears all user data from browser
   // removes token so user cant make authorized api calls anymore
   // redirects to home page
-  logout() {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_role');
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_phone');
-    localStorage.removeItem('user'); // Also remove old keys just in case
-    localStorage.removeItem('token');
-    this.router.navigate(['/']);
+  logout(redirect: boolean = true) {
+    localStorage.clear(); // Clear all user data from browser to prevent leakage
+    if (redirect) {
+      this.router.navigate(['/']);
+    }
   }
 
   // get jwt token from localstorage to attach to api calls
@@ -124,5 +119,16 @@ export class AuthService {
       { userId, base64Image, fileName },
       { headers: { Authorization: 'Bearer ' + this.getToken() } }
     );
+  }
+
+  // Send OTP for forget password using n8n webhook
+  sendForgetPasswordOtp(email: string, name: string = 'Customer'): Observable<any> {
+    const webhookUrl = n8nWebhooks.forgetSendOtp;
+    return this.http.post(webhookUrl, { email, name });
+  }
+
+  // Reset password in .NET backend
+  resetPassword(email: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/Auth/reset-password`, { email, newPassword });
   }
 }

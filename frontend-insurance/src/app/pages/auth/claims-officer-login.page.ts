@@ -23,6 +23,13 @@ export class ClaimsOfficerLoginPage {
     errorMessage = signal('');
     showPassword = false;
 
+    // forget password states
+    isForgetPasswordMode = signal(false);
+    isForgetOtpSent = signal(false);
+    isForgetOtpVerified = signal(false);
+    forgetEmail = signal('');
+    correctForgetOtp = signal(''); // store returned otp for verification
+
     togglePassword() {
         this.showPassword = !this.showPassword;
     }
@@ -31,6 +38,13 @@ export class ClaimsOfficerLoginPage {
     loginForm = this.fb.group({
         emailId: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required]]
+    });
+
+    forgetForm = this.fb.group({
+        email: ['', [Validators.required, Validators.email]],
+        otp: ['', [Validators.required]],
+        newPassword: ['', [Validators.required, Validators.minLength(6)]],
+        confirmPassword: ['', [Validators.required]]
     });
 
     // login via backend auth api
@@ -57,5 +71,84 @@ export class ClaimsOfficerLoginPage {
                 }
             });
         }
+    }
+
+    toggleForgetPassword() {
+        this.isForgetPasswordMode.set(!this.isForgetPasswordMode());
+        this.errorMessage.set('');
+        this.isForgetOtpSent.set(false);
+        this.isForgetOtpVerified.set(false);
+        this.forgetForm.reset();
+    }
+
+    sendForgetOtp() {
+        const email = this.forgetForm.get('email')?.value;
+        if (!email) return;
+
+        this.isLoading.set(true);
+        this.authService.sendForgetPasswordOtp(email).subscribe({
+            next: (res) => {
+                this.isLoading.set(false);
+                let response = res;
+                if (typeof res === 'string') {
+                    try { response = JSON.parse(res); } catch (e) {}
+                }
+
+                if (response && response.status === 'success') {
+                    this.isForgetOtpSent.set(true);
+                    this.correctForgetOtp.set(response.otp);
+                    this.forgetEmail.set(email);
+                    this.errorMessage.set('');
+                } else {
+                    this.errorMessage.set(response?.message || 'Failed to send OTP.');
+                }
+            },
+            error: () => {
+                this.isLoading.set(false);
+                this.errorMessage.set('Network error. Check backend connection.');
+            }
+        });
+    }
+
+    verifyForgetOtp() {
+        const enteredOtp = this.forgetForm.get('otp')?.value;
+        if (enteredOtp === this.correctForgetOtp()) {
+            this.isForgetOtpVerified.set(true);
+            this.errorMessage.set('');
+        } else {
+            this.errorMessage.set('Incorrect OTP. Please try again.');
+        }
+    }
+
+    submitNewPassword() {
+        const newPass = this.forgetForm.get('newPassword')?.value;
+        const confirmPass = this.forgetForm.get('confirmPassword')?.value;
+
+        if (newPass !== confirmPass) {
+            this.errorMessage.set('Passwords do not match.');
+            return;
+        }
+
+        this.isLoading.set(true);
+        this.authService.resetPassword(this.forgetEmail(), newPass!).subscribe({
+            next: (res) => {
+                this.isLoading.set(false);
+                let response = res;
+                if (typeof res === 'string') {
+                    try { response = JSON.parse(res); } catch (e) {}
+                }
+
+                if (response && response.status === 'Success') {
+                    alert('Password reset successful! Please login.');
+                    this.toggleForgetPassword();
+                } else {
+                    this.errorMessage.set(response?.message || 'Reset failed.');
+                }
+            },
+            error: (err) => {
+                this.isLoading.set(false);
+                this.errorMessage.set(err.error?.message || 'Server error.');
+            }
+        });
     }
 }

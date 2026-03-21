@@ -85,6 +85,18 @@ namespace API.Controllers
                 return BadRequest(new { message = $"Upload failed: {ex.Message}" });
             }
         }
+
+        // force reset a user password (bypasses reset token workflow)
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var result = await _identityService.ResetPasswordAsync(dto.Email, dto.NewPassword);
+            if (result.Status == "Error")
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
+        }
     }
 
     // DTO for profile image upload request

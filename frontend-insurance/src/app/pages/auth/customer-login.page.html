@@ -110,11 +110,12 @@
         </div>
 
         <div class="w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-1" style="font-family: 'Sora', sans-serif; color: #0f1f14;">Customer Login
-            </h2>
-            <p class="text-gray-600 text-sm mb-6">Access your insurance dashboard and policies</p>
+            <ng-container *ngIf="!isForgetPasswordMode()">
+                <h2 class="text-2xl font-bold mb-1" style="font-family: 'Sora', sans-serif; color: #0f1f14;">Customer Login
+                </h2>
+                <p class="text-gray-600 text-sm mb-6">Access your insurance dashboard and policies</p>
 
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+                <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold mb-1.5" style="color: #0f1f14;">Email Address</label>
                     <input type="email" formControlName="emailId" placeholder="example@email.com" class="input-field"
@@ -129,6 +130,9 @@
                             <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                         </button>
+                    </div>
+                    <div class="text-right mt-1">
+                        <button type="button" (click)="toggleForgetPassword()" class="text-xs font-bold text-green-600 hover:underline">Forget Password?</button>
                     </div>
                 </div>
 
@@ -154,10 +158,10 @@
                     </div>
                     <input type="text" formControlName="captchaInput" placeholder="Enter Sum"
                         class="input-field"
-                        [class.border-red-500]="loginForm.get('captchaInput')?.value && !isCaptchaCorrect()"
+                        [class.border-red-500]="!!loginForm.get('captchaInput')?.value && !isCaptchaCorrect()"
                         [class.border-green-500]="isCaptchaCorrect()">
 
-                    <div *ngIf="loginForm.get('captchaInput')?.value"
+                    <div *ngIf="!!loginForm.get('captchaInput')?.value"
                         class="mt-1 flex items-center gap-1 text-[10px] font-bold uppercase transition-all">
                         <ng-container *ngIf="isCaptchaCorrect(); else wrongCaptcha">
                             <span class="text-green-600 flex items-center gap-1">
@@ -194,6 +198,59 @@
                     {{ isLoading() ? 'Signing in...' : 'Sign In to Dashboard' }}
                 </button>
             </form>
+            </ng-container>
+
+            <!-- FORGET PASSWORD MODE -->
+            <ng-container *ngIf="isForgetPasswordMode()">
+                <h2 class="text-2xl font-bold mb-1" style="font-family: 'Sora', sans-serif; color: #0f1f14;">Reset Password</h2>
+                <p class="text-gray-600 text-sm mb-6">Recover your account access with OTP verification</p>
+
+                <form [formGroup]="forgetForm" class="space-y-4">
+                    <!-- Step 1: Email -->
+                    <div>
+                        <label class="block text-xs font-bold mb-1.5" style="color: #0f1f14;">Registered Email</label>
+                        <div class="flex gap-2">
+                            <input type="email" formControlName="email" placeholder="example@email.com" class="input-field flex-1" 
+                                [class.border-red-500]="forgetForm.get('email')?.invalid && forgetForm.get('email')?.touched"
+                                [disabled]="isForgetOtpSent()">
+                            <button type="button" (click)="sendForgetOtp()" [disabled]="isLoading() || forgetForm.get('email')?.invalid || isForgetOtpSent()" class="px-4 py-3 text-white text-[10px] font-black rounded-xl hover:opacity-90 disabled:opacity-50 transition-all uppercase tracking-widest shadow-lg" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                                {{ isLoading() ? 'Sending...' : (isForgetOtpSent() ? 'Sent ✅' : 'Send OTP') }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: OTP (if sent) -->
+                    <div *ngIf="isForgetOtpSent() && !isForgetOtpVerified()" class="p-4 bg-green-50 rounded-2xl border-2 border-green-100 space-y-3">
+                        <label class="block text-[10px] font-black uppercase tracking-widest" style="color: #0f1f14;">Enter Verification Code</label>
+                        <div class="flex gap-2">
+                            <input type="text" formControlName="otp" placeholder="Code" class="input-field flex-1 text-center font-bold">
+                            <button type="button" (click)="verifyForgetOtp()" [disabled]="!forgetForm.get('otp')?.value" class="px-4 py-3 bg-green-500 text-white text-[10px] font-bold rounded-xl shadow-md">Verify</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: New Passwords (if verified) -->
+                    <div *ngIf="isForgetOtpVerified()" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1.5" style="color: #0f1f14;">New Password</label>
+                            <input type="password" formControlName="newPassword" placeholder="Enter new password" class="input-field">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1.5" style="color: #0f1f14;">Confirm Password</label>
+                            <input type="password" formControlName="confirmPassword" placeholder="Confirm new password" class="input-field">
+                        </div>
+
+                        <button type="button" (click)="submitNewPassword()" [disabled]="forgetForm.invalid || isLoading()" class="w-full py-2.5 rounded-xl font-bold text-white transition-all shadow-lg" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                            {{ isLoading() ? 'Resetting...' : 'Update Password' }}
+                        </button>
+                    </div>
+
+                    <div *ngIf="errorMessage()" class="p-2.5 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100">
+                        {{ errorMessage() }}
+                    </div>
+
+                    <button type="button" (click)="toggleForgetPassword()" class="w-full text-center text-xs text-gray-400 hover:underline">Back to Login</button>
+                </form>
+            </ng-container>
 
             <div class="mt-6 pt-4 border-t border-gray-200 text-center text-xs text-gray-600">
                 New to AcciSure? <a routerLink="/register" class="font-bold hover:underline"

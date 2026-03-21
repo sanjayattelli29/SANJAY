@@ -30,6 +30,9 @@ namespace Application.Interfaces.Services
 
         // update the user's profile image url after uploading to ImageKit
         Task<AuthResponseDto> UpdateProfileImageAsync(string userId, string imageUrl);
+
+        // reset password bypassing standard workflow (as verified by client OTP)
+        Task<AuthResponseDto> ResetPasswordAsync(string email, string newPassword);
     }
 
     public class UserListingDto
