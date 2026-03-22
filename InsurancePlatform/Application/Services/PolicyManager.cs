@@ -106,13 +106,6 @@ namespace Application.Services
             var vehicleM = config.RiskFactors.VehicleTypeMultiplier.FirstOrDefault(m => string.Equals(m.VehicleType, applicant.VehicleType, StringComparison.OrdinalIgnoreCase));
             multiplier *= vehicleM?.Multiplier ?? 1.0;
 
-            multiplier *= request.PaymentMode.ToLower() switch
-            {
-                "monthly" => config.PaymentModeMultipliers.Monthly,
-                "halfyearly" => config.PaymentModeMultipliers.HalfYearly,
-                "yearly" => config.PaymentModeMultipliers.Yearly,
-                _ => 1.0
-            };
 
             return tier.BasePremiumAmount * (decimal)multiplier;
         }

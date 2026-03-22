@@ -368,11 +368,6 @@
       }
     ]
   },
-  "paymentModeMultipliers": {
-    "monthly": 1.05,
-    "halfYearly": 1.02,
-    "yearly": 0.95
-  },
   "coverageRules": {
     "maxCoverageBasedOnIncome": {
       "multiplier": 10,

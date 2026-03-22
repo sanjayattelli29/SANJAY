@@ -77,7 +77,7 @@ export class AdminService {
 
     // send email via n8n webhook external service not backend db
     sendAdminEmail(payload: { toEmail: string, subject: string, htmlBody: string }): Observable<any> {
-        const webhookUrl = n8nWebhooks.agentSendEmail;
+        const webhookUrl = n8nWebhooks.adminSendEmail;
         return this.http.post(webhookUrl, payload);
     }
 

@@ -14,8 +14,6 @@ public class PolicyConfiguration
     // things that change the price like age, smoking, and income
     public RiskFactors RiskFactors { get; set; } = new();
     
-    // extra charges based on how you pay
-    public PaymentModeMultipliers PaymentModeMultipliers { get; set; } = new();
     
     // max coverage rules
     public CoverageRules CoverageRules { get; set; } = new();
@@ -109,4 +107,3 @@ public class AlcoholMultiplier { public double NonDrinker { get; set; } public d
 public class SmokingMultiplier { public double NonSmoker { get; set; } public double Occasional { get; set; } public double Regular { get; set; } }
 public class TravelFrequencyMultiplier { public int MaxKmPerMonth { get; set; } public double Multiplier { get; set; } public string? Label { get; set; } }
 public class VehicleTypeMultiplier { public string VehicleType { get; set; } = string.Empty; public double Multiplier { get; set; } }
-public class PaymentModeMultipliers { public double Monthly { get; set; } public double HalfYearly { get; set; } public double Yearly { get; set; } }

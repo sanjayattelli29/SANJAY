@@ -21,7 +21,7 @@ export const authGuard: CanActivateFn = (route, state) => {
       router.navigate(['/agent/login']);
       return false;
     }
-    if (url.startsWith('/claims-officer') && role !== 'claims-officer') {
+    if (url.startsWith('/claims-officer') && role !== 'claimofficer') {
       router.navigate(['/claims-officer/login']);
       return false;
     }

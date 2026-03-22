@@ -7,8 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { AdminService } from '../../services/admin.service';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import { UserOptions } from 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { NotificationPanelComponent } from '../../components/notification-panel/notification-panel.component';
 import { HttpClient } from '@angular/common/http';
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
@@ -701,7 +700,7 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         doc.setFontSize(10);
 
         // 4. Main table
-        (doc as any).autoTable({
+        autoTable(doc, {
             startY: 85,
             head: [['DESCRIPTION', 'POLICY DETAILS', 'AMOUNT']],
             body: [

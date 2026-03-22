@@ -17,8 +17,24 @@ export class LandingComponent implements AfterViewInit {
   activePolicy: 'individual' | 'family' = 'individual';
   // mobile nav menu state
   mobileNavOpen = false;
+  // Video Modal State
+  showVideoModal = false;
 
   constructor(private router: Router, private el: ElementRef) { }
+
+  openVideoModal(event?: Event) {
+    if (event) event.preventDefault();
+    this.showVideoModal = true;
+  }
+
+  closeVideoModal() {
+    this.showVideoModal = false;
+    const video = document.getElementById('promoVideo') as HTMLVideoElement;
+    if (video) {
+        video.pause();
+        video.currentTime = 0;
+    }
+  }
 
   // setup scroll animations after view loads
   ngAfterViewInit() {

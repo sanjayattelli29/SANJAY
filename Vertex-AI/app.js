@@ -120,7 +120,7 @@ app.post('/analyze', upload.any(), async (req, res) => {
         const fullPrompt = `${ANALYZE_PROMPT}\n\nAPPLICATION DATA TO ANALYZE:\n${JSON.stringify(finalInput, null, 2)}\n\nEXTRACTED DOCUMENTS TEXT/ATTACHMENTS:\n${extractedText}`;
         parts[0].text = fullPrompt;
 
-        console.log(`[${requestId}] 📊 Final Input Data (JSON Snapshot):\n${JSON.stringify(finalInput, null, 2).substring(0, 500)}...`);
+        console.log(`[${requestId}] 📊 Final Input Data (JSON Snapshot):\n${JSON.stringify(finalInput, null, 2)}`);
 
         const result = await generativeModel.generateContent({
             contents: [{ role: 'user', parts: parts }]
@@ -184,7 +184,7 @@ app.post('/analyze-claim', upload.any(), async (req, res) => {
         const fullPrompt = `${CLAIM_PROMPT}\n\nCLAIM DATA TO ANALYZE:\n${JSON.stringify(finalInput, null, 2)}\n\nEXTRACTED DOCUMENTS TEXT/ATTACHMENTS:\n${extractedText}`;
         parts[0].text = fullPrompt;
 
-        console.log(`[${requestId}] 📊 Final Input Data (JSON Snapshot):\n${JSON.stringify(finalInput, null, 2).substring(0, 500)}...`);
+        console.log(`[${requestId}] 📊 Final Input Data (JSON Snapshot):\n${JSON.stringify(finalInput, null, 2)}`);
 
         const result = await generativeModel.generateContent({
             contents: [{ role: 'user', parts: parts }]

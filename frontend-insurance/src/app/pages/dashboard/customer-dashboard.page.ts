@@ -324,6 +324,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
     // KYC Verification State
     isKycVerified = signal<boolean>(false);
+    showKycFormRetry = signal<boolean>(false);
     kycStep = signal<number>(1);
     aadharFile = signal<File | null>(null);
     aadharPreview = signal<string | null>(null);
@@ -852,22 +853,6 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
         return [
             {
-                mode: 'monthly',
-                title: 'Monthly Subscription',
-                interest: 10, // Matches backend config 1.1 multiplier
-                count: 12,
-                label: 'Per Month',
-                description: 'Convenient monthly payments with 10% processing fee.'
-            },
-            {
-                mode: 'halfYearly',
-                title: 'Bi-Annual Savings',
-                interest: 5, // Matches backend config 1.05 multiplier
-                count: 2,
-                label: 'Every 6 Months',
-                description: 'Pay twice a year. 5% convenience fee applied.'
-            },
-            {
                 mode: 'yearly',
                 title: 'Lump-Sum (Best Value)',
                 interest: -5, // Matches backend config 0.95 multiplier (discount)
@@ -887,7 +872,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         const multipliers: { [key: string]: number } = {
             'monthly': 1.1,
             'halfYearly': 1.05,
-            'yearly': 0.95
+            'yearly': 1.0
         };
 
         const counts: { [key: string]: number } = {
@@ -908,6 +893,23 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
         // 3. Divide by count
         return targetTotal / (counts[mode] || 1);
+    }
+
+    // Helper to get pure base premium without payment multipliers
+    getPureBasePremium(): number {
+        const currentTotal = this.calculatedPremium();
+        if (currentTotal <= 0) return 0;
+
+        const multipliers: { [key: string]: number } = {
+            'monthly': 1.1,
+            'halfYearly': 1.05,
+            'yearly': 1.0
+        };
+
+        const mode = this.applicationForm.paymentMode || 'yearly';
+        const currentMult = multipliers[mode] || 1.0;
+
+        return currentTotal / currentMult;
     }
 
     // Step navigation: Proceed to Addresses (Step 2)
@@ -996,18 +998,25 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
     // handle document selection for policy application
 
+    getNextPaymentDate(pol: any): Date | null {
+        const timeline = this.generatePolicyTimeline(pol);
+        const now = new Date();
+        const upcoming = timeline.filter((s: any) => s.isPaymentMonth && new Date(s.date) >= now);
+        return upcoming.length > 0 ? upcoming[0].date : null;
+    }
+
     // Generates a 12-month schedule for an active policy
     generatePolicyTimeline(pol: any) {
         if (!pol) return [];
         const months = [];
-        const mode = pol.paymentMode || 'yearly';
+        const mode = this.normalizePaymentMode(pol.paymentMode);
         const totalPremium = pol.calculatedPremium || 0;
 
         let multiplier = 1.0;
         let count = 1;
         if (mode === 'monthly') { multiplier = 1.1; count = 12; }
-        else if (mode === 'halfYearly') { multiplier = 1.05; count = 2; }
-        else { multiplier = 0.95; count = 1; }
+        else if (mode === 'halfyearly') { multiplier = 1.05; count = 2; }
+        else { multiplier = 1.0; count = 1; }
 
         const pureBase = totalPremium / multiplier;
         const basePeriodic = totalPremium / count;
@@ -1024,18 +1033,17 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
             if (mode === 'monthly') {
                 isPaymentMonth = true;
                 amount = basePeriodic;
-            } else if (mode === 'halfYearly') {
+            } else if (mode === 'halfyearly') {
                 if (i === 0 || i === 6) {
                     isPaymentMonth = true;
                     amount = basePeriodic;
                 }
-            } else if (mode === 'yearly' || mode === 'Yearly') {
+            } else if (mode === 'yearly') {
                 if (i === 0) {
                     isPaymentMonth = true;
                     amount = totalPremium;
                 }
             } else {
-                // fallback if case mismatch
                 if (i === 0) {
                     isPaymentMonth = true;
                     amount = totalPremium;
@@ -1128,6 +1136,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         // Basic Applicant Validation
         if (!this.isValidName(app.applicant.fullName)) return false;
         if (app.applicant.age < 22) return false;
+        if (!app.applicant.profession) return false;
         if (app.annualIncome <= 0) return false;
         
         // Nominee Validation
@@ -1268,28 +1277,28 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         };
 
         // Enrich applicant
-        let applicant = normalize(fullDetails.applicant || raw.Applicant) || {};
+        let applicant = normalize(fullDetails.applicant || raw.Applicant || fullDetails.primaryApplicant || raw.PrimaryApplicant) || {};
         if (!applicant.fullName) applicant.fullName = pol.user?.fullName || pol.user?.userName || 'N/A';
 
-        applicant.age = applicant.age || raw.Age || pol.age || '--';
-        applicant.profession = applicant.profession || raw.Profession || pol.profession || 'Standard';
-        applicant.annualIncome = applicant.annualIncome || raw.AnnualIncome || pol.annualIncome || 0;
-        applicant.alcoholHabit = applicant.alcoholHabit || raw.AlcoholHabit || pol.alcoholHabit || 'None';
-        applicant.smokingHabit = applicant.smokingHabit || raw.SmokingHabit || pol.smokingHabit || 'None';
-        applicant.vehicleType = applicant.vehicleType || raw.VehicleType || pol.vehicleType || 'None';
-        applicant.travelKmPerMonth = applicant.travelKmPerMonth || raw.TravelKmPerMonth || pol.travelKmPerMonth || 0;
+        applicant.age = applicant.age || raw.Age || pol.age || pol.Age || '--';
+        applicant.profession = applicant.profession || raw.Profession || pol.profession || pol.Profession || 'Standard';
+        applicant.annualIncome = applicant.annualIncome || raw.AnnualIncome || pol.annualIncome || pol.AnnualIncome || 0;
+        applicant.alcoholHabit = applicant.alcoholHabit || raw.AlcoholHabit || pol.alcoholHabit || pol.AlcoholHabit || 'None';
+        applicant.smokingHabit = applicant.smokingHabit || raw.SmokingHabit || pol.smokingHabit || pol.SmokingHabit || 'None';
+        applicant.vehicleType = applicant.vehicleType || raw.VehicleType || pol.vehicleType || pol.VehicleType || 'None';
+        applicant.travelKmPerMonth = applicant.travelKmPerMonth || raw.TravelKmPerMonth || pol.travelKmPerMonth || pol.TravelKmPerMonth || 0;
 
         fullDetails.applicant = applicant;
 
         // Ensure location is normalized with fallback to flat fields
         const loc = normalize(fullDetails.location || raw.Location || raw.location || {});
         fullDetails.location = {
-            address: loc.address || pol.address || 'No address provided',
-            latitude: loc.latitude || pol.latitude || null,
-            longitude: loc.longitude || pol.longitude || null,
-            state: loc.state || pol.state || '',
-            district: loc.district || pol.district || '',
-            pincode: loc.pincode || pol.pincode || ''
+            address: loc.address || pol.address || pol.Address || 'No address provided',
+            latitude: loc.latitude || pol.latitude || pol.Latitude || null,
+            longitude: loc.longitude || pol.longitude || pol.Longitude || null,
+            state: loc.state || pol.state || pol.State || '',
+            district: loc.district || pol.district || pol.District || '',
+            pincode: loc.pincode || pol.pincode || pol.Pincode || ''
         };
 
         pol.fullDetails = fullDetails;
@@ -1312,13 +1321,28 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         this.activeView.set('policy-details');
     }
 
+    normalizePaymentMode(mode: string): string {
+        const s = (mode || 'yearly').toLowerCase().replace(/[\s\-_]+/g, '');
+        if (s.includes('half') || s.includes('biannual') || s.includes('semi')) return 'halfyearly';
+        if (s.includes('month')) return 'monthly';
+        return 'yearly';
+    }
+
     getPeriodicPaymentAmount(pol: any): number {
         if (!pol) return 0;
-        const mode = (pol.paymentMode || 'yearly').toLowerCase().replace(/[\s\-_]+/g, '');
+        const mode = this.normalizePaymentMode(pol.paymentMode);
         const total = pol.calculatedPremium || 0;
         if (mode === 'monthly') return total / 12;
         if (mode === 'halfyearly') return total / 2;
         return total;
+    }
+
+    getPaymentFrequencyLabel(pol: any): string {
+        if (!pol) return 'Per Year';
+        const mode = this.normalizePaymentMode(pol.paymentMode);
+        if (mode === 'monthly') return 'Per Month';
+        if (mode === 'halfyearly') return 'Per 6 Months';
+        return 'Per Year';
     }
 
     // This function processes the premium payment for a policy from the detailed policy view and activates the policy upon successful payment.

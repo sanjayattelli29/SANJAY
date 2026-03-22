@@ -274,10 +274,16 @@
                             verification successfully. If you want, you can verify again.</p>
                     </div>
                 </div>
+                @if (!ctx.showKycFormRetry()) {
+                <button (click)="ctx.showKycFormRetry.set(true)" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap shadow-md transition-all">
+                    Verify Again
+                </button>
+                }
             </div>
             }
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            @if (!ctx.isKycVerified() || ctx.showKycFormRetry()) {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-300">
                 <!-- Column 1, Row 1: Upload Aadhar -->
                 <div class="card space-y-4 flex flex-col">
                     <h3 class="text-lg font-bold text-brand-navy mb-2">1. Upload Aadhar / PAN Card</h3>
@@ -448,6 +454,7 @@
                     </div>
                 </div>
             </div>
+            }
         </div>
         }
 

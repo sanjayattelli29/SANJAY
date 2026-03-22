@@ -12,13 +12,10 @@
 
         <!-- Logo Section -->
         <div class="p-8 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="logo-diamonds scale-75">
-                    <div class="diamond"></div>
-                    <div class="diamond"></div>
-                </div>
-                <span class="text-xl font-extrabold text-[#0f1f14] tracking-tight" style="font-family:'Sora',sans-serif;">AcciSure</span>
-            </div>
+            <a href="#" class="flex items-center gap-2.5" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+                <img src="accisure tran logo.png" alt="AcciSure Logo" width="36" height="36" style="object-fit:contain;" />
+                <span style="font-family:'Sora',sans-serif; font-weight:800; font-size:1.25rem; color:#0f1f14;">AcciSure</span>
+            </a>
             <button class="lg:hidden text-slate-400 hover:text-brand-navy transition-colors p-1"
                 (click)="sidebarOpen.set(false)">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -350,7 +347,8 @@
                             </div>
                             <div>
                                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Claim Reference</p>
-                                <p class="text-base font-black text-brand-navy font-mono tracking-tight">#{{ selectedClaim()?.id }}</p>
+                                <p class="text-xs font-black text-brand-navy">Claim Raised By customer Email: {{ selectedClaim()?.user?.email }}</p>
+
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
@@ -382,8 +380,8 @@
                             </div>
                             <div class="bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
                                 <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Policy Details</p>
-                                <p class="text-xs font-black text-brand-navy">{{ selectedClaim()?.policy?.policyNumber || 'N/A' }}</p>
-                                <p class="text-[10px] text-indigo-600 font-bold mt-1 uppercase">{{ selectedClaim()?.policy?.tierId }} · {{ selectedClaim()?.policy?.policyCategory }}</p>
+                                <p class="text-xs font-black text-brand-navy">{{ selectedClaim()?.policy?.policyCategory }} - Policy Category</p>
+                                <p class="text-[10px] text-indigo-600 font-bold mt-1 uppercase">{{ selectedClaim()?.policy?.tierId }} </p>
                             </div>
                             @if (selectedClaim()?.fullDetails?.location?.address) {
                             <div class="md:col-span-2 lg:col-span-3 bg-[#f8fafc] rounded-2xl p-5 border border-slate-100">
@@ -690,7 +688,7 @@
                             </div>
 
                             <!-- Fraud Signals -->
-                            @if (aiInsights()!.fraudSignals?.length) {
+                            @if (aiInsights()!.fraudSignals.length) {
                             <div class="bg-rose-50 rounded-2xl p-6 border border-rose-100">
                                 <h4 class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-3">Fraud / Risk Alerts</h4>
                                 <ul class="space-y-2">

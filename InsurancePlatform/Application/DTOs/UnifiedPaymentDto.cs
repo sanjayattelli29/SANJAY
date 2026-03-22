@@ -25,8 +25,7 @@ public class UnifiedPaymentDto
     public decimal PremiumAmount { get; set; }
     // how much they actually paid
     public decimal? PaidAmount { get; set; }
-    // when next payment is due
-    public DateTime? NextPaymentDate { get; set; }
+    
     // when they last made a payment
     public DateTime? LastPaymentDate { get; set; }
     // reference id from bank

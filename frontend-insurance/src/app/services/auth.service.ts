@@ -55,6 +55,7 @@ export class AuthService {
           localStorage.setItem('user_id', userId || '');
           localStorage.setItem('user_name', userName || '');
           localStorage.setItem('user_phone', userPhone || '');
+          localStorage.setItem('isKycVerified_' + userId, (response.isKycVerified || response.IsKycVerified) ? 'true' : 'false');
           // save profile image url from backend so it persists across sessions
           if (response.profileImageUrl || response.ProfileImageUrl) {
             localStorage.setItem('user_profile_image_' + userId, response.profileImageUrl || response.ProfileImageUrl);
@@ -84,12 +85,14 @@ export class AuthService {
 
   // pull all user info from localstorage and return as object
   getUser() {
+    const userId = localStorage.getItem('user_id');
     return {
-      id: localStorage.getItem('user_id'),
+      id: userId,
       name: localStorage.getItem('user_name'),
       email: localStorage.getItem('user_email'),
       phone: localStorage.getItem('user_phone'),
-      role: localStorage.getItem('auth_role')
+      role: localStorage.getItem('auth_role'),
+      isKycVerified: localStorage.getItem('isKycVerified_' + userId) === 'true'
     };
   }
 

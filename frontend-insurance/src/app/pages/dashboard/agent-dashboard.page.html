@@ -4,11 +4,8 @@
 
         <!-- Logo Section -->
         <div class="p-8 flex items-center justify-between">
-            <a href="#" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
-                <div class="logo-diamonds">
-                    <div class="diamond"></div>
-                    <div class="diamond"></div>
-                </div>
+            <a href="#" class="flex items-center gap-2.5" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+                <img src="accisure tran logo.png" alt="AcciSure Logo" width="36" height="36" style="object-fit:contain;" />
                 <span style="font-family:'Sora',sans-serif; font-weight:800; font-size:1.25rem; color:#0f1f14;">AcciSure</span>
             </a>
             <button class="lg:hidden text-slate-400 hover:text-brand-navy transition-colors p-1" (click)="sidebarOpen.set(false)">
@@ -420,8 +417,8 @@
                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Premium Structure
                             </p>
                             <p class="text-sm font-black text-brand-orange">₹{{ selectedUnifiedDetail().policy?.calculatedPremium | number }} <span class="text-[9px] font-bold text-slate-400 not-italic uppercase">/ {{
-                                    selectedUnifiedDetail().policy?.paymentMode }}</span></p>
-                            <p class="text-[9px] font-bold text-slate-500 italic">₹{{ selectedUnifiedDetail().policy?.monthlyPremium | number:'1.0-0' }} / Month Split</p>
+                                    selectedUnifiedDetail().policy?.paymentMode || selectedUnifiedDetail().policy?.PaymentMode }}</span></p>
+                            <p class="text-[9px] font-bold text-slate-500 italic">₹{{ getPeriodicPaymentAmount(selectedUnifiedDetail().policy) | number:'1.0-0' }} / {{ getPaymentFrequencyLabel(selectedUnifiedDetail().policy) }}</p>
                         </div>
                         <div class="space-y-1">
                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Pricing Baseline
@@ -609,6 +606,65 @@
                 <!-- Right Side Inside Components Stacked (Sequential list) -->
                 <div class="space-y-6">
 
+                    <!-- Timeline & Calculation Section FOR UNIFIED REVIEW -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
+                        <!-- Left: Timeline (8 cols) -->
+                        <div class="md:col-span-8 space-y-4">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 italic">
+                                Payment Timeline Showcase</h4>
+                            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                @for (slot of generatePolicyTimeline(selectedUnifiedDetail().policy); track slot.monthIndex) {
+                                <div class="bg-white p-4 rounded-3xl border-2 transition-all" [class.border-brand-orange/20]="slot.isPaymentMonth" [class.bg-brand-orange/5]="slot.isPaymentMonth" [class.border-slate-100]="!slot.isPaymentMonth">
+                                    <div class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
+                                        <span>Mo {{ slot.monthIndex }}</span>
+                                        <span *ngIf="slot.isPaymentMonth" class="text-brand-orange">● Due</span>
+                                    </div>
+                                    <p class="text-[10px] font-black text-brand-navy italic">{{ slot.date | date:'dd MMM yyyy' }}</p>
+                                    @if (slot.isPaymentMonth) {
+                                    <p class="text-sm font-black text-brand-navy mt-1">₹{{ slot.amount | number:'1.0-0' }}
+                                    </p>
+                                    } @else {
+                                    <div class="flex items-center gap-1 mt-1.5 pt-0.5">
+                                        <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                                        <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Active</span>
+                                    </div>
+                                    }
+                                </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Right: Premium Summary (4 cols) -->
+                        <div class="md:col-span-4 space-y-4">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 italic">
+                                Premium Calculation</h4>
+                            <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+                                <div class="absolute -right-6 -top-6 w-24 h-24 bg-white/5 rounded-full"></div>
+                                <div class="space-y-3 text-[11px]">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-bold uppercase">Base Premium</span>
+                                        <span class="font-black">₹{{ getPureBasePremium(selectedUnifiedDetail().policy) | number:'1.0-0' }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-bold uppercase">Risk Adjustments</span>
+                                        <span class="font-black text-rose-300">+₹{{ getRiskAdjustments(selectedUnifiedDetail().policy) | number:'1.0-0' }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-bold uppercase">Payment Adjustment</span>
+                                        <span class="font-black text-rose-300">
+                                            {{ getPaymentAdjustment(selectedUnifiedDetail().policy) >= 0 ? '+' : '' }}₹{{ getPaymentAdjustment(selectedUnifiedDetail().policy) | number:'1.0-0' }}
+                                        </span>
+                                    </div>
+                                    <hr class="border-slate-800 my-2">
+                                    <div class="flex flex-col">
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Final Premium</span>
+                                        <h4 class="text-2xl font-black text-emerald-400">₹{{ selectedUnifiedDetail().policy?.calculatedPremium | number:'1.0-0' }} <span class="text-xs font-normal text-slate-400">/ Year</span></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- ── DOCUMENT VAULT ── -->
                     <div class="bg-white border border-slate-100 rounded-[2rem] p-5 shrink-0 shadow-sm">
                         <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
@@ -732,7 +788,6 @@
                                         <th class="px-6 py-4">Policy Type</th>
                                         <th class="px-6 py-4">Total Amount</th>
                                         <th class="px-6 py-4">Amount Paid</th>
-                                        <th class="px-6 py-4">Next Payment</th>
                                         <th class="px-6 py-4 text-emerald-600">Commission</th>
                                         <th class="px-6 py-4 text-right">Action</th>
                                     </tr>
@@ -744,10 +799,6 @@
                                         <td class="px-6 py-4 font-bold text-slate-500">{{ policy.policyCategory }} - {{ policy.tierId }}</td>
                                         <td class="px-6 py-4 font-bold">₹{{ policy.calculatedPremium | number:'1.0-0' }}</td>
                                         <td class="px-6 py-4 font-black text-emerald-600">₹{{ policy.paidAmount || 0 | number:'1.0-0' }}</td>
-                                        <td class="px-6 py-4 space-y-1">
-                                            <p class="font-black text-slate-700">₹{{ getNextPaymentDetails(policy).amount | number:'1.0-0' }}</p>
-                                            <p class="text-[9px] text-slate-400 font-bold uppercase">{{ getNextPaymentDetails(policy).date === 'Fully Paid' ? 'Fully Paid' : (getNextPaymentDetails(policy).date | date:'dd MMM yyyy') }}</p>
-                                        </td>
                                         <td class="px-6 py-4 font-black text-emerald-600 bg-emerald-50/30">₹{{ (policy.calculatedPremium * 0.10) | number:'1.0-0' }}</td>
                                         <td class="px-6 py-4 text-right">
                                             <button (click)="viewDetails(policy)" class="text-brand-orange hover:text-orange-700 font-black uppercase tracking-tighter">Details</button>
@@ -834,7 +885,6 @@
                                         <th class="px-6 py-4">Category</th>
                                         <th class="px-6 py-4">Plan/Tier</th>
                                         <th class="px-6 py-4 text-right">Coverage Amount</th>
-                                        <th class="px-6 py-4 text-right">Next Payment</th>
                                         <th class="px-6 py-4 text-right">Status</th>
                                         <th class="px-6 py-4 text-right">Action</th>
                                     </tr>
@@ -1526,28 +1576,62 @@
                     </div>
 
                     <!-- Timeline Section appended under Verification Documents -->
-                    <div class="md:col-span-2 space-y-4 pt-4 border-t border-slate-50 mt-4">
-                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 italic">
-                            Payment Timeline Showcase</h4>
-                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                            @for (slot of generatePolicyTimeline(selectedApplication()); track slot.monthIndex) {
-                            <div class="bg-white p-4 rounded-3xl border-2 transition-all" [class.border-brand-orange/20]="slot.isPaymentMonth" [class.bg-brand-orange/5]="slot.isPaymentMonth" [class.border-slate-100]="!slot.isPaymentMonth">
-                                <div class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
-                                    <span>Mo {{ slot.monthIndex }}</span>
-                                    <span *ngIf="slot.isPaymentMonth" class="text-brand-orange">● Due</span>
-                                </div>
-                                <p class="text-[10px] font-black text-brand-navy italic">{{ slot.date | date:'dd MMM yyyy' }}</p>
-                                @if (slot.isPaymentMonth) {
-                                <p class="text-sm font-black text-brand-navy mt-1">₹{{ slot.amount | number:'1.0-0' }}
-                                </p>
-                                } @else {
-                                <div class="flex items-center gap-1 mt-1.5 pt-0.5">
-                                    <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
-                                    <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Active</span>
+                    <!-- Timeline & Calculation Section -->
+                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-12 gap-6 pt-4 border-t border-slate-50 mt-4">
+                        <!-- Left: Timeline (8 cols) -->
+                        <div class="md:col-span-8 space-y-4">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 italic">
+                                Payment Timeline Showcase</h4>
+                            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
+                                @for (slot of generatePolicyTimeline(selectedApplication()); track slot.monthIndex) {
+                                <div class="bg-white p-4 rounded-3xl border-2 transition-all" [class.border-brand-orange/20]="slot.isPaymentMonth" [class.bg-brand-orange/5]="slot.isPaymentMonth" [class.border-slate-100]="!slot.isPaymentMonth">
+                                    <div class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
+                                        <span>Mo {{ slot.monthIndex }}</span>
+                                        <span *ngIf="slot.isPaymentMonth" class="text-brand-orange">● Due</span>
+                                    </div>
+                                    <p class="text-[10px] font-black text-brand-navy italic">{{ slot.date | date:'dd MMM yyyy' }}</p>
+                                    @if (slot.isPaymentMonth) {
+                                    <p class="text-sm font-black text-brand-navy mt-1">₹{{ slot.amount | number:'1.0-0' }}
+                                    </p>
+                                    } @else {
+                                    <div class="flex items-center gap-1 mt-1.5 pt-0.5">
+                                        <div class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
+                                        <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Active</span>
+                                    </div>
+                                    }
                                 </div>
                                 }
                             </div>
-                            }
+                        </div>
+
+                        <!-- Right: Premium Summary (4 cols) -->
+                        <div class="md:col-span-4 space-y-4">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 italic">
+                                Premium Calculation</h4>
+                            <div class="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+                                <div class="absolute -right-6 -top-6 w-24 h-24 bg-white/5 rounded-full"></div>
+                                <div class="space-y-3 text-[11px]">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-bold uppercase">Base Premium</span>
+                                        <span class="font-black">₹{{ getPureBasePremium(selectedApplication()) | number:'1.0-0' }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-bold uppercase">Risk Adjustments</span>
+                                        <span class="font-black text-rose-300">+₹{{ getRiskAdjustments(selectedApplication()) | number:'1.0-0' }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400 font-bold uppercase">Payment Adjustment</span>
+                                        <span class="font-black text-rose-300">
+                                            {{ getPaymentAdjustment(selectedApplication()) >= 0 ? '+' : '' }}₹{{ getPaymentAdjustment(selectedApplication()) | number:'1.0-0' }}
+                                        </span>
+                                    </div>
+                                    <hr class="border-slate-800 my-2">
+                                    <div class="flex flex-col">
+                                        <span class="text-[9px] font-bold text-slate-400 uppercase">Final Premium</span>
+                                        <h4 class="text-2xl font-black text-emerald-400">₹{{ selectedApplication().calculatedPremium | number:'1.0-0' }} <span class="text-xs font-normal text-slate-400">/ Year</span></h4>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

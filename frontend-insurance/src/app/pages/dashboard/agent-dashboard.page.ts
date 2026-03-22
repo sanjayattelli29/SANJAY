@@ -106,6 +106,8 @@ export class AgentDashboardPage implements OnInit {
     showAIModal = signal(false);
     aiResult = signal<any>(null);
 
+    config: any = null; // policy configuration
+
     // chartjs instances for analytics
     private charts: Chart[] = [];
 
@@ -116,6 +118,7 @@ export class AgentDashboardPage implements OnInit {
 
     // fetch all data from backend via services
     loadData() {
+        this.policyService.getConfiguration().subscribe(c => this.config = c);
         this.loadPolicyRequests();
         this.loadCommissionStats();
         this.loadCustomerClaims();
@@ -499,7 +502,7 @@ export class AgentDashboardPage implements OnInit {
         };
 
         // Applicant details
-        let applicant = normalize(details.applicant || raw.Applicant) || {};
+        let applicant = normalize(details.applicant || raw.Applicant || details.primaryApplicant || raw.PrimaryApplicant) || {};
         details.applicant = {
             fullName: application.user?.fullName || application.user?.userName || applicant.fullName || 'N/A',
             age: application.age || application.Age || raw.Age || applicant.age || raw.age || '--',
@@ -646,16 +649,72 @@ export class AgentDashboardPage implements OnInit {
     }
 
 
+    normalizePaymentMode(mode: string): string {
+        const s = (mode || 'yearly').toLowerCase().replace(/[\s\-_]+/g, '');
+        if (s.includes('half') || s.includes('biannual') || s.includes('semi')) return 'halfyearly';
+        if (s.includes('month')) return 'monthly';
+        return 'yearly';
+    }
+
+    getPureBasePremium(pol: any): number {
+        if (!pol) return 0;
+        const mode = this.normalizePaymentMode(pol.paymentMode || pol.PaymentMode);
+        const totalPremium = pol.calculatedPremium || 0;
+        let multiplier = 1.0;
+        if (mode === 'monthly') multiplier = 1.1;
+        else if (mode === 'halfyearly') multiplier = 1.05;
+        else multiplier = 0.95;
+        return totalPremium / multiplier;
+    }
+
+    getRiskAdjustments(pol: any): number {
+        if (!pol) return 0;
+        const pureBase = this.getPureBasePremium(pol);
+        let baseAmount = 0;
+        if (this.config) {
+            const cat = this.config.policyCategories?.find((c: any) => c.categoryId === pol.policyCategory);
+            const tier = cat?.tiers?.find((t: any) => t.tierId === pol.tierId);
+            if (tier) baseAmount = tier.basePremiumAmount;
+        }
+        return Math.max(0, pureBase - baseAmount);
+    }
+
+    getPaymentAdjustment(pol: any): number {
+        if (!pol) return 0;
+        const mode = this.normalizePaymentMode(pol.paymentMode || pol.PaymentMode);
+        const pureBase = this.getPureBasePremium(pol);
+        if (mode === 'monthly') return pureBase * 0.1;
+        if (mode === 'halfyearly') return pureBase * 0.05;
+        return pureBase * -0.05; 
+    }
+
+    getPeriodicPaymentAmount(pol: any): number {
+        if (!pol) return 0;
+        const mode = this.normalizePaymentMode(pol.paymentMode || pol.PaymentMode);
+        const total = pol.calculatedPremium || 0;
+        if (mode === 'monthly') return total / 12;
+        if (mode === 'halfyearly') return total / 2;
+        return total;
+    }
+
+    getPaymentFrequencyLabel(pol: any): string {
+        if (!pol) return 'Per Year';
+        const mode = this.normalizePaymentMode(pol.paymentMode || pol.PaymentMode);
+        if (mode === 'monthly') return 'Per Month';
+        if (mode === 'halfyearly') return 'Per 6 Months';
+        return 'Per Year';
+    }
+
     generatePolicyTimeline(policy: any): any[] {
         if (!policy) return [];
         const slots = [];
-        const monthlyAmount = (policy.calculatedPremium || 0) / (policy.paymentMode === 'monthly' ? 12 : policy.paymentMode === 'halfYearly' ? 2 : 1);
+        const mode = this.normalizePaymentMode(policy.paymentMode || policy.PaymentMode);
+        const monthlyAmount = (policy.calculatedPremium || 0) / (mode === 'monthly' ? 12 : mode === 'halfyearly' ? 2 : 1);
         const startDate = new Date(policy.createdAt || new Date());
         for (let i = 0; i < 12; i++) {
             const date = new Date(startDate);
             date.setMonth(date.getMonth() + i);
-            const isPaymentMonth = policy.paymentMode === 'monthly' ? true : policy.paymentMode === 'halfYearly' ? i % 6 === 0 : i === 0;
-            const amount = isPaymentMonth ? monthlyAmount : 0;
+            const isPaymentMonth = mode === 'monthly' ? true : mode === 'halfyearly' ? i % 6 === 0 : i === 0;
             slots.push({
                 monthIndex: i + 1,
                 date: date.toISOString(),
@@ -667,20 +726,7 @@ export class AgentDashboardPage implements OnInit {
         return slots;
     }
 
-    getNextPaymentDetails(policy: any): { amount: number, date: any } {
-        if (!policy) return { amount: 0, date: null };
-        const mode = (policy.paymentMode || 'yearly').toLowerCase();
-        const total = policy.calculatedPremium || 0;
-        const paid = policy.paidAmount || 0;
-        
-        if (paid >= total) return { amount: 0, date: 'Fully Paid' };
-        
-        let periodic = total;
-        if (mode === 'monthly') periodic = total / 12;
-        else if (mode === 'halfyearly') periodic = total / 2;
-        
-        return { amount: periodic, date: policy.nextPaymentDate };
-    }
+
 
     reviewApplication(status: 'Approved' | 'Rejected') {
         const app = this.selectedApplication();

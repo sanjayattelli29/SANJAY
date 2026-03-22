@@ -7,5 +7,6 @@ export const n8nWebhooks = {
     agentAiInsights: 'https://sanjay29n8n.app.n8n.cloud/webhook/agent-ai-insights',
     sendInvoice: 'https://sanjay29n8n.app.n8n.cloud/webhook/send-invoice',
     vapiOnboardingCall: 'https://sanjay29n8n.app.n8n.cloud/webhook/vapi-onboarding',
-    forgetSendOtp: 'https://sanjay29n8n.app.n8n.cloud/webhook/forget-send-otp'
+    forgetSendOtp: 'https://sanjay29n8n.app.n8n.cloud/webhook/forget-send-otp',
+    adminSendEmail: 'https://sanjay29n8n.app.n8n.cloud/webhook/admin-send-email'
 };
