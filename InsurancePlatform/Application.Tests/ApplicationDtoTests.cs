@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Entities;
 using Xunit;
 

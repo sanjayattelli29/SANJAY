@@ -1,5 +1,6 @@
 using API.Controllers;
 using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -12,25 +13,25 @@ namespace API.Tests;
 
 public class NotificationsControllerTests
 {
-    private readonly Mock<INotificationService> _mockNotification;
-    private readonly Mock<IPolicyService> _mockPolicyService;
-    private readonly Mock<IClaimService> _mockClaimService;
+    private readonly Mock<ISystemNotifier> _mockSystemNotifier;
+    private readonly Mock<IPolicyManager> _mockPolicyManager;
+    private readonly Mock<IClaimProcessor> _mockClaimProcessor;
     private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
     private readonly NotificationsController _controller;
 
     public NotificationsControllerTests()
     {
-        _mockNotification = new Mock<INotificationService>();
-        _mockPolicyService = new Mock<IPolicyService>();
-        _mockClaimService = new Mock<IClaimService>();
+        _mockSystemNotifier = new Mock<ISystemNotifier>();
+        _mockPolicyManager = new Mock<IPolicyManager>();
+        _mockClaimProcessor = new Mock<IClaimProcessor>();
 
         var store = new Mock<IUserStore<ApplicationUser>>();
         _mockUserManager = new Mock<UserManager<ApplicationUser>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
         _controller = new NotificationsController(
-            _mockNotification.Object,
-            _mockPolicyService.Object,
-            _mockClaimService.Object,
+            _mockSystemNotifier.Object,
+            _mockPolicyManager.Object,
+            _mockClaimProcessor.Object,
             _mockUserManager.Object);
     }
 
@@ -57,7 +58,7 @@ public class NotificationsControllerTests
     {
         // Arrange
         SetUser("user-1");
-        _mockNotification.Setup(s => s.GetUnreadCountAsync("user-1")).ReturnsAsync(5);
+        _mockSystemNotifier.Setup(s => s.GetUnreadCountAsync("user-1")).ReturnsAsync(5);
 
         // Act
         var result = await _controller.GetUnreadCount();
@@ -108,7 +109,7 @@ public class NotificationsControllerTests
         await _controller.MarkAsRead(id);
 
         // Assert
-        _mockNotification.Verify(s => s.MarkAsReadAsync(id), Times.Once);
+        _mockSystemNotifier.Verify(s => s.MarkAsReadAsync(id), Times.Once);
     }
 
     [Fact]
@@ -151,7 +152,7 @@ public class NotificationsControllerTests
         await _controller.MarkAllAsRead();
 
         // Assert
-        _mockNotification.Verify(s => s.MarkAllAsReadAsync("user-1"), Times.Once);
+        _mockSystemNotifier.Verify(s => s.MarkAllAsReadAsync("user-1"), Times.Once);
     }
 
     [Fact]
@@ -190,9 +191,9 @@ public class NotificationsControllerTests
     {
         // Arrange
         SetUser("user-1", "Customer");
-        _mockNotification.Setup(s => s.GetUserNotificationsAsync("user-1"))
+        _mockSystemNotifier.Setup(s => s.GetUserNotificationsAsync("user-1"))
             .ReturnsAsync(new List<Notification> { new Notification { UserId = "user-1" } });
-        _mockPolicyService.Setup(s => s.GetUserPoliciesAsync("user-1")).ReturnsAsync(new List<PolicyApplication>());
+        _mockPolicyManager.Setup(s => s.GetUserPoliciesAsync("user-1")).ReturnsAsync(new List<PolicyApplication>());
 
         // Act
         var result = await _controller.GetNotifications();

@@ -1,5 +1,6 @@
 using API.Controllers;
 using Application.Interfaces;
+using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -8,20 +9,20 @@ namespace API.Tests;
 
 public class PaymentControllerTests
 {
-    private readonly Mock<IPolicyService> _mockPolicyService;
+    private readonly Mock<IPolicyManager> _mockPolicyManager;
     private readonly PaymentController _controller;
 
     public PaymentControllerTests()
     {
-        _mockPolicyService = new Mock<IPolicyService>();
-        _controller = new PaymentController(_mockPolicyService.Object);
+        _mockPolicyManager = new Mock<IPolicyManager>();
+        _controller = new PaymentController(_mockPolicyManager.Object);
     }
 
     [Fact]
     public async Task ProcessPayment_Success_ReturnsOk()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync("app-1", 1000m, It.IsAny<string>())).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync("app-1", 1000m, It.IsAny<string>())).ReturnsAsync(true);
 
         // Act
         var result = await _controller.ProcessPayment(new PaymentProcessRequest { ApplicationId = "app-1", Amount = 1000 });
@@ -34,7 +35,7 @@ public class PaymentControllerTests
     public async Task ProcessPayment_Failure_ReturnsBadRequest()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(false);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(false);
 
         // Act
         var result = await _controller.ProcessPayment(new PaymentProcessRequest { ApplicationId = "app-1", Amount = 1000 });
@@ -61,14 +62,14 @@ public class PaymentControllerTests
 
         // Assert
         Assert.IsType<BadRequestObjectResult>(result);
-        _mockPolicyService.Verify(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>()), Times.Never);
+        _mockPolicyManager.Verify(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
     public async Task ProcessPayment_Success_ReturnsTxnId()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(true);
 
         // Act
         var result = await _controller.ProcessPayment(new PaymentProcessRequest { ApplicationId = "app-1", Amount = 500 }) as OkObjectResult;
@@ -82,20 +83,20 @@ public class PaymentControllerTests
     public async Task ProcessPayment_ValidAmount_CallsService()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync("app-1", 1000m, It.IsAny<string>())).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync("app-1", 1000m, It.IsAny<string>())).ReturnsAsync(true);
 
         // Act
         await _controller.ProcessPayment(new PaymentProcessRequest { ApplicationId = "app-1", Amount = 1000m });
 
         // Assert
-        _mockPolicyService.Verify(s => s.ProcessPaymentAsync("app-1", 1000m, It.IsAny<string>()), Times.Once);
+        _mockPolicyManager.Verify(s => s.ProcessPaymentAsync("app-1", 1000m, It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
     public async Task ProcessPayment_Success_StatusIsSuccess()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(true);
 
         // Act
         var result = await _controller.ProcessPayment(new PaymentProcessRequest { ApplicationId = "app-1", Amount = 200 }) as OkObjectResult;
@@ -109,7 +110,7 @@ public class PaymentControllerTests
     public async Task ProcessPayment_VerySmallAmount_Passes()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), 0.01m, It.IsAny<string>())).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), 0.01m, It.IsAny<string>())).ReturnsAsync(true);
 
         // Act
         var result = await _controller.ProcessPayment(new PaymentProcessRequest { Amount = 0.01m });
@@ -122,7 +123,7 @@ public class PaymentControllerTests
     public async Task ProcessPayment_LargeAmount_Passes()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), 999999m, It.IsAny<string>())).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), 999999m, It.IsAny<string>())).ReturnsAsync(true);
 
         // Act
         var result = await _controller.ProcessPayment(new PaymentProcessRequest { Amount = 999999m });
@@ -135,7 +136,7 @@ public class PaymentControllerTests
     public async Task ProcessPayment_GeneratesUniqueTxnIds()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ProcessPaymentAsync(It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync(true);
 
         // Act
         var result1 = await _controller.ProcessPayment(new PaymentProcessRequest { Amount = 100 }) as OkObjectResult;

@@ -1,5 +1,7 @@
 using API.Controllers;
 using Application.Interfaces;
+using Application.DTOs;
+using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +13,13 @@ namespace API.Tests;
 
 public class AgentControllerTests
 {
-    private readonly Mock<IPolicyService> _mockPolicyService;
+    private readonly Mock<IPolicyManager> _mockPolicyManager;
     private readonly AgentController _controller;
 
     public AgentControllerTests()
     {
-        _mockPolicyService = new Mock<IPolicyService>();
-        _controller = new AgentController(_mockPolicyService.Object);
+        _mockPolicyManager = new Mock<IPolicyManager>();
+        _controller = new AgentController(_mockPolicyManager.Object);
     }
 
     private void SetUser(string userId)
@@ -42,7 +44,7 @@ public class AgentControllerTests
     {
         // Arrange
         SetUser("agent-1");
-        _mockPolicyService.Setup(s => s.GetAgentApplicationsAsync("agent-1"))
+        _mockPolicyManager.Setup(s => s.GetAgentApplicationsAsync("agent-1"))
             .ReturnsAsync(new List<PolicyApplication> { new PolicyApplication() });
 
         // Act
@@ -65,7 +67,7 @@ public class AgentControllerTests
     {
         // Arrange
         SetUser("agent-1");
-        _mockPolicyService.Setup(s => s.ReviewApplicationAsync("app-1", "Approved", "agent-1")).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.ReviewApplicationAsync("app-1", "Approved", "agent-1")).ReturnsAsync(true);
 
         // Act
         var result = await _controller.ReviewRequest(new ReviewApplicationRequest { ApplicationId = "app-1", Status = "Approved" });
@@ -79,7 +81,7 @@ public class AgentControllerTests
     {
         // Arrange
         SetUser("agent-1");
-        _mockPolicyService.Setup(s => s.ReviewApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+        _mockPolicyManager.Setup(s => s.ReviewApplicationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
 
         // Act
         var result = await _controller.ReviewRequest(new ReviewApplicationRequest());
@@ -101,7 +103,7 @@ public class AgentControllerTests
     {
         // Arrange
         SetUser("agent-1");
-        _mockPolicyService.Setup(s => s.GetAgentCustomersAsync("agent-1"))
+        _mockPolicyManager.Setup(s => s.GetAgentCustomersAsync("agent-1"))
             .ReturnsAsync(new List<PolicyApplication>());
 
         // Act
@@ -124,7 +126,7 @@ public class AgentControllerTests
     {
         // Arrange
         SetUser("agent-1");
-        _mockPolicyService.Setup(s => s.GetAgentCommissionStatsAsync("agent-1"))
+        _mockPolicyManager.Setup(s => s.GetAgentCommissionStatsAsync("agent-1"))
             .ReturnsAsync(new AgentCommissionDto());
 
         // Act
@@ -147,7 +149,7 @@ public class AgentControllerTests
     {
         // Arrange
         SetUser("agent-1");
-        _mockPolicyService.Setup(s => s.GetAgentAnalyticsAsync("agent-1"))
+        _mockPolicyManager.Setup(s => s.GetAgentAnalyticsAsync("agent-1"))
             .ReturnsAsync(new AgentAnalyticsDto());
 
         // Act

@@ -1,3 +1,7 @@
+using Application.Interfaces.Infrastructure;
+using Application.Interfaces.Services;
+using Application.Interfaces;
+using Application.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +24,8 @@ public class ClaimServiceTests
     private readonly ApplicationDbContext _context;
     private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
     private readonly Mock<IFileStorageService> _mockFileStorage;
-    private readonly Mock<INotificationService> _mockNotification;
-    private readonly ClaimService _claimService;
+    private readonly Mock<ISystemNotifier> _mockNotification;
+    private readonly ClaimProcessor _claimService;
 
     public ClaimServiceTests()
     {
@@ -35,9 +39,11 @@ public class ClaimServiceTests
             userStoreMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
         
         _mockFileStorage = new Mock<IFileStorageService>();
-        _mockNotification = new Mock<INotificationService>();
+        _mockNotification = new Mock<ISystemNotifier>();
 
-        _claimService = new ClaimService(_context, _mockUserManager.Object, _mockFileStorage.Object, _mockNotification.Object);
+        var claimRepo = new Infrastructure.Repositories.ClaimRepository(_context);
+        var policyRepo = new Infrastructure.Repositories.PolicyRepository(_context);
+        _claimService = new ClaimProcessor(claimRepo, policyRepo, _mockUserManager.Object, _mockFileStorage.Object, _mockNotification.Object);
     }
 
     [Fact]

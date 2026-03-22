@@ -1,6 +1,8 @@
 using API.Controllers;
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Interfaces.Services;
+using Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -9,15 +11,23 @@ namespace API.Tests;
 
 public class AuthControllerTests
 {
-    private readonly Mock<IAuthService> _mockAuthService;
+    private readonly Mock<IIdentityService> _mockIdentityService;
+    private readonly Mock<IFileStorageService> _mockFileStorage;
     private readonly AuthController _controller;
+
+    public AuthControllerTests()
+    {
+        _mockIdentityService = new Mock<IIdentityService>();
+        _mockFileStorage = new Mock<IFileStorageService>();
+        _controller = new AuthController(_mockIdentityService.Object, _mockFileStorage.Object);
+    }
 
 
     [Fact]
     public async Task Register_Success_ReturnsOk()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
+        _mockIdentityService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success", Message = "Registered" });
 
         // Act
@@ -33,7 +43,7 @@ public class AuthControllerTests
     public async Task Register_Failure_ReturnsBadRequest()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
+        _mockIdentityService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Error", Message = "User already exists!" });
 
         // Act
@@ -47,7 +57,7 @@ public class AuthControllerTests
     public async Task Login_ValidCredentials_ReturnsOkWithToken()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
+        _mockIdentityService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success", Token = "jwt-token-here" });
 
         // Act
@@ -63,7 +73,7 @@ public class AuthControllerTests
     public async Task Login_InvalidCredentials_ReturnsUnauthorized()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
+        _mockIdentityService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Error", Message = "Invalid password!" });
 
         // Act
@@ -77,7 +87,7 @@ public class AuthControllerTests
     public async Task Register_WithValidEmail_CallsServiceOnce()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
+        _mockIdentityService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         var dto = new RegisterCustomerDto { EmailId = "test@test.com" };
@@ -86,7 +96,7 @@ public class AuthControllerTests
         await _controller.Register(dto);
 
         // Assert
-        _mockAuthService.Verify(s => s.RegisterCustomerAsync(dto), Times.Once);
+        _mockIdentityService.Verify(s => s.RegisterCustomerAsync(dto), Times.Once);
     }
 
     [Fact]
@@ -94,21 +104,21 @@ public class AuthControllerTests
     {
         // Arrange
         var dto = new LoginDto { EmailId = "test@test.com", Password = "Test@123" };
-        _mockAuthService.Setup(s => s.LoginAsync(dto))
+        _mockIdentityService.Setup(s => s.LoginAsync(dto))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         // Act
         await _controller.Login(dto);
 
         // Assert
-        _mockAuthService.Verify(s => s.LoginAsync(dto), Times.Once);
+        _mockIdentityService.Verify(s => s.LoginAsync(dto), Times.Once);
     }
 
     [Fact]
     public async Task Login_ServiceException_Propagates()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
+        _mockIdentityService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
             .ThrowsAsync(new Exception("DB error"));
 
         // Act & Assert
@@ -119,7 +129,7 @@ public class AuthControllerTests
     public async Task Register_NullDto_StillCallsService()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
+        _mockIdentityService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         // Act
@@ -134,7 +144,7 @@ public class AuthControllerTests
     {
         // Arrange
         var expected = new AuthResponseDto { Status = "Success", Token = "token-abc", Email = "u@u.com" };
-        _mockAuthService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
+        _mockIdentityService.Setup(s => s.RegisterCustomerAsync(It.IsAny<RegisterCustomerDto>()))
             .ReturnsAsync(expected);
 
         // Act
@@ -150,7 +160,7 @@ public class AuthControllerTests
     {
         // Arrange
         var expected = new AuthResponseDto { Status = "Success", Role = "Customer" };
-        _mockAuthService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
+        _mockIdentityService.Setup(s => s.LoginAsync(It.IsAny<LoginDto>()))
             .ReturnsAsync(expected);
 
         // Act

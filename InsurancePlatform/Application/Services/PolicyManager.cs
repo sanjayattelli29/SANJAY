@@ -460,7 +460,6 @@ namespace Application.Services
                     CurrentCoverage = pa.RemainingCoverageAmount,
                     PremiumAmount = pa.CalculatedPremium,
                     PaidAmount = pa.PaidAmount,
-                    NextPaymentDate = pa.NextPaymentDate,
                     LastPaymentDate = pa.PaymentDate,
                     TransactionId = pa.TransactionId,
                     PaymentMode = pa.PaymentMode,

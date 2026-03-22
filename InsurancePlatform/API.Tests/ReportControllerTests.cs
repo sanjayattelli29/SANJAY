@@ -1,6 +1,7 @@
 using API.Controllers;
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -9,20 +10,20 @@ namespace API.Tests;
 
 public class ReportControllerTests
 {
-    private readonly Mock<IPolicyService> _mockPolicyService;
+    private readonly Mock<IPolicyManager> _mockPolicyManager;
     private readonly ReportController _controller;
 
     public ReportControllerTests()
     {
-        _mockPolicyService = new Mock<IPolicyService>();
-        _controller = new ReportController(_mockPolicyService.Object);
+        _mockPolicyManager = new Mock<IPolicyManager>();
+        _controller = new ReportController(_mockPolicyManager.Object);
     }
 
     [Fact]
     public async Task GetUnifiedPayments_ReturnsOk()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync())
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync())
             .ReturnsAsync(new List<UnifiedPaymentDto>());
 
         // Act
@@ -36,7 +37,7 @@ public class ReportControllerTests
     public async Task GetUnifiedPayments_WithData_ReturnsAllRecords()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync())
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync())
             .ReturnsAsync(new List<UnifiedPaymentDto>
             {
                 new UnifiedPaymentDto { ApplicationId = "p1", PaidAmount = 1000 },
@@ -55,7 +56,7 @@ public class ReportControllerTests
     public async Task GetUnifiedPayments_EmptyList_ReturnsOkWithEmpty()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync())
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync())
             .ReturnsAsync(new List<UnifiedPaymentDto>());
 
         // Act
@@ -70,21 +71,21 @@ public class ReportControllerTests
     public async Task GetUnifiedPayments_CallsServiceOnce()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync())
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync())
             .ReturnsAsync(new List<UnifiedPaymentDto>());
 
         // Act
         await _controller.GetUnifiedPayments();
 
         // Assert
-        _mockPolicyService.Verify(s => s.GetUnifiedPaymentsAsync(), Times.Once);
+        _mockPolicyManager.Verify(s => s.GetUnifiedPaymentsAsync(), Times.Once);
     }
 
     [Fact]
     public async Task GetUnifiedPayments_ServiceException_Propagates()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync())
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync())
             .ThrowsAsync(new Exception("DB error"));
 
         // Act & Assert
@@ -95,7 +96,7 @@ public class ReportControllerTests
     public async Task GetUnifiedPayments_StatusCode200()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(new List<UnifiedPaymentDto>());
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(new List<UnifiedPaymentDto>());
 
         // Act
         var result = await _controller.GetUnifiedPayments() as OkObjectResult;
@@ -111,7 +112,7 @@ public class ReportControllerTests
         var data = Enumerable.Range(1, 5)
             .Select(i => new UnifiedPaymentDto { ApplicationId = $"p{i}", PaidAmount = i * 100 })
             .ToList();
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(data);
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(data);
 
         // Act
         var result = await _controller.GetUnifiedPayments() as OkObjectResult;
@@ -126,7 +127,7 @@ public class ReportControllerTests
     {
         // Arrange
         var largeList = Enumerable.Range(1, 100).Select(i => new UnifiedPaymentDto()).ToList();
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(largeList);
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(largeList);
 
         // Act
         var result = await _controller.GetUnifiedPayments() as OkObjectResult;
@@ -140,7 +141,7 @@ public class ReportControllerTests
     public async Task GetUnifiedPayments_SingleRecord_ReturnsOne()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync())
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync())
             .ReturnsAsync(new List<UnifiedPaymentDto> { new UnifiedPaymentDto { ApplicationId = "p1" } });
 
         // Act
@@ -156,7 +157,7 @@ public class ReportControllerTests
     {
         // Arrange
         var original = new List<UnifiedPaymentDto> { new UnifiedPaymentDto { ApplicationId = "app-xyz", PaidAmount = 9999 } };
-        _mockPolicyService.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(original);
+        _mockPolicyManager.Setup(s => s.GetUnifiedPaymentsAsync()).ReturnsAsync(original);
 
         // Act
         var result = await _controller.GetUnifiedPayments() as OkObjectResult;

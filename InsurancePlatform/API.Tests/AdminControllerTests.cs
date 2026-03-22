@@ -1,6 +1,7 @@
 using API.Controllers;
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -10,24 +11,24 @@ namespace API.Tests;
 
 public class AdminControllerTests
 {
-    private readonly Mock<IAuthService> _mockAuthService;
-    private readonly Mock<IPolicyService> _mockPolicyService;
-    private readonly Mock<IClaimService> _mockClaimService;
+    private readonly Mock<IIdentityService> _mockIdentityService;
+    private readonly Mock<IPolicyManager> _mockPolicyManager;
+    private readonly Mock<IClaimProcessor> _mockClaimProcessor;
     private readonly AdminController _controller;
 
     public AdminControllerTests()
     {
-        _mockAuthService = new Mock<IAuthService>();
-        _mockPolicyService = new Mock<IPolicyService>();
-        _mockClaimService = new Mock<IClaimService>();
-        _controller = new AdminController(_mockAuthService.Object, _mockPolicyService.Object, _mockClaimService.Object);
+        _mockIdentityService = new Mock<IIdentityService>();
+        _mockPolicyManager = new Mock<IPolicyManager>();
+        _mockClaimProcessor = new Mock<IClaimProcessor>();
+        _controller = new AdminController(_mockIdentityService.Object, _mockPolicyManager.Object, _mockClaimProcessor.Object);
     }
 
     [Fact]
     public async Task CreateAgent_ReturnsOk()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.CreateAgentAsync(It.IsAny<CreateAgentDto>()))
+        _mockIdentityService.Setup(s => s.CreateAgentAsync(It.IsAny<CreateAgentDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         // Act
@@ -41,7 +42,7 @@ public class AdminControllerTests
     public async Task CreateClaimOfficer_ReturnsOk()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.CreateClaimOfficerAsync(It.IsAny<CreateClaimOfficerDto>()))
+        _mockIdentityService.Setup(s => s.CreateClaimOfficerAsync(It.IsAny<CreateClaimOfficerDto>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         // Act
@@ -55,7 +56,7 @@ public class AdminControllerTests
     public async Task GetAgents_ReturnsOkWithList()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.GetUsersByRoleAsync("Agent"))
+        _mockIdentityService.Setup(s => s.GetUsersByRoleAsync("Agent"))
             .ReturnsAsync(new List<UserListingDto> { new UserListingDto { Email = "agent@test.com" } });
 
         // Act
@@ -70,7 +71,7 @@ public class AdminControllerTests
     public async Task GetClaimOfficers_ReturnsOkWithList()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.GetUsersByRoleAsync("ClaimOfficer"))
+        _mockIdentityService.Setup(s => s.GetUsersByRoleAsync("ClaimOfficer"))
             .ReturnsAsync(new List<UserListingDto> { new UserListingDto() });
 
         // Act
@@ -84,7 +85,7 @@ public class AdminControllerTests
     public async Task DeleteUser_ReturnsOk()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.DeleteUserAsync("user-1"))
+        _mockIdentityService.Setup(s => s.DeleteUserAsync("user-1"))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         // Act
@@ -98,7 +99,7 @@ public class AdminControllerTests
     public async Task GetAllPolicyRequests_ReturnsOkWithList()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetAllApplicationsAsync())
+        _mockPolicyManager.Setup(s => s.GetAllApplicationsAsync())
             .ReturnsAsync(new List<PolicyApplication> { new PolicyApplication() });
 
         // Act
@@ -112,7 +113,7 @@ public class AdminControllerTests
     public async Task AssignAgent_Success_ReturnsOk()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.AssignAgentAsync("app-1", "agent-1")).ReturnsAsync(true);
+        _mockPolicyManager.Setup(s => s.AssignAgentAsync("app-1", "agent-1")).ReturnsAsync(true);
 
         // Act
         var result = await _controller.AssignAgent(new AssignAgentRequest { ApplicationId = "app-1", AgentId = "agent-1" });
@@ -125,7 +126,7 @@ public class AdminControllerTests
     public async Task AssignAgent_Failure_ReturnsBadRequest()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.AssignAgentAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+        _mockPolicyManager.Setup(s => s.AssignAgentAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
 
         // Act
         var result = await _controller.AssignAgent(new AssignAgentRequest());
@@ -138,7 +139,7 @@ public class AdminControllerTests
     public async Task GetAllUsers_ReturnsOk()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.GetAllUsersAsync()).ReturnsAsync(new List<UserListingDto>());
+        _mockIdentityService.Setup(s => s.GetAllUsersAsync()).ReturnsAsync(new List<UserListingDto>());
 
         // Act
         var result = await _controller.GetAllUsers();
@@ -151,7 +152,7 @@ public class AdminControllerTests
     public async Task GetAdminStats_ReturnsOk()
     {
         // Arrange
-        _mockClaimService.Setup(s => s.GetAdminStatsAsync()).ReturnsAsync(new AdminDashboardStatsDto());
+        _mockClaimProcessor.Setup(s => s.GetAdminStatsAsync()).ReturnsAsync(new AdminDashboardStatsDto());
 
         // Act
         var result = await _controller.GetAdminStats();

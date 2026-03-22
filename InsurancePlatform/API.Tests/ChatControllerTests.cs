@@ -1,5 +1,6 @@
 using API.Controllers;
 using Application.Interfaces;
+using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +12,13 @@ namespace API.Tests;
 
 public class ChatControllerTests
 {
-    private readonly Mock<IChatService> _mockChatService;
+    private readonly Mock<ISupportChatService> _mockSupportChatService;
     private readonly ChatController _controller;
 
     public ChatControllerTests()
     {
-        _mockChatService = new Mock<IChatService>();
-        _controller = new ChatController(_mockChatService.Object);
+        _mockSupportChatService = new Mock<ISupportChatService>();
+        _controller = new ChatController(_mockSupportChatService.Object);
     }
 
     private void SetUser(string userId, string role = "Customer")
@@ -38,7 +39,7 @@ public class ChatControllerTests
     {
         // Arrange
         SetUser("user-1");
-        _mockChatService.Setup(s => s.GetUserChatListAsync("user-1", "Customer"))
+        _mockSupportChatService.Setup(s => s.GetUserChatListAsync("user-1", "Customer"))
             .ReturnsAsync(new List<Chat> { new Chat() });
 
         // Act
@@ -61,7 +62,7 @@ public class ChatControllerTests
     {
         // Arrange
         var chat = new Chat { PolicyId = "pol-1", Messages = new List<ChatMessage>() };
-        _mockChatService.Setup(s => s.GetChatHistoryAsync("pol-1")).ReturnsAsync(chat);
+        _mockSupportChatService.Setup(s => s.GetChatHistoryAsync("pol-1")).ReturnsAsync(chat);
 
         // Act
         var result = await _controller.GetChatHistory("pol-1");
@@ -74,7 +75,7 @@ public class ChatControllerTests
     public async Task GetChatHistory_NotFound_ReturnsNotFound()
     {
         // Arrange
-        _mockChatService.Setup(s => s.GetChatHistoryAsync("pol-1")).ReturnsAsync((Chat?)null);
+        _mockSupportChatService.Setup(s => s.GetChatHistoryAsync("pol-1")).ReturnsAsync((Chat?)null);
 
         // Act
         var result = await _controller.GetChatHistory("pol-1");
@@ -88,7 +89,7 @@ public class ChatControllerTests
     {
         // Arrange
         SetUser("user-1");
-        _mockChatService.Setup(s => s.GetOrCreateChatAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _mockSupportChatService.Setup(s => s.GetOrCreateChatAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(new Chat());
 
         // Act
@@ -132,14 +133,14 @@ public class ChatControllerTests
     {
         // Arrange
         SetUser("agent-1", "Agent");
-        _mockChatService.Setup(s => s.GetUserChatListAsync("agent-1", "Agent"))
+        _mockSupportChatService.Setup(s => s.GetUserChatListAsync("agent-1", "Agent"))
             .ReturnsAsync(new List<Chat>());
 
         // Act
         await _controller.GetChatList();
 
         // Assert
-        _mockChatService.Verify(s => s.GetUserChatListAsync("agent-1", "Agent"), Times.Once);
+        _mockSupportChatService.Verify(s => s.GetUserChatListAsync("agent-1", "Agent"), Times.Once);
     }
 
     [Fact]
@@ -148,12 +149,12 @@ public class ChatControllerTests
         // Arrange
         SetUser("cust-1");
         var req = new ChatInitRequest { PolicyId = "p1", CustomerId = "cust-1", AgentId = "agent-1" };
-        _mockChatService.Setup(s => s.GetOrCreateChatAsync("p1", "cust-1", "agent-1")).ReturnsAsync(new Chat());
+        _mockSupportChatService.Setup(s => s.GetOrCreateChatAsync("p1", "cust-1", "agent-1")).ReturnsAsync(new Chat());
 
         // Act
         await _controller.InitializeChat(req);
 
         // Assert
-        _mockChatService.Verify(s => s.GetOrCreateChatAsync("p1", "cust-1", "agent-1"), Times.Once);
+        _mockSupportChatService.Verify(s => s.GetOrCreateChatAsync("p1", "cust-1", "agent-1"), Times.Once);
     }
 }

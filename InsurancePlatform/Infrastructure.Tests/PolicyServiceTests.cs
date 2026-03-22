@@ -1,3 +1,7 @@
+using Application.Interfaces.Infrastructure;
+using Application.Interfaces.Services;
+using Application.Interfaces;
+using Application.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,9 +24,9 @@ public class PolicyServiceTests
 {
     private readonly ApplicationDbContext _context;
     private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
-    private readonly Mock<INotificationService> _mockNotification;
+    private readonly Mock<ISystemNotifier> _mockNotification;
     private readonly Mock<IFileStorageService> _mockFileStorage;
-    private readonly PolicyService _policyService;
+    private readonly PolicyManager _policyService;
 
     public PolicyServiceTests()
     {
@@ -35,10 +39,11 @@ public class PolicyServiceTests
         _mockUserManager = new Mock<UserManager<ApplicationUser>>(
             userStoreMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
         
-        _mockNotification = new Mock<INotificationService>();
+        _mockNotification = new Mock<ISystemNotifier>();
         _mockFileStorage = new Mock<IFileStorageService>();
 
-        _policyService = new PolicyService(_context, _mockUserManager.Object, _mockNotification.Object, _mockFileStorage.Object);
+        var repo = new Infrastructure.Repositories.PolicyRepository(_context);
+        _policyService = new PolicyManager(repo, _mockUserManager.Object, _mockNotification.Object, _mockFileStorage.Object);
     }
 
     [Fact]

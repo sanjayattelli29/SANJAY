@@ -1,3 +1,7 @@
+using Application.Interfaces.Infrastructure;
+using Application.Interfaces.Services;
+using Application.Interfaces;
+using Application.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +20,8 @@ namespace Infrastructure.Tests;
 public class NotificationServiceTests
 {
     private readonly ApplicationDbContext _context;
-    private readonly Mock<IHubContext<NotificationHub>> _mockHubContext;
-    private readonly Mock<IHubClients> _mockClients;
-    private readonly Mock<IClientProxy> _mockClientProxy;
-    private readonly NotificationService _notificationService;
+    private readonly Mock<INotificationBroadcaster> _mockBroadcaster;
+    private readonly SystemNotifier _notificationService;
 
     public NotificationServiceTests()
     {
@@ -28,14 +30,10 @@ public class NotificationServiceTests
             .Options;
         _context = new ApplicationDbContext(options);
 
-        _mockHubContext = new Mock<IHubContext<NotificationHub>>();
-        _mockClients = new Mock<IHubClients>();
-        _mockClientProxy = new Mock<IClientProxy>();
+        var repo = new Infrastructure.Repositories.NotificationRepository(_context);
+        _mockBroadcaster = new Mock<INotificationBroadcaster>();
 
-        _mockHubContext.Setup(h => h.Clients).Returns(_mockClients.Object);
-        _mockClients.Setup(c => c.User(It.IsAny<string>())).Returns(_mockClientProxy.Object);
-
-        _notificationService = new NotificationService(_context, _mockHubContext.Object);
+        _notificationService = new SystemNotifier(repo, _mockBroadcaster.Object);
     }
 
     [Fact]
@@ -58,8 +56,8 @@ public class NotificationServiceTests
         await _notificationService.SendNotificationAsync("user-1", "Title", "Message");
 
         // Assert
-        _mockClientProxy.Verify(
-            c => c.SendCoreAsync("ReceiveNotification", It.IsAny<object[]>(), default),
+        _mockBroadcaster.Verify(
+            b => b.BroadcastNotificationAsync("user-1", It.IsAny<Notification>()),
             Times.Once);
     }
 

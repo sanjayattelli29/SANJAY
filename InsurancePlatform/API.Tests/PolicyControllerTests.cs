@@ -1,6 +1,8 @@
 using API.Controllers;
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Interfaces.Services;
+using Application.Interfaces.Infrastructure;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +14,16 @@ namespace API.Tests;
 
 public class PolicyControllerTests
 {
-    private readonly Mock<IPolicyService> _mockPolicyService;
+    private readonly Mock<IPolicyManager> _mockPolicyManager;
+    private readonly Mock<IFileStorageService> _mockFileStorage;
     private readonly PolicyController _controller;
 
-    //public PolicyControllerTests()
-    //{
-    //    _mockPolicyService = new Mock<IPolicyService>();
-    //    _controller = new PolicyController(_mockPolicyService.Object);
-    //}
+    public PolicyControllerTests()
+    {
+        _mockPolicyManager = new Mock<IPolicyManager>();
+        _mockFileStorage = new Mock<IFileStorageService>();
+        _controller = new PolicyController(_mockPolicyManager.Object, _mockFileStorage.Object);
+    }
 
     private void SetUser(string userId)
     {
@@ -36,7 +40,7 @@ public class PolicyControllerTests
     public async Task GetConfiguration_ReturnsOk()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetConfigurationAsync()).ReturnsAsync(new PolicyConfiguration());
+        _mockPolicyManager.Setup(s => s.GetConfigurationAsync()).ReturnsAsync(new PolicyConfiguration());
 
         // Act
         var result = await _controller.GetConfiguration();
@@ -49,7 +53,7 @@ public class PolicyControllerTests
     public async Task CalculatePremium_Success_ReturnsOk()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.CalculatePremiumAsync(It.IsAny<PolicyApplicationRequest>()))
+        _mockPolicyManager.Setup(s => s.CalculatePremiumAsync(It.IsAny<PolicyApplicationRequest>()))
             .ReturnsAsync(1500m);
 
         // Act
@@ -64,7 +68,7 @@ public class PolicyControllerTests
     public async Task CalculatePremium_Exception_ReturnsBadRequest()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.CalculatePremiumAsync(It.IsAny<PolicyApplicationRequest>()))
+        _mockPolicyManager.Setup(s => s.CalculatePremiumAsync(It.IsAny<PolicyApplicationRequest>()))
             .ThrowsAsync(new Exception("Invalid category"));
 
         // Act
@@ -95,7 +99,7 @@ public class PolicyControllerTests
     {
         // Arrange
         SetUser("user-1");
-        _mockPolicyService.Setup(s => s.ApplyForPolicyAsync("user-1", It.IsAny<PolicyApplicationRequest>()))
+        _mockPolicyManager.Setup(s => s.ApplyForPolicyAsync("user-1", It.IsAny<PolicyApplicationRequest>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         // Act
@@ -110,7 +114,7 @@ public class PolicyControllerTests
     {
         // Arrange
         SetUser("user-1");
-        _mockPolicyService.Setup(s => s.ApplyForPolicyAsync(It.IsAny<string>(), It.IsAny<PolicyApplicationRequest>()))
+        _mockPolicyManager.Setup(s => s.ApplyForPolicyAsync(It.IsAny<string>(), It.IsAny<PolicyApplicationRequest>()))
             .ThrowsAsync(new Exception("Already has active policy"));
 
         // Act
@@ -141,7 +145,7 @@ public class PolicyControllerTests
     {
         // Arrange
         SetUser("user-1");
-        _mockPolicyService.Setup(s => s.GetUserPoliciesAsync("user-1"))
+        _mockPolicyManager.Setup(s => s.GetUserPoliciesAsync("user-1"))
             .ReturnsAsync(new List<PolicyApplication> { new PolicyApplication() });
 
         // Act
@@ -157,13 +161,13 @@ public class PolicyControllerTests
     public async Task GetConfiguration_CallsServiceOnce()
     {
         // Arrange
-        _mockPolicyService.Setup(s => s.GetConfigurationAsync()).ReturnsAsync(new PolicyConfiguration());
+        _mockPolicyManager.Setup(s => s.GetConfigurationAsync()).ReturnsAsync(new PolicyConfiguration());
 
         // Act
         await _controller.GetConfiguration();
 
         // Assert
-        _mockPolicyService.Verify(s => s.GetConfigurationAsync(), Times.Once);
+        _mockPolicyManager.Verify(s => s.GetConfigurationAsync(), Times.Once);
     }
 
     [Fact]
@@ -171,13 +175,13 @@ public class PolicyControllerTests
     {
         // Arrange
         SetUser("user-abc");
-        _mockPolicyService.Setup(s => s.ApplyForPolicyAsync("user-abc", It.IsAny<PolicyApplicationRequest>()))
+        _mockPolicyManager.Setup(s => s.ApplyForPolicyAsync("user-abc", It.IsAny<PolicyApplicationRequest>()))
             .ReturnsAsync(new AuthResponseDto { Status = "Success" });
 
         // Act
         await _controller.Apply(new PolicyApplicationRequest());
 
         // Assert
-        _mockPolicyService.Verify(s => s.ApplyForPolicyAsync("user-abc", It.IsAny<PolicyApplicationRequest>()), Times.Once);
+        _mockPolicyManager.Verify(s => s.ApplyForPolicyAsync("user-abc", It.IsAny<PolicyApplicationRequest>()), Times.Once);
     }
 }

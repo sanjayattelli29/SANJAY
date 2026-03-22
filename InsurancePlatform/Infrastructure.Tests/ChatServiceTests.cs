@@ -1,3 +1,7 @@
+using Application.Interfaces.Infrastructure;
+using Application.Interfaces.Services;
+using Application.Interfaces;
+using Application.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +17,7 @@ namespace Infrastructure.Tests;
 public class ChatServiceTests
 {
     private readonly ApplicationDbContext _context;
-    private readonly ChatService _chatService;
+    private readonly SupportChatService _chatService;
 
     public ChatServiceTests()
     {
@@ -21,7 +25,9 @@ public class ChatServiceTests
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = new ApplicationDbContext(options);
-        _chatService = new ChatService(_context);
+        var chatRepo = new Infrastructure.Repositories.ChatRepository(_context);
+        var policyRepo = new Infrastructure.Repositories.PolicyRepository(_context);
+        _chatService = new SupportChatService(chatRepo, policyRepo);
     }
 
     private void SetupBaselineData(string policyId, string userId, string agentId)
