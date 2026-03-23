@@ -510,6 +510,17 @@ namespace Application.Services
             return true;
         }
 
+        public async Task<bool> UpdateAnalysisUrlAsync(string applicationId, string analysisUrl)
+        {
+            var app = await _policyRepository.GetByIdAsync(applicationId);
+            if (app == null) return false;
+
+            app.AnalysisReportUrl = analysisUrl;
+            await _policyRepository.UpdateAsync(app);
+            await _policyRepository.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<string> UploadGeneralFileAsync(Stream fileStream, string fileName, string folder)
         {
             var result = await _fileStorage.UploadFileAsync(fileStream, fileName, folder);

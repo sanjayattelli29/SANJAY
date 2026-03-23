@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { AgentService } from '../../../services/agent.service';
 import { environment } from '../../../../environments/environment';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as htmlToImage from 'html-to-image';
 
 Chart.register(...registerables);
 
@@ -281,6 +284,87 @@ export class AiAgentPolicyAnalysisComponent implements OnInit, AfterViewInit, On
     } else {
       console.warn('[AI Charts] riskBarChartRef not available');
     }
+  }
+
+  downloadPdf() {
+    const result = this.analysisResult();
+    if (!result) return;
+
+    const element = document.getElementById('analysis-report-content');
+    if (!element) {
+      console.error('Analysis content element not found');
+      return;
+    }
+
+    // Temporarily remove height restrictions to capture full content
+    const originalStyles = element.style.cssText;
+    element.style.height = 'auto';
+    element.style.overflow = 'visible';
+    element.style.maxHeight = 'none';
+
+    htmlToImage.toCanvas(element, { backgroundColor: '#ffffff' }).then((canvas: HTMLCanvasElement) => {
+      // Restore styles
+      element.style.cssText = originalStyles;
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; 
+      const pageHeight = 295; 
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        pdf.addPage();
+        position = heightLeft - imgHeight;
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save(`AI_Analysis_Report_${result.overallRiskLevel || 'Report'}.pdf`);
+    });
+  }
+
+  generatePdfBase64(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const result = this.analysisResult();
+      if (!result) { reject('No analysis result'); return; }
+
+      const element = document.getElementById('analysis-report-content');
+      if (!element) { reject('Analysis content element not found'); return; }
+
+      const originalStyles = element.style.cssText;
+      element.style.height = 'auto';
+      element.style.overflow = 'visible';
+      element.style.maxHeight = 'none';
+
+      htmlToImage.toCanvas(element, { backgroundColor: '#ffffff' }).then((canvas: HTMLCanvasElement) => {
+        element.style.cssText = originalStyles;
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 210; 
+        const pageHeight = 295; 
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          pdf.addPage();
+          position = heightLeft - imgHeight;
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+        
+        const base64 = pdf.output('datauristring');
+        resolve(base64);
+      }).catch(reject);
+    });
   }
 
   getBadgeClass(color: string): string {

@@ -169,7 +169,7 @@ export class AdminDashboardPage implements OnInit {
             this.destroyCharts();
         }
 
-        if (section === 'policyRequests' && this.policyRequests().length === 0) this.loadPolicyRequests();
+        if ((section === 'policyRequests' || section === 'analysis-policies') && this.policyRequests().length === 0) this.loadPolicyRequests();
         if (section === 'claimRequests' && this.pendingClaims().length === 0) this.loadPendingClaims();
         if (section === 'agents' && this.agents().length === 0) this.loadAgents();
         if (section === 'officers' && this.officers().length === 0) this.loadOfficers();

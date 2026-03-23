@@ -24,6 +24,7 @@ namespace Application.Interfaces.Services
         Task<AgentAnalyticsDto> GetAgentAnalyticsAsync(string agentId);
         Task<IEnumerable<UnifiedPaymentDto>> GetUnifiedPaymentsAsync();
         Task<bool> UpdateInvoiceUrlAsync(string applicationId, string invoiceUrl);
+        Task<bool> UpdateAnalysisUrlAsync(string applicationId, string analysisUrl);
         Task<string> UploadGeneralFileAsync(Stream fileStream, string fileName, string folder);
 
     }

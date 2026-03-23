@@ -10,18 +10,6 @@
             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gemini 2.5 Flash · Vertex AI Risk Assessment</p>
         </div>
 
-        <button (click)="runCompleteAnalysis()" [disabled]="isAnalyzing()"
-            class="flex items-center gap-2 disabled:opacity-50 transition-all"
-            [class]="analysisResult() ? 'text-indigo-500 hover:text-indigo-700 text-[10px] font-black uppercase tracking-wider' : 'bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider shadow-lg shadow-indigo-500/30'">
-            <svg *ngIf="isAnalyzing()" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <svg *ngIf="!isAnalyzing()" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            {{ isAnalyzing() ? 'Analyzing...' : (analysisResult() ? 'Re-run' : 'Run AI Analysis') }}
-        </button>
     </div>
 
     <div *ngIf="analysisError()" class="bg-rose-50 text-rose-600 p-4 border border-rose-200 rounded-2xl mb-6 text-xs font-bold shrink-0">
@@ -48,7 +36,7 @@
     </div>
 
     <!-- Result State -->
-    <div *ngIf="analysisResult() && !isAnalyzing()" class="grow overflow-y-auto pr-2 custom-scrollbar space-y-8 pb-10">
+    <div id="analysis-report-content" *ngIf="analysisResult() && !isAnalyzing()" class="grow overflow-y-auto pr-2 custom-scrollbar space-y-8 pb-10 bg-white p-6">
 
         <!-- Overall Score Banner -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden">
@@ -160,6 +148,36 @@
                 <div *ngIf="analysisResult().analysisSummaries.overall" class="bg-white p-5 rounded-2xl border-l-4 border-l-emerald-500 border-y border-r border-slate-100 shadow-sm hover:shadow-md transition-all">
                     <p class="text-[9px] text-emerald-500 font-black uppercase tracking-wider mb-1">Detailed Document Assessment</p>
                     <p class="text-xs text-slate-700 italic font-medium leading-relaxed">{{ analysisResult().analysisSummaries.overall }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. In-depth Document Analysis -->
+        <div *ngIf="analysisResult().individualDocumentAnalysis?.length" class="space-y-4 pb-10">
+            <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-200/50 pb-2">In-depth Document Analysis</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div *ngFor="let doc of analysisResult().individualDocumentAnalysis" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col">
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-50">
+                        <div>
+                            <p class="text-[9px] text-indigo-500 font-black uppercase tracking-wider">{{ doc.documentType || 'Document' }}</p>
+                            <h5 class="text-xs font-black text-brand-navy truncate max-w-[200px]">{{ doc.documentName }}</h5>
+                        </div>
+                        <span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-lg text-[8px] font-black uppercase tracking-wider border border-indigo-100/50">Details</span>
+                    </div>
+
+                    <!-- Extracted Details Grid -->
+                    <div *ngIf="doc.extractedDetails && (doc.extractedDetails | keyvalue)?.length" class="grid grid-cols-2 gap-2 mb-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                        <div *ngFor="let item of doc.extractedDetails | keyvalue" class="min-w-0">
+                            <p class="text-[7px] text-slate-400 font-bold uppercase tracking-widest truncate">{{ item.key }}</p>
+                            <p class="text-[9px] font-black text-slate-700 truncate" [title]="item.value">{{ item.value || 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Paragraph -->
+                    <p class="text-[11px] text-slate-600 font-medium leading-relaxed italic grow">
+                        {{ doc.analysis }}
+                    </p>
                 </div>
             </div>
         </div>

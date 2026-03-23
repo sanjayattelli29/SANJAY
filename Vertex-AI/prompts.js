@@ -58,6 +58,16 @@ The JSON must exactly match this schema:
      "overall": "Overall document report and assessment",
      "documentConsistency": "Assessment of visual and text indicators."
   },
+  "individualDocumentAnalysis": [
+    {
+      "documentName": "filename.pdf",
+      "documentType": "Medical Report/ID",
+      "extractedDetails": {
+         "Key1": "Value1"
+      },
+      "analysis": "Detailed analysis paragraph explaining the document structure that was uploaded by the user with actual data."
+    }
+  ],
   "riskFactors": [
     {
       "factor": "Annual Income vs Coverage",
@@ -128,6 +138,16 @@ The JSON must exactly match this schema:
   "policyEligibilityCheck": "Does the claim fall within the policy's coverage scope and remaining balance? Is the incident type covered?",
   "customerRiskProfile": "Assessment of the claimant's risk profile based on their lifestyle, profession, income, and claim history.",
   "nomineeValidation": "Assessment of the nominee's legitimacy and whether the beneficiary information is consistent with the claim.",
+  "individualDocumentAnalysis": [
+    {
+      "documentName": "filename.pdf",
+      "documentType": "Medical Report/ID",
+      "extractedDetails": {
+         "Key1": "Value1"
+      },
+      "analysis": "Detailed analysis paragraph explaining the document structure that was uploaded by the user with actual data."
+    }
+  ],
   "fraudSignals": ["Signal 1 if suspicious", "Signal 2 if suspicious"],
   "settlementRecommendation": "Specific recommendation for the claims officer — approve, investigate further, or reject — with clear reasoning.",
   "agentRecommendations": ["Action 1 for officer", "Action 2", "Action 3"],

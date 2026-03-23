@@ -128,6 +128,30 @@ namespace API.Controllers
                 return BadRequest(new { message = $"Invoice upload failed: {ex.Message}" });
             }
         }
+
+        [HttpPost("upload-analysis")]
+        public async Task<IActionResult> UploadAnalysis([FromBody] UploadAnalysisDto dto)
+        {
+            try
+            {
+                var base64Data = dto.Base64Pdf.Contains(",")
+                    ? dto.Base64Pdf.Substring(dto.Base64Pdf.IndexOf(',') + 1)
+                    : dto.Base64Pdf;
+
+                var pdfBytes = Convert.FromBase64String(base64Data);
+                using var stream = new MemoryStream(pdfBytes);
+
+                var uploadResult = await _fileStorageService.UploadFileAsync(stream, dto.FileName, "/analysis");
+                
+                await _policyManager.UpdateAnalysisUrlAsync(dto.ApplicationId, uploadResult.FileUrl);
+
+                return Ok(new { analysisUrl = uploadResult.FileUrl });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Analysis upload failed: {ex.Message}" });
+            }
+        }
     }
 }
 

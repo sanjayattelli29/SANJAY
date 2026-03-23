@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -105,6 +105,18 @@ export class AgentDashboardPage implements OnInit {
     isAILoading = signal(false);
     showAIModal = signal(false);
     aiResult = signal<any>(null);
+    isSavingAnalysis = signal(false);
+    analysisHistory = computed(() => this.policyRequests().filter(p => p.analysisReportUrl));
+
+    policyTimelineUnified = computed(() => {
+        const detail = this.selectedUnifiedDetail();
+        return detail?.policy ? this.generatePolicyTimeline(detail.policy) : [];
+    });
+
+    policyTimelineApplication = computed(() => {
+        const app = this.selectedApplication();
+        return app ? this.generatePolicyTimeline(app) : [];
+    });
 
     config: any = null; // policy configuration
 
@@ -1282,5 +1294,45 @@ export class AgentDashboardPage implements OnInit {
 </body>
 </html>
         `;
+    }
+
+    confirmSaveAnalysis(analysisComponent: any) {
+        if (!analysisComponent) return;
+
+        const app = this.selectedUnifiedDetail()?.policy || this.selectedApplication();
+        if (!app) {
+            alert('No active application selected to save analysis for.');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to save this analysis to the system? This will upload the report to storage and link it to the policy application.')) {
+            return;
+        }
+
+        this.isSavingAnalysis.set(true);
+        
+        analysisComponent.generatePdfBase64()
+            .then((base64: string) => {
+                const fileName = `Analysis_Report_${app.id.substring(0,8).toUpperCase()}.pdf`;
+                this.policyService.uploadAnalysis(app.id, base64, fileName).subscribe({
+                    next: (res: any) => {
+                        this.isSavingAnalysis.set(false);
+                        alert('Analysis report saved successfully!');
+                        if (this.selectedUnifiedDetail()?.policy) {
+                            this.selectedUnifiedDetail().policy.analysisReportUrl = res.analysisUrl;
+                        }
+                    },
+                    error: (err: any) => {
+                        this.isSavingAnalysis.set(false);
+                        console.error('Save analysis failed:', err);
+                        alert('Failed to save analysis: ' + (err.error?.message || 'Upload error'));
+                    }
+                });
+            })
+            .catch((err: any) => {
+                this.isSavingAnalysis.set(false);
+                console.error('PDF Generation failed:', err);
+                alert('Failed to generate PDF for saving.');
+            });
     }
 }

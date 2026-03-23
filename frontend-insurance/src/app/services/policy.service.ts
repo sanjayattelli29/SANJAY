@@ -84,4 +84,12 @@ export class PolicyService {
             fileName 
         });
     }
+
+    uploadAnalysis(applicationId: string, base64Pdf: string, fileName: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/upload-analysis`, { 
+            applicationId, 
+            base64Pdf, 
+            fileName 
+        });
+    }
 }

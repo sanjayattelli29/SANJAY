@@ -59,6 +59,7 @@ public class PolicyApplication
     public DateTime? PaymentDate { get; set; }
     public string? TransactionId { get; set; }
     public string? InvoiceUrl { get; set; }
+    public string? AnalysisReportUrl { get; set; }
 
 
     // relational links

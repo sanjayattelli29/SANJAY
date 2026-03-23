@@ -2001,7 +2001,7 @@
                             review based on documents provided.</p>
                         <button (click)="ctx.proceedToReview()"
                             class="btn-primary w-full py-5 bg-brand-orange text-white shadow-xl shadow-orange-500/20 group flex items-center justify-center gap-3">
-                            Review & Confirm (Pay ₹{{ ctx.getApproximatePayment(ctx.applicationForm.paymentMode) |
+                            Review & Confirm (Amount ₹{{ ctx.getApproximatePayment(ctx.applicationForm.paymentMode) |
                             number:'1.0-0' }})
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
@@ -2094,12 +2094,6 @@
                                 </div>
                             </div>
 
-                            <button (click)="ctx.goBackToStep1()"
-                                class="w-full py-4 mt-2 border-2 border-slate-100 hover:border-brand-orange/30 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-navy transition-all">
-                                Modify Details</button>
-                            <button (click)="ctx.goBackToStep2()"
-                                class="w-full py-4 mt-2 border-2 border-slate-100 hover:border-brand-orange/30 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-navy transition-all">
-                                Modify Verification</button>
                         </div>
                     </div>
                 </div>

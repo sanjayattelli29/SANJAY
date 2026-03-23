@@ -1,7 +1,7 @@
 <div class="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
     <div>
         <h1 class="text-4xl font-black text-brand-navy tracking-tight italic">
-            Global Data Section
+            Claims History
         </h1>
         <p class="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">
             End-to-end audit trail of every claim requested, processed and settled across the enterprise.
@@ -24,7 +24,7 @@
                 <thead>
                     <tr
                         class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
-                        <th class="px-8 py-5">Reference Identity</th>
+                        <th class="px-8 py-5"> Date</th>
                         <th class="px-8 py-5">Entity Origin</th>
                         <th class="px-8 py-5">Incident Forensic</th>
                         <th class="px-8 py-5">Audit Valuation</th>
@@ -38,10 +38,7 @@
                     @for (c of allClaims; track c.id) {
                     <tr class="hover:bg-slate-50/30 transition-colors group">
                         <td class="px-8 py-6">
-                            <p class="font-mono text-[11px] text-brand-navy font-black">
-                                #{{ c.id.substring(0,8) }}
-                            </p>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">
+                            <p class="text-[12px] text-slate-400 font-bold uppercase mt-1">
                                 {{ c.submissionDate | date:'dd MMM yyyy' }}
                             </p>
                         </td>
@@ -81,7 +78,7 @@
                                     (c.status === 'Approved'
                                         ? 'bg-emerald-50 text-emerald-600'
                                         : 'bg-brand-orange/10 text-brand-orange')">
-                                    ● {{ c.status }}
+                                    {{ c.status }}
                                 </span>
                                 <p class="text-[9px] text-slate-400 font-black uppercase tracking-tighter italic">
                                     Officer:
@@ -93,7 +90,7 @@
                         <td class="px-8 py-6 text-right">
                             <button (click)="view(c)"
                                 class="bg-brand-navy hover:bg-black text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:shadow-xl hover:shadow-navy-100 flex items-center gap-2 ml-auto group-hover:scale-105">
-                                Audit Data
+                                View Data
                             </button>
                         </td>
                     </tr>

@@ -1967,6 +1967,8 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         if (event.target.files.length > 0) {
             const file = event.target.files[0];
             this.aadharFile.set(file);
+            this.kycError.set(null); // Clear previous errors
+            this.kycSuccessMsg.set(null);
             const reader = new FileReader();
             reader.onload = async () => {
                 this.aadharPreview.set(reader.result as string);
@@ -1997,29 +1999,49 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                         let parsedDetails = [];
                         const lines = fullText.split('\n').filter((l: { trim: () => { (): any; new(): any; length: number; }; }) => l.trim().length > 0);
                         
+                        let hasName = false;
+                        let hasDob = false;
+                        let hasAadhar = false;
+
                         // Extract Name heuristic
                         const dobIndex = lines.findIndex((l: string) => /DOB|Year of Birth/i.test(l));
                         if (dobIndex > 0) {
                             let possibleName = lines[dobIndex - 1].trim();
                             possibleName = possibleName.replace(/^[^a-zA-Z]+/, '').trim();
-                            if (possibleName.length > 3) parsedDetails.push(`Name: ${possibleName}`);
+                            if (possibleName.length > 3) {
+                                parsedDetails.push(`Name: ${possibleName}`);
+                                hasName = true;
+                            }
                         }
 
                         // Extract DOB
                         const dobMatch = fullText.match(/DOB[:\.\s]*(\d{2}\/\d{2}\/\d{4})/i) || fullText.match(/Year of Birth.*(\d{4})/i);
-                        if (dobMatch) parsedDetails.push(`Date of Birth: ${dobMatch[1]}`);
+                        if (dobMatch) {
+                            parsedDetails.push(`Date of Birth: ${dobMatch[1]}`);
+                            hasDob = true;
+                        }
 
                         // Extract 12-digit Aadhar pattern
                         const aadharMatch = fullText.match(/\d{4}[\s-]+\d{4}[\s-]+\d{4}/) || fullText.match(/\d{12}/);
-                        if (aadharMatch) parsedDetails.push(`Aadhar Number: ${aadharMatch[0].trim()}`);
+                        if (aadharMatch) {
+                            parsedDetails.push(`Aadhar Number: ${aadharMatch[0].trim()}`);
+                            hasAadhar = true;
+                        }
 
-                        if (parsedDetails.length > 0) {
+                        if (hasName && hasDob && hasAadhar) {
                             this.aadharText.set(`Key Details Extracted Successfully!\n\n${parsedDetails.join('\n')}\n\nNote: These details are for verification convenience.`);
                         } else {
-                            this.aadharText.set(`Key details could not be parsed automatically.\n\nRaw Text Start:\n${fullText.substring(0, 100)}...`);
+                            const missingFields = [];
+                            if (!hasName) missingFields.push("Name");
+                            if (!hasDob) missingFields.push("Date of Birth");
+                            if (!hasAadhar) missingFields.push("Aadhar Number");
+                            
+                            this.aadharText.set(`Missing required fields: ${missingFields.join(', ')}\n\nPlease ensure the uploaded image contains these details.`);
+                            this.kycError.set("Please upload correct file");
                         }
                     } else {
                         this.aadharText.set("Could not automatically extract readable text. Please ensure the image is clear.");
+                        this.kycError.set("Please upload correct file");
                     }
                 } catch (e) {
                     console.error("KYC Vision API failed:", e);
