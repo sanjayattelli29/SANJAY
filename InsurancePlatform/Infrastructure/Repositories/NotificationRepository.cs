@@ -50,6 +50,19 @@ namespace Infrastructure.Repositories
             await _context.Notifications.AddAsync(notification);
         }
 
+        public async Task DeleteAsync(Notification notification)
+        {
+            _context.Notifications.Remove(notification);
+            await Task.CompletedTask;
+        }
+
+        public async Task DeleteAllAsync(string userId)
+        {
+            var userNotifications = _context.Notifications.Where(n => n.UserId == userId);
+            _context.Notifications.RemoveRange(userNotifications);
+            await Task.CompletedTask;
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

@@ -147,6 +147,28 @@ export class NotificationService {
         );
     }
 
+    // delete single notification via backend api
+    deleteNotification(id: string): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+            tap(() => {
+                // remove from local list to disappear immediately
+                this.notifications.update(list => list.filter(n => n.id !== id));
+                // refresh unread count
+                this.getUnreadCount().subscribe(count => this.unreadCount.set(count));
+            })
+        );
+    }
+
+    // clear all notifications for logged in user
+    clearAllNotifications(): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/clear-all`).pipe(
+            tap(() => {
+                this.notifications.set([]);
+                this.unreadCount.set(0);
+            })
+        );
+    }
+
     // disconnect from signalr hub when component destroyed
     async stopConnection() {
         if (this.hubConnection) {

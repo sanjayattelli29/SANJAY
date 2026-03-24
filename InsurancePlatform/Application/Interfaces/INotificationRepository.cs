@@ -12,6 +12,8 @@ namespace Application.Interfaces
         Task<int> GetUnreadCountAsync(string userId);
         Task<IEnumerable<Notification>> GetUnreadByUserIdAsync(string userId);
         Task AddAsync(Notification notification);
+        Task DeleteAsync(Notification notification);
+        Task DeleteAllAsync(string userId);
         Task SaveChangesAsync();
     }
 }

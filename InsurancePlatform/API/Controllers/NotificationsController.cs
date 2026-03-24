@@ -217,5 +217,25 @@ namespace API.Controllers
             await _systemNotifier.MarkAllAsReadAsync(userId);
             return Ok();
         }
+
+        // deletes a single notification
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteNotification(Guid id)
+        {
+            await _systemNotifier.DeleteNotificationAsync(id);
+            return Ok();
+        }
+
+        // clears all notifications for user
+        [HttpDelete("clear-all")]
+        public async Task<IActionResult> DeleteAllNotifications()
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId)) userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            await _systemNotifier.DeleteAllNotificationsAsync(userId);
+            return Ok();
+        }
     }
 }

@@ -20,6 +20,10 @@
     <div
         class="absolute right-0 mt-4 w-96 bg-white rounded-3xl shadow-2xl shadow-slate-200 border border-slate-50 overflow-hidden z-[100] transform transition-all">
         <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+            <!-- Clear All on Left -->
+            <button (click)="clearAll()" class="text-[10px] font-bold text-red-400 hover:text-red-500 hover:underline">
+                Clear all
+            </button>
             <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest">Notifications</h3>
             <button (click)="markAllAsRead()" class="text-[10px] font-bold text-brand-orange hover:underline">
                 Mark all as read
@@ -60,9 +64,9 @@
                 <h4 class="text-xs font-black text-brand-navy mb-1">{{ n.title }}</h4>
                 <p class="text-[11px] text-slate-500 leading-relaxed">{{ n.message }}</p>
 
-                <button (click)="markAsRead(n.id, $event)"
+                <button (click)="deleteNotification(n.id, $event)"
                     class="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span class="text-[9px] font-bold text-slate-300 hover:text-brand-orange uppercase">Clear</span>
+                    <span class="text-[9px] font-bold text-slate-300 hover:text-red-500 uppercase">Clear</span>
                 </button>
             </div>
             }
@@ -70,8 +74,9 @@
         </div>
 
         <div class="p-4 bg-slate-50/50 text-center">
-            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">Live Updates Enabled ✨</p>
+            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">Live Updates Enabled </p>
         </div>
     </div>
     }
 </div>
+

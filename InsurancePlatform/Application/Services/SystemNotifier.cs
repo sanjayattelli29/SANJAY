@@ -60,12 +60,26 @@ namespace Application.Services
         public async Task MarkAllAsReadAsync(string userId)
         {
             var unreadNotifications = await _notificationRepository.GetUnreadByUserIdAsync(userId);
-
             foreach (var notification in unreadNotifications)
             {
                 notification.IsRead = true;
             }
+            await _notificationRepository.SaveChangesAsync();
+        }
 
+        public async Task DeleteNotificationAsync(Guid notificationId)
+        {
+            var notification = await _notificationRepository.GetByIdAsync(notificationId);
+            if (notification != null)
+            {
+                await _notificationRepository.DeleteAsync(notification);
+                await _notificationRepository.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteAllNotificationsAsync(string userId)
+        {
+            await _notificationRepository.DeleteAllAsync(userId);
             await _notificationRepository.SaveChangesAsync();
         }
     }

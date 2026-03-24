@@ -56,14 +56,23 @@ export class NotificationPanelComponent implements OnInit {
         this.notificationService.markAsRead(id).subscribe();
     }
 
+    // delete notification from db
+    deleteNotification(id: string, event: Event) {
+        event.stopPropagation();
+        this.notificationService.deleteNotification(id).subscribe();
+    }
+
+    // clear all notifications from db
+    clearAll() {
+        this.notificationService.clearAllNotifications().subscribe();
+    }
+
     // handle notification click to navigate to related page
     handleNotificationClick(notification: Notification, event: Event) {
         event.stopPropagation();
 
-        // mark as read first
-        if (!notification.isRead) {
-            this.notificationService.markAsRead(notification.id).subscribe();
-        }
+        // delete from db so it disappears on click
+        this.notificationService.deleteNotification(notification.id).subscribe();
 
         // parse notification type and extract id for navigation
         const rawType = notification.notificationType || '';

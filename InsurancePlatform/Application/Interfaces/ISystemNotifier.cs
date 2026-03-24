@@ -9,5 +9,7 @@ namespace Application.Interfaces
         Task<int> GetUnreadCountAsync(string userId);
         Task MarkAsReadAsync(Guid notificationId);
         Task MarkAllAsReadAsync(string userId);
+        Task DeleteNotificationAsync(Guid notificationId);
+        Task DeleteAllNotificationsAsync(string userId);
     }
 }
