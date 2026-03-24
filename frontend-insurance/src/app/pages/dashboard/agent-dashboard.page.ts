@@ -1299,6 +1299,11 @@ export class AgentDashboardPage implements OnInit {
     confirmSaveAnalysis(analysisComponent: any) {
         if (!analysisComponent) return;
 
+        if (!this.authService.isLoggedIn()) {
+            alert('You must be logged in to save the analysis. Please log in first.');
+            return;
+        }
+
         const app = this.selectedUnifiedDetail()?.policy || this.selectedApplication();
         if (!app) {
             alert('No active application selected to save analysis for.');

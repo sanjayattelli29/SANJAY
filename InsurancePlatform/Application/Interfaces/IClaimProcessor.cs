@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Application.Interfaces.Services
+namespace Application.Interfaces
 {
     public interface IClaimProcessor
     {

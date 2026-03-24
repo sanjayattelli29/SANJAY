@@ -1,8 +1,6 @@
 using API.Controllers;
 using Application.DTOs;
 using Application.Interfaces;
-using Application.Interfaces.Services;
-using Application.Interfaces.Infrastructure;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

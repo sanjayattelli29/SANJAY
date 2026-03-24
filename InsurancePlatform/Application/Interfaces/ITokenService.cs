@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Application.Interfaces.Infrastructure
+namespace Application.Interfaces
 {
     public interface ITokenService
     {

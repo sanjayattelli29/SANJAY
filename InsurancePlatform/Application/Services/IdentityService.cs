@@ -1,6 +1,4 @@
 using Application.DTOs;
-using Application.Interfaces.Services;
-using Application.Interfaces.Infrastructure;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -10,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Application.Interfaces;
 
 namespace Application.Services
 {

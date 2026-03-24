@@ -1,5 +1,3 @@
-using Application.Interfaces.Infrastructure;
-using Application.Interfaces.Services;
 using Application.Interfaces;
 using Application.Services;
 using System;
@@ -7,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.DTOs;
-using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
@@ -62,6 +59,7 @@ public class ClaimServiceTests
         
         _context.PolicyApplications.Add(policy);
         _context.InsuranceClaims.Add(claim);
+        _context.Users.Add(new ApplicationUser { Id = "user-123", Email = "user@test.com" });
         await _context.SaveChangesAsync();
 
         _mockUserManager.Setup(u => u.FindByIdAsync(It.IsAny<string>()))
@@ -155,6 +153,7 @@ public class ClaimServiceTests
         };
         _context.PolicyApplications.Add(policy);
         _context.InsuranceClaims.Add(claim);
+        _context.Users.Add(new ApplicationUser { Id = "cust-1", Email = "cust-1@test.com" });
         await _context.SaveChangesAsync();
 
         // Act
@@ -176,9 +175,10 @@ public class ClaimServiceTests
         // Arrange
         var officerId = "off-1";
         var policy = new PolicyApplication { Id = "pol-1", RemainingCoverageAmount = 1000 };
-        var claim = new InsuranceClaim { Id = "cl-1", PolicyApplicationId = "pol-1", AssignedClaimOfficerId = officerId };
+        var claim = new InsuranceClaim { Id = "cl-1", PolicyApplicationId = "pol-1", AssignedClaimOfficerId = officerId, UserId = "cust-1" };
         _context.PolicyApplications.Add(policy);
         _context.InsuranceClaims.Add(claim);
+        _context.Users.Add(new ApplicationUser { Id = "cust-1", Email = "cust-1@test.com" });
         await _context.SaveChangesAsync();
 
         // Act & Assert
@@ -245,6 +245,7 @@ public class ClaimServiceTests
         };
         _context.PolicyApplications.Add(policy);
         _context.InsuranceClaims.Add(claim);
+        _context.Users.Add(new ApplicationUser { Id = "cust-1", Email = "cust-1@test.com" });
         await _context.SaveChangesAsync();
 
         // Act
@@ -264,8 +265,9 @@ public class ClaimServiceTests
         _mockUserManager.Setup(u => u.GetUsersInRoleAsync(UserRoles.Agent)).ReturnsAsync(new List<ApplicationUser>());
         _mockUserManager.Setup(u => u.GetUsersInRoleAsync(UserRoles.ClaimOfficer)).ReturnsAsync(new List<ApplicationUser>());
         
-        _context.PolicyApplications.Add(new PolicyApplication { Id = "p1", PaidAmount = 1000, Status = "Active" });
-        _context.InsuranceClaims.Add(new InsuranceClaim { Id = "c1", Status = "Approved", ApprovedAmount = 500 });
+        _context.PolicyApplications.Add(new PolicyApplication { Id = "p1", PaidAmount = 1000, Status = "Active", UserId = "cust-1" });
+        _context.InsuranceClaims.Add(new InsuranceClaim { Id = "c1", Status = "Approved", ApprovedAmount = 500, UserId = "cust-1", PolicyApplicationId = "p1" });
+        _context.Users.Add(new ApplicationUser { Id = "cust-1", Email = "cust-1@test.com" });
         await _context.SaveChangesAsync();
 
         // Act

@@ -1,5 +1,3 @@
-using Application.Interfaces.Infrastructure;
-using Application.Interfaces.Services;
 using Application.Interfaces;
 using Application.Services;
 using System;
@@ -8,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.DTOs;
-using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;

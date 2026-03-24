@@ -1,6 +1,5 @@
 using API.Controllers;
 using Application.Interfaces;
-using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

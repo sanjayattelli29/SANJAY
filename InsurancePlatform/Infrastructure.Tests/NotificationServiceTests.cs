@@ -1,6 +1,3 @@
-using Application.Interfaces.Infrastructure;
-using Application.Interfaces.Services;
-using Application.Interfaces;
 using Application.Services;
 using System;
 using System.Collections.Generic;
@@ -14,6 +11,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
+using Application.Interfaces;
 
 namespace Infrastructure.Tests;
 

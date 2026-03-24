@@ -1,4 +1,4 @@
-namespace Application.Interfaces.Infrastructure
+namespace Application.Interfaces
 {
     public interface IVapiService
     {

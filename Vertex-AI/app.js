@@ -3,7 +3,8 @@ const cors = require('cors');
 const express = require('express');
 const multer = require('multer');
 const dotenv = require('dotenv');
-const { extractTextSmart } = require('./vision_extractor');
+// const { extractTextSmart } = require('./vision_extractor'); // Removed as redundant
+
 const { ANALYZE_PROMPT, CLAIM_PROMPT } = require('./prompts');
 
 dotenv.config();
@@ -104,9 +105,7 @@ app.post('/analyze', upload.any(), async (req, res) => {
                 extractedText += `DOCUMENT: ${file.originalname} [Included as Multimodal Attachment]\n`;
                 console.log(`[${requestId}] 📎 Attached file directly: ${file.originalname} (${file.mimetype})`);
             } else {
-                // Fallback to text extraction for remaining types
-                const text = await extractTextSmart(file.buffer, file.mimetype);
-                extractedText += `DOCUMENT: ${file.originalname}\n${text}\n\n`;
+                extractedText += `DOCUMENT: ${file.originalname} [Unsupported format: ${file.mimetype}]\n`;
             }
         }
 
@@ -168,9 +167,7 @@ app.post('/analyze-claim', upload.any(), async (req, res) => {
                 extractedText += `DOCUMENT: ${file.originalname} [Included as Multimodal Attachment]\n`;
                 console.log(`[${requestId}] 📎 Attached file directly: ${file.originalname} (${file.mimetype})`);
             } else {
-                // Fallback to text extraction
-                const text = await extractTextSmart(file.buffer, file.mimetype);
-                extractedText += `DOCUMENT: ${file.originalname}\n${text}\n\n`;
+                extractedText += `DOCUMENT: ${file.originalname} [Unsupported format: ${file.mimetype}]\n`;
             }
         }
 

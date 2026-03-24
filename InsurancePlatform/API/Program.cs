@@ -1,8 +1,6 @@
 using API.Hubs;
 using Infrastructure.Hubs;
-using Application.Interfaces.Repositories;
-using Application.Interfaces.Services;
-using Application.Interfaces.Infrastructure;
+using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Services;

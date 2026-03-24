@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
-using Application.Interfaces.Services;
+using Application.Interfaces;
 
 namespace API.Controllers
 {

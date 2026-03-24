@@ -1,5 +1,3 @@
-using Application.Interfaces.Infrastructure;
-using Application.Interfaces.Services;
 using Application.Interfaces;
 using Application.Services;
 using System;
@@ -99,6 +97,10 @@ public class AuthServiceTests
         _mockUserManager.Setup(u => u.FindByEmailAsync(loginDto.EmailId)).ReturnsAsync(user);
         _mockUserManager.Setup(u => u.CheckPasswordAsync(user, loginDto.Password)).ReturnsAsync(true);
         _mockUserManager.Setup(u => u.GetRolesAsync(user)).ReturnsAsync(new List<string> { UserRoles.Customer });
+
+        var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(issuer: "TestIssuer", audience: "TestAudience", expires: DateTime.UtcNow.AddMinutes(60));
+        _mockTokenService.Setup(t => t.CreateToken(It.IsAny<List<System.Security.Claims.Claim>>())).Returns(token);
+        _mockTokenService.Setup(t => t.WriteToken(token)).Returns("dummy-token");
 
         // Act
         var result = await _authService.LoginAsync(loginDto);

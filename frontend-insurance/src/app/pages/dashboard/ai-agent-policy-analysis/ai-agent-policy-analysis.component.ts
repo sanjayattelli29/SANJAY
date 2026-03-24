@@ -302,7 +302,18 @@ export class AiAgentPolicyAnalysisComponent implements OnInit, AfterViewInit, On
     element.style.overflow = 'visible';
     element.style.maxHeight = 'none';
 
-    htmlToImage.toCanvas(element, { backgroundColor: '#ffffff' }).then((canvas: HTMLCanvasElement) => {
+    htmlToImage.toCanvas(element, { 
+      backgroundColor: '#ffffff',
+      filter: (node: any) => {
+        if (node.tagName === 'LINK' && node.href && (node.href.includes('fonts.googleapis') || node.href.includes('fonts.gstatic'))) {
+          return false;
+        }
+        if (node.tagName === 'STYLE' && node.textContent && node.textContent.includes('@import')) {
+          // Optional: skip styles importing fonts if needed, but link filters usually suffice
+        }
+        return true;
+      }
+    }).then((canvas: HTMLCanvasElement) => {
       // Restore styles
       element.style.cssText = originalStyles;
 
@@ -340,7 +351,15 @@ export class AiAgentPolicyAnalysisComponent implements OnInit, AfterViewInit, On
       element.style.overflow = 'visible';
       element.style.maxHeight = 'none';
 
-      htmlToImage.toCanvas(element, { backgroundColor: '#ffffff' }).then((canvas: HTMLCanvasElement) => {
+      htmlToImage.toCanvas(element, { 
+        backgroundColor: '#ffffff',
+        filter: (node: any) => {
+          if (node.tagName === 'LINK' && node.href && (node.href.includes('fonts.googleapis') || node.href.includes('fonts.gstatic'))) {
+            return false;
+          }
+          return true;
+        }
+      }).then((canvas: HTMLCanvasElement) => {
         element.style.cssText = originalStyles;
 
         const imgData = canvas.toDataURL('image/png');

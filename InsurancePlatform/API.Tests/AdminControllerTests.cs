@@ -1,7 +1,6 @@
 using API.Controllers;
 using Application.DTOs;
 using Application.Interfaces;
-using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

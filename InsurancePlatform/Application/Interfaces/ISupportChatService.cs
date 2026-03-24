@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Application.Interfaces.Services;
+namespace Application.Interfaces;
 
 // this interface handles the chat functions for agent and customer
 public interface ISupportChatService

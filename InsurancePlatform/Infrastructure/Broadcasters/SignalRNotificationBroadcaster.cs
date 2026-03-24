@@ -1,4 +1,4 @@
-using Application.Interfaces.Infrastructure;
+using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;

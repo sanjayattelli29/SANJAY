@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Application.Interfaces.Services;
+using Application.Interfaces;
 
 namespace Application.Services
 {

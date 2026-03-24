@@ -1,8 +1,7 @@
 using Application.DTOs;
-using Application.Interfaces.Services;
-using Application.Interfaces.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Application.Interfaces;
 
 namespace API.Controllers
 {

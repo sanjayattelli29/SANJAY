@@ -1,6 +1,3 @@
-using Application.Interfaces.Services;
-using Application.Interfaces.Repositories;
-using Application.Interfaces.Infrastructure;
 using Application.DTOs;
 using Domain.Entities;
 using Domain.Enums;
@@ -9,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Application.Interfaces;
 namespace Application.Services
 {
     public class ClaimProcessor : IClaimProcessor
@@ -230,11 +227,15 @@ namespace Application.Services
             var allPolicies = await _policyRepository.GetAllApplicationsAsync();
             var allClaims = await _claimRepository.GetAllClaimsAsync();
             
+            var customers = await _userManager.GetUsersInRoleAsync(UserRoles.Customer);
+            var agents = await _userManager.GetUsersInRoleAsync(UserRoles.Agent);
+            var claimOfficers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer);
+
             var stats = new AdminDashboardStatsDto
             {
-                TotalCustomers = await _userManager.GetUsersInRoleAsync(UserRoles.Customer).ContinueWith(t => t.Result.Count),
-                TotalAgents = await _userManager.GetUsersInRoleAsync(UserRoles.Agent).ContinueWith(t => t.Result.Count),
-                TotalClaimOfficers = await _userManager.GetUsersInRoleAsync(UserRoles.ClaimOfficer).ContinueWith(t => t.Result.Count),
+                TotalCustomers = customers.Count,
+                TotalAgents = agents.Count,
+                TotalClaimOfficers = claimOfficers.Count,
                 
                 TotalPolicies = allPolicies.Count(),
                 TotalClaims = allClaims.Count(),

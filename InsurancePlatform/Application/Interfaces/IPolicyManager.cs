@@ -2,7 +2,7 @@ using Application.DTOs;
 using Domain.Entities;
 using System.Text.Json;
 
-namespace Application.Interfaces.Services
+namespace Application.Interfaces
 {
     public interface IPolicyManager
     {

@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Application.Interfaces.Services
+namespace Application.Interfaces
 {
     public interface IVoiceOrchestrator
     {

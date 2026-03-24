@@ -1,6 +1,6 @@
 using Application.DTOs;
 
-namespace Application.Interfaces.Services
+namespace Application.Interfaces
 {
     // this interface lists all the things about user account management
     public interface IIdentityService

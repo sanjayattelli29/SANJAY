@@ -1,10 +1,10 @@
-using Application.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Domain.Enums;
+using Application.Interfaces;
 
 namespace API.Controllers
 {

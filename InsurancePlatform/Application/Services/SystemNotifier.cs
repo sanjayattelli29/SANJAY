@@ -1,10 +1,8 @@
-using Application.Interfaces.Services;
-using Application.Interfaces.Repositories;
-using Application.Interfaces.Infrastructure;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Application.Interfaces;
 
 namespace Application.Services
 {

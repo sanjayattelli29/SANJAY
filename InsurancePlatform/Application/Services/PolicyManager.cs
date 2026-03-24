@@ -1,6 +1,3 @@
-using Application.Interfaces.Services;
-using Application.Interfaces.Repositories;
-using Application.Interfaces.Infrastructure;
 using Application.DTOs;
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +8,7 @@ using System.Threading.Tasks;
 using System;
 using System.IO;
 using System.Linq;
+using Application.Interfaces;
 
 namespace Application.Services
 {

@@ -1,10 +1,10 @@
-using Application.Interfaces.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Net.Http;
+using Application.Interfaces;
 
 namespace Infrastructure.ExternalServices
 {
