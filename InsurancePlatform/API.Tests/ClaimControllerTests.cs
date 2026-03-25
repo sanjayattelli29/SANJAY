@@ -13,12 +13,14 @@ namespace API.Tests;
 public class ClaimControllerTests
 {
     private readonly Mock<IClaimProcessor> _mockClaimProcessor;
+    private readonly Mock<IFileStorageService> _mockFileStorageService;
     private readonly ClaimController _controller;
 
     public ClaimControllerTests()
     {
         _mockClaimProcessor = new Mock<IClaimProcessor>();
-        _controller = new ClaimController(_mockClaimProcessor.Object);
+        _mockFileStorageService = new Mock<IFileStorageService>();
+        _controller = new ClaimController(_mockClaimProcessor.Object, _mockFileStorageService.Object);
     }
 
     private void SetUser(string userId, string role = "Customer")

@@ -26,6 +26,7 @@
                         <th class="px-6 py-4">Incident Type</th>
                         <th class="px-6 py-4">Request Amount</th>
                         <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Analysis</th>
                         <th class="px-6 py-4 text-right">Action</th>
                     </tr>
                 </thead>
@@ -59,6 +60,17 @@
                                 [class]="'badge ' + (claim.status?.toUpperCase() === 'PENDING' ? 'badge-warning' : 'badge-success')">
                                 ● {{ claim.status }}
                             </span>
+                        </td>
+
+                        <td class="px-6 py-4 text-right">
+                            @if (claim.analysisReportUrl) {
+                            <a [href]="claim.analysisReportUrl" target="_blank"
+                                class="bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all inline-flex items-center">
+                                Analysis
+                            </a>
+                            } @else {
+                            <span class="text-slate-300 text-[10px] italic">N/A</span>
+                            }
                         </td>
 
                         <td class="px-6 py-4 text-right flex items-center justify-end gap-3">

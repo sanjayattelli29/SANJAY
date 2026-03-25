@@ -15,10 +15,12 @@ namespace API.Controllers
     public class ClaimController : ControllerBase
     {
         private readonly IClaimProcessor _claimProcessor;
+        private readonly IFileStorageService _fileStorageService;
 
-        public ClaimController(IClaimProcessor claimProcessor)
+        public ClaimController(IClaimProcessor claimProcessor, IFileStorageService fileStorageService)
         {
             _claimProcessor = claimProcessor;
+            _fileStorageService = fileStorageService;
         }
 
         // --- Customer Endpoints ---
@@ -137,6 +139,30 @@ namespace API.Controllers
         {
             var claim = await _claimProcessor.GetClaimByPolicyIdAsync(policyId);
             return Ok(claim);
+        }
+
+        [HttpPost("upload-analysis")]
+        public async Task<IActionResult> UploadAnalysis([FromBody] UploadAnalysisDto dto)
+        {
+            try
+            {
+                var base64Data = dto.Base64Pdf.Contains(",")
+                    ? dto.Base64Pdf.Substring(dto.Base64Pdf.IndexOf(',') + 1)
+                    : dto.Base64Pdf;
+
+                var pdfBytes = Convert.FromBase64String(base64Data);
+                using var stream = new MemoryStream(pdfBytes);
+
+                var uploadResult = await _fileStorageService.UploadFileAsync(stream, dto.FileName, "/analysis");
+                
+                await _claimProcessor.UpdateAnalysisUrlAsync(dto.ApplicationId, uploadResult.FileUrl);
+
+                return Ok(new { analysisUrl = uploadResult.FileUrl });
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { message = $"Analysis upload failed: {ex.Message}" });
+            }
         }
     }
 }

@@ -63,4 +63,12 @@ export class ClaimService {
     getClaimByPolicyId(policyId: string): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/policy/${policyId}`);
     }
+
+    uploadAnalysis(claimId: string, base64Pdf: string, fileName: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/upload-analysis`, { 
+            applicationId: claimId, 
+            base64Pdf, 
+            fileName 
+        });
+    }
 }

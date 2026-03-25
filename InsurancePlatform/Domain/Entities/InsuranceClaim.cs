@@ -61,8 +61,9 @@ public class InsuranceClaim
     public string? AssignedClaimOfficerId { get; set; }
     // who finally approved it
     public string? ApprovedByOfficerId { get; set; }
-    // when it was finished processing
     public DateTime? ProcessedAt { get; set; }
+
+    public string? AnalysisReportUrl { get; set; }
 
     // links to other objects
     public PolicyApplication? Policy { get; set; }

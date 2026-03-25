@@ -28,5 +28,6 @@ namespace Application.Interfaces
         Task<IEnumerable<InsuranceClaim>> GetAllClaimsAsync();
         Task<AdminDashboardStatsDto> GetAdminStatsAsync();
         Task<InsuranceClaim?> GetClaimByPolicyIdAsync(string policyId);
+        Task UpdateAnalysisUrlAsync(string claimId, string analysisUrl);
     }
 }

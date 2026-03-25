@@ -12,6 +12,7 @@ import { NotificationPanelComponent } from '../../components/notification-panel/
 import { HttpClient } from '@angular/common/http';
 import { LocationMapComponent } from '../../components/location-map/location-map.component';
 import { environment } from '../../../environments/environment';
+import * as htmlToImage from 'html-to-image';
 import { n8nWebhooks } from '../../../environments/n8n/n8n';
 
 // n8n webhook kept for reference (Vertex AI is the active pipeline)
@@ -76,6 +77,7 @@ export class ClaimsOfficerDashboardPage implements OnInit {
     // ─── Core signals ───────────────────────────────────────────────────────────
     myRequests    = signal<any[]>([]);
     isLoading     = signal(false);
+    isSavingAnalysis = signal(false);
     config        = signal<any>(null);
     activeSection = signal('dashboard');
     sidebarOpen   = signal(false);
@@ -220,26 +222,20 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         const approved = this.myRequests().filter(r => r.status === 'Approved');
         const labels = approved.length > 0
             ? approved.map(r => new Date(r.processedAt || Date.now()).toLocaleDateString())
-            : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            : ['No Data Yet'];
         const data = approved.length > 0
-            ? approved.map(r => r.approvedAmount)
-            : [30000, 45000, 32000, 50000, 48000, 60000];
+            ? approved.map(r => r.approvedAmount || r.requestedAmount || 0)
+            : [0];
 
         this.charts.push(new Chart(canvas, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels,
                 datasets: [{
                     label: 'Settlement Velocity',
                     data,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointBackgroundColor: '#10b981',
-                    pointBorderColor: '#fff',
-                    pointHoverRadius: 6
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderRadius: 6
                 }]
             },
             options: {
@@ -276,7 +272,7 @@ export class ClaimsOfficerDashboardPage implements OnInit {
 
         const stats = this.stats();
         const dataValues = [stats.approved, stats.rejected, stats.pending];
-        const finalData  = dataValues.some(v => v > 0) ? dataValues : [12, 5, 8];
+        const finalData  = dataValues.some(v => v > 0) ? dataValues : [0, 0, 0];
 
         this.charts.push(new Chart(canvas, {
             type: 'doughnut',
@@ -312,13 +308,23 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         const canvas = document.getElementById('priorityChart') as HTMLCanvasElement;
         if (!canvas) return;
 
+        const reqs = this.myRequests();
+        let low = 0, med = 0, high = 0, crit = 0;
+        for (let r of reqs) {
+            const amt = r.requestedAmount || 0;
+            if (amt > 500000) crit++;
+            else if (amt > 200000) high++;
+            else if (amt > 50000) med++;
+            else low++;
+        }
+
         this.charts.push(new Chart(canvas, {
             type: 'bar',
             data: {
                 labels: ['Critical', 'High', 'Medium', 'Low'],
                 datasets: [{
                     label: 'Claim Weight',
-                    data: [5, 12, 18, 10],
+                    data: [crit, high, med, low],
                     backgroundColor: ['#ef4444', '#f97316', '#3b82f6', '#10b981'],
                     borderRadius: 8
                 }]
@@ -339,13 +345,23 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         const canvas = document.getElementById('distributionChart') as HTMLCanvasElement;
         if (!canvas) return;
 
+        const reqs = this.myRequests();
+        const counts: Record<string, number> = {};
+        for (let r of reqs) {
+            const cat = r.incidentType || 'Other';
+            counts[cat] = (counts[cat] || 0) + 1;
+        }
+        
+        const labels = Object.keys(counts).length > 0 ? Object.keys(counts) : ['No Data'];
+        const data = Object.values(counts).length > 0 ? Object.values(counts) : [0];
+
         this.charts.push(new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: ['Medical', 'Accident', 'Life', 'Critical'],
+                labels: labels,
                 datasets: [{
                     label: 'Volume',
-                    data: [45, 25, 15, 30],
+                    data: data,
                     backgroundColor: '#6366f1',
                     borderRadius: 8
                 }]
@@ -600,6 +616,141 @@ export class ClaimsOfficerDashboardPage implements OnInit {
         if (score <= 30) return 'Low';
         if (score <= 60) return 'Med';
         return 'High';
+    }
+
+    // ─── AI Analysis PDF & Save ──────────────────────────────────────────────────
+    downloadPdf() {
+        const result = this.aiInsights();
+        if (!result) return;
+
+        const element = document.getElementById('analysis-report-content');
+        if (!element) {
+            console.error('Analysis content element not found');
+            return;
+        }
+
+        const originalStyles = element.style.cssText;
+        element.style.height = 'auto';
+        element.style.overflow = 'visible';
+        element.style.maxHeight = 'none';
+
+        htmlToImage.toCanvas(element, { 
+            backgroundColor: '#ffffff',
+            filter: (node: any) => {
+                if (node.tagName === 'LINK' && node.href && (node.href.includes('fonts.googleapis') || node.href.includes('fonts.gstatic'))) {
+                    return false;
+                }
+                return true;
+            }
+        }).then((canvas: HTMLCanvasElement) => {
+            element.style.cssText = originalStyles;
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 210; 
+            const pageHeight = 295; 
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+                pdf.addPage();
+                position = heightLeft - imgHeight;
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+            pdf.save(`Claim_AI_Analysis_${result.overallRiskLevel || 'Report'}.pdf`);
+        });
+    }
+
+    generatePdfBase64(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const result = this.aiInsights();
+            if (!result) { reject('No analysis result'); return; }
+
+            const element = document.getElementById('analysis-report-content');
+            if (!element) { reject('Analysis content element not found'); return; }
+
+            const originalStyles = element.style.cssText;
+            element.style.height = 'auto';
+            element.style.overflow = 'visible';
+            element.style.maxHeight = 'none';
+
+            htmlToImage.toCanvas(element, { 
+                backgroundColor: '#ffffff',
+                filter: (node: any) => {
+                    if (node.tagName === 'LINK' && node.href && (node.href.includes('fonts.googleapis') || node.href.includes('fonts.gstatic'))) {
+                        return false;
+                    }
+                    return true;
+                }
+            }).then((canvas: HTMLCanvasElement) => {
+                element.style.cssText = originalStyles;
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; 
+                const pageHeight = 295; 
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    pdf.addPage();
+                    position = heightLeft - imgHeight;
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                const base64 = pdf.output('datauristring');
+                resolve(base64);
+            }).catch(reject);
+        });
+    }
+
+    async confirmSaveAnalysis() {
+        if (!this.selectedClaim()?.id) return;
+        
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            console.error('No auth token found');
+            alert('Authentication required. Please log in again.');
+            return;
+        }
+
+        try {
+            this.isSavingAnalysis.set(true);
+            const base64Pdf = await this.generatePdfBase64();
+            const fileName = `ClaimAnalysis_${this.selectedClaim()?.id.substring(0,8)}.pdf`;
+            
+            this.claimService.uploadAnalysis(this.selectedClaim()!.id, base64Pdf, fileName)
+                .subscribe({
+                    next: (res) => {
+                        this.isSavingAnalysis.set(false);
+                        const updated = this.selectedClaim();
+                        if (updated) {
+                            updated.analysisReportUrl = res.analysisUrl;
+                            this.selectedClaim.set({...updated});
+                        }
+                        alert('AI Analysis Report saved successfully to the claim record.');
+                    },
+                    error: (err) => {
+                        console.error('Failed to save analysis', err);
+                        this.isSavingAnalysis.set(false);
+                        alert('Failed to save the analysis report. ' + (err.error?.message || ''));
+                    }
+                });
+        } catch (error) {
+            console.error('Error generating PDF', error);
+            this.isSavingAnalysis.set(false);
+            alert('Error generating PDF for saving.');
+        }
     }
 
     // ─── History ─────────────────────────────────────────────────────────────────

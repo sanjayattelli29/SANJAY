@@ -289,5 +289,16 @@ namespace Application.Services
         {
             return await _claimRepository.GetByPolicyIdAsync(policyId);
         }
+
+        public async Task UpdateAnalysisUrlAsync(string claimId, string analysisUrl)
+        {
+            var claim = await _claimRepository.GetByIdAsync(claimId);
+            if (claim != null)
+            {
+                claim.AnalysisReportUrl = analysisUrl;
+                await _claimRepository.UpdateAsync(claim);
+                await _claimRepository.SaveChangesAsync();
+            }
+        }
     }
 }

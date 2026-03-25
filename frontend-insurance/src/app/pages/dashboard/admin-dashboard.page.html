@@ -862,17 +862,15 @@
                 <!-- Inline Assignment Action inside Modal -->
                 @if (selectedUnifiedDetail().type === 'policy' && (selectedUnifiedDetail().policy?.status?.toUpperCase()
                 === 'PENDING' || selectedUnifiedDetail().policy?.status?.toUpperCase() === 'PENDINGREVIEW')) {
-                <button (click)="openAssignModal(selectedUnifiedDetail().policy.id)"
-                    class="px-8 py-3 bg-brand-orange text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-all active:scale-95 shadow-lg shadow-orange-100">
-                    Assign Agent Now
-                </button>
+               
+
                 }
                 @if (selectedUnifiedDetail().type === 'claim' && selectedUnifiedDetail().claim?.status?.toUpperCase()
                 === 'PENDING') {
-                <button (click)="openAssignOfficerModal(selectedUnifiedDetail().claim.id)"
+                <!-- <button (click)="openAssignOfficerModal(selectedUnifiedDetail().claim.id)"
                     class="px-8 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100">
                     Assign Claim Officer
-                </button>
+                </button> -->
                 }
                 <button (click)="showUnifiedDetail.set(false)"
                     class="px-10 py-3 bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 transition-all active:scale-95">

@@ -28,7 +28,8 @@
                         <th class="px-8 py-5">Entity Origin</th>
                         <th class="px-8 py-5">Incident Forensic</th>
                         <th class="px-8 py-5">Audit Valuation</th>
-                        <th class="px-8 py-5">Protocol Status</th>
+                        <th class="px-8 py-5">Application Status</th>
+                        <th class="px-8 py-5 text-right">Analysis</th>
                         <th class="px-8 py-5 text-right">Action</th>
                     </tr>
                 </thead>
@@ -88,9 +89,20 @@
                         </td>
 
                         <td class="px-8 py-6 text-right">
+                            @if (c.analysisReportUrl) {
+                            <a [href]="c.analysisReportUrl" target="_blank"
+                                class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:shadow-lg hover:shadow-violet-200 inline-flex items-center">
+                                Analysis
+                            </a>
+                            } @else {
+                            <span class="text-slate-300 text-[10px] italic">N/A</span>
+                            }
+                        </td>
+
+                        <td class="px-8 py-6 text-right">
                             <button (click)="view(c)"
                                 class="bg-brand-navy hover:bg-black text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all hover:shadow-xl hover:shadow-navy-100 flex items-center gap-2 ml-auto group-hover:scale-105">
-                                View Data
+                                View
                             </button>
                         </td>
                     </tr>
