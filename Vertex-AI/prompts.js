@@ -9,7 +9,7 @@ CRITICAL INSTRUCTIONS:
 4. If any mismatch exists, mark as risk.
 5. If any field is missing in documents, explicitly mention it.
 
-You must extract and validate:
+You must extract and validate all these:
 - Full Name
 - Date of Birth
 - Aadhaar Number

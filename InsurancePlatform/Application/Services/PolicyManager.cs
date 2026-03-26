@@ -182,7 +182,9 @@ namespace Application.Services
                         FullName = fm.FullName,
                         Relation = fm.Relation,
                         DateOfBirth = fm.DateOfBirth,
-                        ExistingHealthConditions = fm.HealthConditions
+                        ExistingHealthConditions = fm.HealthConditions,
+                        AadhaarNumber = fm.AadharNumber,
+                        AadharCardUrl = fm.AadharCardUrl
                     };
                     await _policyRepository.AddFamilyMemberAsync(member);
                 }

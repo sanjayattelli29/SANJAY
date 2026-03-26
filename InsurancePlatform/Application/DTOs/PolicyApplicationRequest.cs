@@ -38,6 +38,8 @@ namespace Application.DTOs
         public string Relation { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string HealthConditions { get; set; } = "None";
+        public string? AadharNumber { get; set; }
+        public string? AadharCardUrl { get; set; }
     }
 
     public class NomineeRequest

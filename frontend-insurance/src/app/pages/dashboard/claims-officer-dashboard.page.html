@@ -471,12 +471,57 @@
                             </div>
                         </div>
 
+                        <!-- ── SECTION 4: Family Members ── -->
+                        @if (selectedClaim()?.fullDetails?.familyMembers?.length > 0) {
+                        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden h-full flex flex-col">
+                            <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
+                                <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">4</span>
+                                <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Family Members</h3>
+                            </div>
+                            <div class="p-8 grow flex flex-col justify-center">
+                                <div class="grid grid-cols-1 gap-4 h-full">
+                                    @for (member of selectedClaim()?.fullDetails?.familyMembers; track $index) {
+                                    <div class="p-4 bg-[#f8fafc] border border-slate-100 rounded-2xl shadow-sm flex flex-col gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center font-black text-xs shrink-0">
+                                                {{ member.relation?.[0]?.toUpperCase() }}
+                                            </div>
+                                            <div>
+                                                <p class="text-[11px] font-black text-brand-navy">{{ member.fullName }}</p>
+                                                <p class="text-[9px] text-slate-400 font-bold uppercase">{{ member.relation }} • {{ member.dateOfBirth | date:'dd MMM yyyy' }}</p>
+                                                @if (member.healthConditions) {
+                                                <p class="text-[8px] text-rose-500 font-bold italic mt-1">Health: {{ member.healthConditions }}</p>
+                                                }
+                                            </div>
+                                        </div>
+                                        @if (member.aadharNumber || member.aadharCardUrl) {
+                                        <div class="pt-2 border-t border-slate-50 flex justify-between items-center">
+                                            <div>
+                                                <span class="text-[9px] text-slate-400 font-black uppercase">Aadhar Proof</span>
+                                                <p class="font-bold text-xs text-brand-navy mt-0.5">{{ member.aadharNumber || 'Not Provided' }}</p>
+                                            </div>
+                                            @if (member.aadharCardUrl) {
+                                            <a [href]="member.aadharCardUrl" target="_blank" class="text-[9px] font-black text-purple-600 hover:text-purple-800 underline uppercase text-right">
+                                                View Aadhar
+                                            </a>
+                                            } @else {
+                                            <span class="text-[9px] text-slate-400 italic text-right">No Upload</span>
+                                            }
+                                        </div>
+                                        }
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        }
+
                     </div>
 
-                    <!-- ── SECTION 4: Incident Verification ── -->
+                    <!-- ── SECTION 5: Incident Verification ── -->
                     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                         <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">4</span>
+                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">5</span>
                             <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Incident Verification</h3>
                         </div>
                         <div class="p-8 space-y-6">
@@ -536,10 +581,10 @@
                         </div>
                     </div>
 
-                    <!-- ── SECTION 5: Evidence Repository ── -->
+                    <!-- ── SECTION 6: Evidence Repository ── -->
                     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                         <div class="px-8 py-5 border-b border-slate-50 flex items-center gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">5</span>
+                            <span class="w-6 h-6 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange text-[10px] font-black">6</span>
                             <h3 class="text-[10px] font-black text-brand-orange uppercase tracking-widest">Evidence Repository</h3>
                             <span class="ml-auto text-[9px] text-slate-400 font-bold uppercase">{{ selectedClaim()?.documents?.length || 0 }} Support Files</span>
                         </div>
@@ -570,11 +615,11 @@
                         </div>
                     </div>
 
-                    <!-- ── SECTION 6: AI Analysis ── -->
+                    <!-- ── SECTION 7: AI Analysis ── -->
                     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" #aiSection>
                         <div class="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <span class="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 text-[10px] font-black">6</span>
+                                <span class="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 text-[10px] font-black">7</span>
                                 <h3 class="text-[10px] font-black text-violet-700 uppercase tracking-widest">Forensic AI Analysis</h3>
                             </div>
                             @if (!aiInsights() && selectedClaim()?.documents?.length > 0) {

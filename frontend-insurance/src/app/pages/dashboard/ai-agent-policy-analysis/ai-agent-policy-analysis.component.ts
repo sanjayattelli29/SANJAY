@@ -109,7 +109,7 @@ export class AiAgentPolicyAnalysisComponent implements OnInit, AfterViewInit, On
       email:         customer.email         || '',
       fullName:      customer.fullName       || customer.name || applicant.fullName || '',
       phone:         customer.phoneNumber    || customer.phone || '',
-      age:           customer.age            || applicant.age || '',
+      age:           customer.age            || applicant.age || policy.age || policy.Age || raw.Age || '',
       annualIncome:  annualIncomeFallback,
       profession:    professionFallback,
     };
@@ -129,13 +129,13 @@ export class AiAgentPolicyAnalysisComponent implements OnInit, AfterViewInit, On
       coverageAmount:      policy.coverageAmount    || policy.totalCoverageAmount || 0,
       applicant: {
         fullName:        applicant.fullName       || '',
-        age:             applicant.age            || '',
+        age:             applicant.age            || policy.age || policy.Age || raw.Age || '',
         profession:      professionFallback,
         annualIncome:    annualIncomeFallback,
-        smokingHabit:    applicant.smokingHabit   || applicant.SmokingHabit || raw.SmokingHabit || '',
-        alcoholHabit:    applicant.alcoholHabit   || applicant.AlcoholHabit || raw.AlcoholHabit || '',
-        vehicleType:     applicant.vehicleType    || applicant.VehicleType || raw.VehicleType || '',
-        travelKmPerMonth:applicant.travelKmPerMonth || applicant.TravelKmPerMonth || raw.TravelKmPerMonth || 0,
+        smokingHabit:    applicant.smokingHabit   || applicant.SmokingHabit || policy.smokingHabit || policy.SmokingHabit || raw.SmokingHabit || '',
+        alcoholHabit:    applicant.alcoholHabit   || applicant.AlcoholHabit || policy.alcoholHabit || policy.AlcoholHabit || raw.AlcoholHabit || '',
+        vehicleType:     applicant.vehicleType    || applicant.VehicleType  || policy.vehicleType  || policy.VehicleType  || raw.VehicleType  || '',
+        travelKmPerMonth:applicant.travelKmPerMonth || applicant.TravelKmPerMonth || policy.travelKmPerMonth || policy.TravelKmPerMonth || raw.TravelKmPerMonth || 0,
       },
       nominee: {
         name:            nominee.name             || '',

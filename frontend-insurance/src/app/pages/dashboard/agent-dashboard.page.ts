@@ -526,6 +526,9 @@ export class AgentDashboardPage implements OnInit {
             travelKmPerMonth: application.travelKmPerMonth || application.TravelKmPerMonth || raw.TravelKmPerMonth || applicant.travelKmPerMonth || raw.travelKmPerMonth || 0
         };
 
+        // Family Members
+        details.familyMembers = details.familyMembers || raw.FamilyMembers || application?.familyMembers || application?.FamilyMembers || [];
+
         // Location
         const loc = normalize(details.location || raw.location || raw.Location || {});
         details.location = {
@@ -890,6 +893,10 @@ export class AgentDashboardPage implements OnInit {
         };
 
         fullDetails.applicant = details.applicant;
+        
+        // Ensure Family Members are captured
+        fullDetails.familyMembers = fullDetails.familyMembers || raw.FamilyMembers || policy?.familyMembers || policy?.FamilyMembers || [];
+
         fullDetails.location = normalize(fullDetails.location || raw.Location || raw.location) || {
             address: 'No address provided',
             latitude: null,

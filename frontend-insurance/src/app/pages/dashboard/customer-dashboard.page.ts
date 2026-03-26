@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, AfterViewInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 import { Router } from '@angular/router';
@@ -45,6 +45,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     protected vapiService = inject(VapiService);
     private router = inject(Router);
     private http = inject(HttpClient);
+    private cdr = inject(ChangeDetectorRef);
 
     // get current logged in user from localstorage
     user = this.authService.getUser();
@@ -698,18 +699,130 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     }
 
     // Family member management
+    triggerFileInput(id: string) {
+        document.getElementById(id)?.click();
+    }
+
     addFamilyMember() {
         this.applicationForm.familyMembers.push({
             fullName: '',
             relation: '',
             dateOfBirth: '',
-            healthConditions: ''
+            healthConditions: '',
+            aadharNumber: '',
+            aadharCardUrl: '',
+            aadharSuccess: false,
+            isExtractingAadhar: false,
+            isUploadingFile: false
         });
     }
 
     removeFamilyMember(index: number) {
         this.applicationForm.familyMembers.splice(index, 1);
     }
+
+    onFamilyMemberAadharUpload(event: any, index: number) {
+        const file = event.target.files[0];
+        if (file) {
+            this.applicationForm.familyMembers[index].aadharSuccess = false;
+            this.uploadFamilyMemberAadharToImageKit(file, index);
+        }
+    }
+
+    uploadFamilyMemberAadharToImageKit(file: File, index: number) {
+        this.applicationForm.familyMembers[index].isUploadingFile = true;
+        this.cdr.markForCheck(); // Safely mark for check
+        
+        this.policyService.uploadDocument(file, 'family-aadhars').subscribe({
+            next: (res) => {
+                this.applicationForm.familyMembers[index].aadharCardUrl = res.url;
+                this.applicationForm.familyMembers[index].isUploadingFile = false;
+                this.cdr.markForCheck();
+                
+                // Now extract the Aadhar number using Vision API
+                this.extractFamilyMemberAadharNumber(file, index);
+            },
+            error: (err) => {
+                console.error('Failed to upload Family Aadhar', err);
+                this.applicationForm.familyMembers[index].isUploadingFile = false;
+                this.cdr.markForCheck();
+                alert('Failed to upload Aadhar card. Please try again.');
+            }
+        });
+    }
+
+    async extractFamilyMemberAadharNumber(file: File, index: number) {
+        this.applicationForm.familyMembers[index].isExtractingAadhar = true;
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            
+            reader.onload = async () => {
+                try {
+                    const base64Content = (reader.result as string).split(',')[1];
+                    const res = await fetch(
+                        `https://vision.googleapis.com/v1/images:annotate?key=${environment.googleVisionApiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                requests: [{
+                                    image: { content: base64Content },
+                                    features: [{ type: 'TEXT_DETECTION' }]
+                                }]
+                            })
+                        }
+                    );
+
+                    const json = await res.json();
+                    const fullText = json.responses?.[0]?.fullTextAnnotation?.text || '';
+                    
+                    const aadharMatch = fullText.replace(/[\s-]/g, '').match(/\d{12}/);
+                    
+                    if (aadharMatch) {
+                        this.applicationForm.familyMembers[index].aadharNumber = aadharMatch[0];
+                        this.applicationForm.familyMembers[index].aadharSuccess = true;
+                    }
+
+                    // Extract DOB
+                    const cleanText = fullText.replace(/[\r\n\s]+/g, ' ');
+                    const dobMatch = cleanText.match(/(?:DOB|Date of Birth|YOB).*?(\d{2}\/\d{2}\/\d{4}|\d{4})/i);
+                    if (dobMatch) {
+                        let dobStr = dobMatch[1];
+                        if (dobStr.length === 4) {
+                            this.applicationForm.familyMembers[index].dateOfBirth = `${dobStr}-01-01`;
+                        } else {
+                            const parts = dobStr.split('/');
+                            this.applicationForm.familyMembers[index].dateOfBirth = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        }
+                    }
+
+                    // Extract Name (heuristic: line before DOB or finding standard aadhar patterns)
+                    const lines = fullText.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+                    const dobIndex = lines.findIndex((l: string) => /(?:DOB|Date of Birth|YOB)/i.test(l));
+                    if (dobIndex > 0) {
+                        for (let i = dobIndex - 1; i >= 0; i--) {
+                            const line = lines[i];
+                            if (!/India|Government|Father|Male|Female/i.test(line) && line.length > 2) {
+                                this.applicationForm.familyMembers[index].fullName = line;
+                                break;
+                            }
+                        }
+                    }
+                    this.cdr.markForCheck();
+                } catch (e) {
+                    console.error('Vision API error for Family Member', e);
+                } finally {
+                    this.applicationForm.familyMembers[index].isExtractingAadhar = false;
+                    this.cdr.markForCheck();
+                }
+            };
+        } catch (error) {
+            console.error('Error reading family member file', error);
+            this.applicationForm.familyMembers[index].isExtractingAadhar = false;
+        }
+    }
+
 
     // Nominee Aadhar management
     onNomineeAadharUpload(event: any) {

@@ -1505,66 +1505,6 @@
                     </div>
                 </section>
 
-                <!-- Family Members (Family only) -->
-                @if (ctx.selectedCategory.categoryId === 'FAMILY') {
-                <section class="card">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest">Family
-                            Members</h3>
-                        <button (click)="ctx.addFamilyMember()" class="text-xs font-bold text-brand-orange"
-                            [disabled]="ctx.applicationForm.familyMembers.length >= (ctx.selectedCategory?.maxMembersAllowed || 5)">+
-                            Add Member</button>
-                    </div>
-                    <div class="space-y-5">
-                        @for (member of ctx.applicationForm.familyMembers; track $index) {
-                        <div class="p-5 bg-slate-50/50 rounded-3xl border border-slate-100 space-y-4">
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-black text-brand-orange uppercase">Member #{{
-                                    $index + 1 }}</span>
-                                <button (click)="ctx.removeFamilyMember($index)"
-                                    class="text-slate-400 hover:text-red-500 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="space-y-1"><label
-                                        class="text-[9px] font-black uppercase text-slate-400 px-1">Full
-                                        Name</label><input type="text" [(ngModel)]="member.fullName"
-                                        placeholder="Full Name" class="input-field"></div>
-                                <div class="space-y-1"><label
-                                        class="text-[9px] font-black uppercase text-slate-400 px-1">Relation</label><select
-                                        [(ngModel)]="member.relation" class="input-field">
-                                        <option value="Spouse">Spouse</option>
-                                        <option value="Son">Son</option>
-                                        <option value="Daughter">Daughter</option>
-                                        <option value="Mother">Mother</option>
-                                        <option value="Father">Father</option>
-                                    </select></div>
-                                <div class="space-y-1"><label
-                                        class="text-[9px] font-black uppercase text-slate-400 px-1">Date of
-                                        Birth</label><input type="date" [(ngModel)]="member.dateOfBirth"
-                                        [max]="ctx.today" class="input-field"></div>
-                                <div class="space-y-1"><label
-                                        class="text-[9px] font-black uppercase text-slate-400 px-1">Health
-                                        Conditions</label><input type="text" [(ngModel)]="member.healthConditions"
-                                        placeholder="None, Asthma, etc." class="input-field"></div>
-                            </div>
-                        </div>
-                        }
-                        @if (ctx.applicationForm.familyMembers.length === 0) {
-                        <div class="py-10 text-center border-2 border-dashed border-slate-100 rounded-3xl">
-                            <p class="text-xs text-slate-400 italic">No family members added yet. Protect
-                                your loved ones ctx.today!</p>
-                        </div>
-                        }
-                    </div>
-                </section>
-                }
-
                 <!-- Nominee -->
                 <section class="card">
                     <h3 class="text-sm font-black text-brand-navy mb-6 border-b pb-4 uppercase tracking-widest">
@@ -1722,6 +1662,107 @@
                         </div>
                     </div>
                 </section>
+
+<!-- Family Members (Family only) -->
+                @if (ctx.selectedCategory.categoryId === 'FAMILY') {
+                <section class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-black text-brand-navy uppercase tracking-widest">Family Members <span class="text-xs text-slate-400 ml-2 normal-case">(Max 3)</span></h3>
+                        <button (click)="ctx.addFamilyMember()" class="text-xs font-bold text-brand-orange disabled:opacity-50 disabled:cursor-not-allowed"
+                            [disabled]="ctx.applicationForm.familyMembers.length >= 3">+ Add Member</button>
+                    </div>
+                    <div class="space-y-5">
+                        @for (member of ctx.applicationForm.familyMembers; track $index) {
+                        <div class="p-5 bg-slate-50/50 rounded-3xl border border-slate-100 space-y-4">
+                            <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                                <span class="text-[10px] font-black text-brand-navy uppercase tracking-widest">Member #{{ $index + 1 }}</span>
+                                <button (click)="ctx.removeFamilyMember($index)" class="text-slate-400 hover:text-red-500 transition-colors p-1 bg-red-50 hover:bg-red-100 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                <div class="space-y-1"><label class="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Full Name</label>
+                                    <input type="text" [(ngModel)]="member.fullName" placeholder="Full Name" class="input-field"></div>
+                                <div class="space-y-1"><label class="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Relation</label>
+                                    <select [(ngModel)]="member.relation" class="input-field">
+                                        <option value="Spouse">Spouse</option>
+                                        <option value="Son">Son</option>
+                                        <option value="Daughter">Daughter</option>
+                                        <option value="Mother">Mother</option>
+                                        <option value="Father">Father</option>
+                                        <option value="Brother">Brother</option>
+                                        <option value="Sister">Sister</option>
+                                        <option value="Other">Other</option>
+                                    </select></div>
+
+                                <div class="space-y-1 relative md:col-span-2">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Aadhar Card Upload</label>
+                                    <div class="p-3 bg-white rounded-xl border border-slate-200 transition-all flex justify-between items-center"
+                                        [class.border-emerald-500]="member.aadharSuccess" [class.bg-emerald-50]="member.aadharSuccess">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center bg-brand-orange/10 text-brand-orange">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                </svg>
+                                            </div>
+                                            <div class="flex flex-col">
+                                                <span class="text-[10px] font-black text-brand-navy uppercase">Member Aadhar <span class="text-red-500">*</span></span>
+                                                @if (member.aadharSuccess) {
+                                                    <span class="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Extracted</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <input type="file" (change)="ctx.onFamilyMemberAadharUpload($event, $index)" [id]="'memberAadhar' + $index" class="hidden" accept="image/*">
+                                        @if (!member.aadharCardUrl && !member.isUploadingFile) {
+                                            <label [for]="'memberAadhar' + $index" class="text-[9px] font-black text-brand-orange hover:underline uppercase tracking-widest bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 cursor-pointer">Upload</label>
+                                        } @else if (member.isUploadingFile) {
+                                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><div class="w-2 h-2 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div> Uploading</span>
+                                        } @else {
+                                            <button (click)="member.aadharCardUrl = ''; member.aadharSuccess = false; member.aadharNumber = ''" class="text-[9px] font-black text-red-500 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 hover:text-red-700 uppercase">Remove</button>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1 relative md:col-span-2">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Aadhar Number</label>
+                                    <div class="relative">
+                                        <input type="text" [(ngModel)]="member.aadharNumber" placeholder="12-digit Aadhar" class="input-field w-full" maxlength="12" [class.bg-emerald-50]="member.isExtractingAadhar">
+                                        @if (member.isExtractingAadhar) {
+                                        <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                            <span class="text-[8px] font-black text-brand-orange uppercase tracking-widest animate-pulse">Scanning...</span>
+                                            <div class="w-2 h-2 border-2 border-brand-orange/30 border-t-brand-orange rounded-full animate-spin"></div>
+                                        </div>
+                                        }
+                                    </div>
+                                    @if (member.aadharSuccess) {
+                                    <p class="text-[8px] font-bold text-emerald-600 italic mt-1 px-1">💡 Double check the extracted number.</p>
+                                    }
+                                </div>
+
+                                <div class="space-y-1"><label class="text-[9px] font-black uppercase text-slate-400 px-1">Date of Birth</label>
+                                    <input type="date" [(ngModel)]="member.dateOfBirth" [max]="ctx.today" class="input-field"></div>
+                                <div class="space-y-1"><label class="text-[9px] font-black uppercase text-slate-400 px-1">Health Conditions</label>
+                                    <input type="text" [(ngModel)]="member.healthConditions" placeholder="None, Asthma, etc." class="input-field"></div>
+                            </div>
+                        </div>
+                        }
+                        @if (ctx.applicationForm.familyMembers.length === 0) {
+                        <div class="py-10 text-center border-2 border-dashed border-slate-100 rounded-3xl">
+                            <p class="text-xs text-slate-400 italic">No family members added yet. Protect your loved ones today!</p>
+                        </div>
+                        }
+                        @if (ctx.applicationForm.familyMembers.length >= 3) {
+                        <div class="p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 text-[10px] font-bold text-center">
+                            Maximum limit of 3 family members reached.
+                        </div>
+                        }
+                    </div>
+                </section>
+                }
+
+
             </div>
 
             <!-- Sidebar Actions relocated to bottom button footer -->

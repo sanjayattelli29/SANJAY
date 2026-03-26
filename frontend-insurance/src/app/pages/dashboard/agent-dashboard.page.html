@@ -560,6 +560,53 @@
                                 </div>
                                 }
                             </div>
+
+                            <!-- Family Members -->
+                            @if (selectedUnifiedDetail().policy?.fullDetails?.familyMembers?.length > 0) {
+                            <div class="mt-8 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50 pb-2">
+                                    Covered Family Members</h4>
+                                <div class="grid grid-cols-1 gap-4">
+                                    @for (member of selectedUnifiedDetail().policy.fullDetails.familyMembers; track $index) {
+                                    <div class="bg-emerald-50/50 p-5 border border-emerald-100 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                                        <div class="flex justify-between items-start md:col-span-1">
+                                            <div>
+                                                <p class="text-[10px] text-emerald-600 font-bold uppercase mb-1">Family Identity</p>
+                                                <p class="text-sm font-bold text-slate-700">{{ member.fullName }}</p>
+                                                <p class="text-[10px] text-emerald-600 font-bold uppercase mt-1">Relation: {{ member.relation }}</p>
+                                                <p class="text-xs text-slate-400 font-medium mt-1">DOB: {{ member.dateOfBirth | date:'dd-MM-yyyy' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4 md:col-span-2">
+                                            <div class="bg-white/60 p-4 rounded-2xl">
+                                                <p class="text-[9px] text-slate-400 font-bold uppercase">Health Conditions</p>
+                                                <p class="text-xs font-bold text-slate-700 mt-0.5">{{ member.healthConditions || 'None' }}</p>
+                                            </div>
+                                            <div class="bg-white/60 p-4 rounded-2xl">
+                                                <p class="text-[9px] text-slate-400 font-bold uppercase">Aadhar Number</p>
+                                                <p class="text-xs font-mono font-bold text-slate-700 mt-0.5">{{ member.aadharNumber || 'N/A' }}</p>
+                                            </div>
+                                            <div class="bg-white/60 p-4 rounded-2xl col-span-2 sm:col-span-1">
+                                                <p class="text-[9px] text-slate-400 font-bold uppercase">Aadhar Card</p>
+                                                @if (member.aadharCardUrl) {
+                                                <button (click)="viewAadharCard(member.aadharCardUrl)"
+                                                    class="mt-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 underline flex items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View Card
+                                                </button>
+                                                } @else {
+                                                <p class="text-xs text-slate-400 italic mt-0.5">Not Provided</p>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                            }
                         </div>
 
                                 <!-- Policy Location Map (Unified View) -->
@@ -1573,23 +1620,40 @@
                     </div>
 
                     <!-- Family Members (If Applicable) -->
-                    @if (selectedApplication().familyMembers?.length > 0) {
-                    <div class="md:col-span-2 space-y-4 pt-4">
+                    @if (selectedApplication().fullDetails?.familyMembers?.length > 0) {
+                    <div class="md:col-span-2 space-y-4 pt-4 border-t border-slate-50 mt-4">
                         <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 italic">
                             Covered Family Members</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            @for (member of selectedApplication().familyMembers; track $index) {
-                            <div class="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center gap-3">
-                                <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center font-black text-xs">
-                                    {{ member.relation?.[0]?.toUpperCase() }}
+                            @for (member of selectedApplication().fullDetails?.familyMembers; track $index) {
+                            <div class="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center font-black text-xs shrink-0">
+                                        {{ member.relation?.[0]?.toUpperCase() }}
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-black text-brand-navy">{{ member.fullName }}</p>
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase">{{ member.relation }} • {{ member.dateOfBirth | date:'dd MMM yyyy' }}</p>
+                                        @if (member.healthConditions) {
+                                        <p class="text-[8px] text-rose-500 font-bold italic mt-1">Health: {{ member.healthConditions }}</p>
+                                        }
+                                    </div>
                                 </div>
-                                <div>
-                                    <p class="text-[11px] font-black text-brand-navy">{{ member.fullName }}</p>
-                                    <p class="text-[9px] text-slate-400 font-bold uppercase">{{ member.relation }} • {{ member.dateOfBirth | date:'dd MMM yyyy' }}</p>
-                                    @if (member.healthConditions) {
-                                    <p class="text-[8px] text-rose-500 font-bold italic mt-1">Health: {{ member.healthConditions }}</p>
+                                @if (member.aadharNumber || member.aadharCardUrl) {
+                                <div class="pt-2 border-t border-slate-50 flex justify-between items-center">
+                                    <div>
+                                        <span class="text-[9px] text-slate-400 font-black uppercase">Aadhar Proof</span>
+                                        <p class="font-bold text-xs text-brand-navy mt-0.5">{{ member.aadharNumber || 'Not Provided' }}</p>
+                                    </div>
+                                    @if (member.aadharCardUrl) {
+                                    <button (click)="viewAadharCard(member.aadharCardUrl)" class="text-[9px] font-black text-purple-600 hover:text-purple-800 underline uppercase text-right">
+                                        View Aadhar
+                                    </button>
+                                    } @else {
+                                    <span class="text-[9px] text-slate-400 italic text-right">No Upload</span>
                                     }
                                 </div>
+                                }
                             </div>
                             }
                         </div>

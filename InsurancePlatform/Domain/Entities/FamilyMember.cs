@@ -12,6 +12,10 @@ public class FamilyMember
     public DateTime DateOfBirth { get; set; }
     public string? ExistingHealthConditions { get; set; }
     
+    [System.ComponentModel.DataAnnotations.MaxLength(12)]
+    public string? AadhaarNumber { get; set; }
+    public string? AadharCardUrl { get; set; }
+    
     // Navigation
     public PolicyApplication? PolicyApplication { get; set; }
 }
