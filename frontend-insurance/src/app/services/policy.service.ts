@@ -92,4 +92,14 @@ export class PolicyService {
             fileName 
         });
     }
+
+    // create new policy category for admin
+    createCategory(categoryData: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/category`, categoryData);
+    }
+
+    // add new policy tier to an existing category
+    createTier(categoryId: string, tierData: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/tier/${categoryId}`, tierData);
+    }
 }

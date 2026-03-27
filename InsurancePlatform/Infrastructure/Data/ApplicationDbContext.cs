@@ -1,4 +1,4 @@
-﻿using Domain.Entities; // importing entity classes
+using Domain.Entities; // importing entity classes
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // ASP.NET Identity EF support
 using Microsoft.EntityFrameworkCore; // Entity Framework Core library
 
@@ -35,6 +35,9 @@ namespace Infrastructure.Data // Infrastructure layer namespace
         public DbSet<FamilyMember> FamilyMembers { get; set; }
         public DbSet<NomineeDetails> NomineeDetails { get; set; }
         public DbSet<ApplicationDocument> ApplicationDocuments { get; set; }
+
+        public DbSet<PolicyCategory> PolicyCategories { get; set; }
+        public DbSet<PolicyTier> PolicyTiers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder) // configuring entity relationships
         {

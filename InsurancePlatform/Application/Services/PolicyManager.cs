@@ -34,24 +34,29 @@ namespace Application.Services
 
         public async Task<PolicyConfiguration> GetConfigurationAsync()
         {
-            if (_cachedConfig != null) return _cachedConfig;
+            var dbCategories = (await _policyRepository.GetCategoriesWithTiersAsync()).ToList();
 
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "policy-config.json");
-            
-            if (!File.Exists(path))
-            {
-                path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "policy-config.json");
-            }
-
-            if (!File.Exists(path))
-            {
-                path = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Data", "policy-config.json");
-            }
+            if (!File.Exists(path)) path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "policy-config.json");
+            if (!File.Exists(path)) path = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Data", "policy-config.json");
 
             var json = await File.ReadAllTextAsync(path);
-            _cachedConfig = JsonSerializer.Deserialize<PolicyConfiguration>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            
-            return _cachedConfig!;
+            var fullConfig = JsonSerializer.Deserialize<PolicyConfiguration>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (dbCategories.Any())
+            {
+                fullConfig!.PolicyCategories = dbCategories;
+            }
+            else if (fullConfig != null && fullConfig.PolicyCategories.Any())
+            {
+                foreach (var cat in fullConfig.PolicyCategories)
+                {
+                    await _policyRepository.AddCategoryAsync(cat);
+                }
+                await _policyRepository.SaveChangesAsync();
+            }
+
+            return fullConfig!;
         }
 
         public async Task<decimal> CalculatePremiumAsync(PolicyApplicationRequest request)
@@ -63,8 +68,9 @@ namespace Application.Services
             var tier = category.Tiers.FirstOrDefault(t => t.TierId == request.TierId);
             if (tier == null) throw new Exception("Invalid tier");
 
-            var applicant = request.PolicyCategory == "INDIVIDUAL" ? request.Applicant : request.PrimaryApplicant;
-            if (applicant == null) throw new Exception("Applicant details missing");
+            // Robustly get applicant from either field
+            var applicant = request.Applicant ?? request.PrimaryApplicant;
+            if (applicant == null) throw new Exception("Applicant details missing in request (both Applicant and PrimaryApplicant are null)");
 
             double multiplier = 1.0;
 
@@ -103,7 +109,6 @@ namespace Application.Services
             
             var vehicleM = config.RiskFactors.VehicleTypeMultiplier.FirstOrDefault(m => string.Equals(m.VehicleType, applicant.VehicleType, StringComparison.OrdinalIgnoreCase));
             multiplier *= vehicleM?.Multiplier ?? 1.0;
-
 
             return tier.BasePremiumAmount * (decimal)multiplier;
         }
@@ -525,6 +530,37 @@ namespace Application.Services
         {
             var result = await _fileStorage.UploadFileAsync(fileStream, fileName, folder);
             return result.FileUrl;
+        }
+
+        public async Task<bool> CreatePolicyCategoryAsync(PolicyCategory category)
+        {
+            if (await _policyRepository.CategoryExistsAsync(category.CategoryId))
+            {
+                throw new Exception($"Category with ID {category.CategoryId} already exists.");
+            }
+            
+            await _policyRepository.AddCategoryAsync(category);
+            await _policyRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> AddPolicyTierAsync(string categoryId, PolicyTier tier)
+        {
+            var category = await _policyRepository.GetCategoryByIdAsync(categoryId);
+            if (category == null)
+            {
+                throw new Exception($"Category with ID {categoryId} not found.");
+            }
+            
+            if (await _policyRepository.TierExistsAsync(tier.TierId))
+            {
+                 throw new Exception($"Tier with ID {tier.TierId} already exists.");
+            }
+            
+            tier.CategoryId = categoryId;
+            await _policyRepository.AddTierAsync(tier);
+            await _policyRepository.SaveChangesAsync();
+            return true;
         }
     }
 }

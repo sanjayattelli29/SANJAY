@@ -12,6 +12,9 @@ namespace Application.Interfaces
         Task<AuthResponseDto> SubmitPolicyDocumentsAsync(SubmitPolicyDocumentsRequest request);
         Task<IEnumerable<PolicyApplication>> GetUserPoliciesAsync(string userId);
 
+        Task<bool> CreatePolicyCategoryAsync(PolicyCategory category);
+        Task<bool> AddPolicyTierAsync(string categoryId, PolicyTier tier);
+
         // Admin & Agent Management
         Task<IEnumerable<PolicyApplication>> GetAllApplicationsAsync();
         Task<IEnumerable<AgentWorkloadDto>> GetAgentsWithWorkloadAsync();

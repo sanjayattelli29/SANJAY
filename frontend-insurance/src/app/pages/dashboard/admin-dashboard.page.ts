@@ -26,6 +26,7 @@ import { AnalysisCommandsSectionComponent } from './admin-components/analysis-co
 import { AnalysisPaymentsSectionComponent } from './admin-components/analysis-payments-section.component';
 import { EmailAutomationSectionComponent } from './admin-components/email-automation-section.component';
 import { RiskPoliciesSectionComponent } from './admin-components/risk-policies-section.component';
+import { CreatePolicySectionComponent } from './admin-components/create-policy-section.component';
 
 // admin dashboard main component
 // comprehensive admin panel for managing agents officers policies claims
@@ -48,6 +49,7 @@ import { RiskPoliciesSectionComponent } from './admin-components/risk-policies-s
         AnalysisPaymentsSectionComponent,
         EmailAutomationSectionComponent,
         RiskPoliciesSectionComponent,
+        CreatePolicySectionComponent,
         LocationMapComponent
     ],
     templateUrl: './admin-dashboard.page.html'

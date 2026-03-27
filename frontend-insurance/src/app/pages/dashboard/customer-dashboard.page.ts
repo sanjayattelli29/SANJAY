@@ -947,8 +947,10 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         const request = {
             policyCategory: this.selectedCategory.categoryId,
             tierId: this.selectedTier.tierId,
+            // Always send applicant data in PrimaryApplicant if it's not the specific 'INDIVIDUAL' category
+            // This ensures custom categories work with the backend
             applicant: this.selectedCategory.categoryId === 'INDIVIDUAL' ? { ...this.applicationForm.applicant, annualIncome: this.applicationForm.annualIncome } : null,
-            primaryApplicant: this.selectedCategory.categoryId === 'FAMILY' ? { ...this.applicationForm.applicant, annualIncome: this.applicationForm.annualIncome } : null,
+            primaryApplicant: (this.selectedCategory.categoryId !== 'INDIVIDUAL') ? { ...this.applicationForm.applicant, annualIncome: this.applicationForm.annualIncome } : null,
             familyMembers: this.applicationForm.familyMembers,
             paymentMode: this.applicationForm.paymentMode,
             annualIncome: this.applicationForm.annualIncome,
@@ -1296,8 +1298,10 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         const request = {
             policyCategory: this.selectedCategory.categoryId,
             tierId: this.selectedTier.tierId,
+            // Always send applicant data in PrimaryApplicant if it's not the specific 'INDIVIDUAL' category
+            // This ensures custom categories work with the backend
             applicant: this.selectedCategory.categoryId === 'INDIVIDUAL' ? this.applicationForm.applicant : null,
-            primaryApplicant: this.selectedCategory.categoryId === 'FAMILY' ? this.applicationForm.applicant : null,
+            primaryApplicant: (this.selectedCategory.categoryId !== 'INDIVIDUAL') ? this.applicationForm.applicant : null,
             familyMembers: this.applicationForm.familyMembers.map((fm: any) => ({
                 ...fm,
                 dateOfBirth: fm.dateOfBirth || this.today // fallback

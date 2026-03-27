@@ -151,6 +151,36 @@ namespace API.Controllers
                 return BadRequest(new { message = $"Analysis upload failed: {ex.Message}" });
             }
         }
+
+        [HttpPost("category")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreatePolicyCategory([FromBody] Domain.Entities.PolicyCategory category)
+        {
+            try
+            {
+                var result = await _policyManager.CreatePolicyCategoryAsync(category);
+                return Ok(new { Success = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPost("tier/{categoryId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddPolicyTier(string categoryId, [FromBody] Domain.Entities.PolicyTier tier)
+        {
+            try
+            {
+                var result = await _policyManager.AddPolicyTierAsync(categoryId, tier);
+                return Ok(new { Success = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
 }
 

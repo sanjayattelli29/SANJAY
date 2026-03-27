@@ -130,5 +130,35 @@ namespace Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+
+        public async Task<IEnumerable<PolicyCategory>> GetCategoriesWithTiersAsync()
+        {
+            return await _context.PolicyCategories.Include(c => c.Tiers).ToListAsync();
+        }
+
+        public async Task AddCategoryAsync(PolicyCategory category)
+        {
+            await _context.PolicyCategories.AddAsync(category);
+        }
+
+        public async Task AddTierAsync(PolicyTier tier)
+        {
+            await _context.PolicyTiers.AddAsync(tier);
+        }
+
+        public async Task<PolicyCategory?> GetCategoryByIdAsync(string categoryId)
+        {
+            return await _context.PolicyCategories.FindAsync(categoryId);
+        }
+
+        public async Task<bool> CategoryExistsAsync(string categoryId)
+        {
+            return await _context.PolicyCategories.AnyAsync(c => c.CategoryId == categoryId);
+        }
+
+        public async Task<bool> TierExistsAsync(string tierId)
+        {
+            return await _context.PolicyTiers.AnyAsync(t => t.TierId == tierId);
+        }
     }
 }

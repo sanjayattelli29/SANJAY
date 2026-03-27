@@ -19,7 +19,16 @@ namespace Application.Interfaces
         Task UpdateAsync(PolicyApplication application);
         Task SaveChangesAsync();
         
+        
         // For Analytics and Unified views
         Task<IEnumerable<PolicyApplication>> GetApplicationsForAnalyticsAsync(string? agentId = null);
+
+        // Category & Tier Management
+        Task<IEnumerable<PolicyCategory>> GetCategoriesWithTiersAsync();
+        Task AddCategoryAsync(PolicyCategory category);
+        Task AddTierAsync(PolicyTier tier);
+        Task<PolicyCategory?> GetCategoryByIdAsync(string categoryId);
+        Task<bool> CategoryExistsAsync(string categoryId);
+        Task<bool> TierExistsAsync(string tierId);
     }
 }

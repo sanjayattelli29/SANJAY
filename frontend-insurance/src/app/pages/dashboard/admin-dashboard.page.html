@@ -99,6 +99,15 @@
             <!-- Section Label -->
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-3 pt-4 pb-2">Administration</p>
 
+            <button (click)="setSection('create-policy'); sidebarOpen.set(false)"
+                [class.active]="activeSection() === 'create-policy'" class="sidebar-link w-full">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4v16m8-8H4" />
+                </svg>
+                Create Policy
+            </button>
+
             <button (click)="setSection('agents'); sidebarOpen.set(false)"
                 [class.active]="activeSection() === 'agents'" class="sidebar-link w-full">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -265,6 +274,9 @@
                 } @if (activeSection() === 'risk-policies') {
                 <app-risk-policies-section [config]="config()">
                 </app-risk-policies-section>
+                } @if (activeSection() === 'create-policy') {
+                <app-create-policy-section [config]="config()" (configUpdated)="loadConfig()">
+                </app-create-policy-section>
                 }
             </div>
         </div>

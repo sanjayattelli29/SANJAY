@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260327064739_policy")]
+    partial class policy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -644,59 +647,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("PolicyApplications");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PolicyCategory", b =>
-                {
-                    b.Property<string>("CategoryId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CategoryName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MaxMembersAllowed")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PremiumBasedOn")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("CategoryId");
-
-                    b.ToTable("PolicyCategories");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PolicyTier", b =>
-                {
-                    b.Property<string>("TierId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("BaseCoverageAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BasePremiumAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Benefits")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CategoryId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("TierName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ValidityInYears")
-                        .HasColumnType("int");
-
-                    b.HasKey("TierId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("PolicyTiers");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -950,17 +900,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.PolicyTier", b =>
-                {
-                    b.HasOne("Domain.Entities.PolicyCategory", "Category")
-                        .WithMany("Tiers")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1029,11 +968,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("FamilyMembers");
 
                     b.Navigation("Nominee");
-                });
-
-            modelBuilder.Entity("Domain.Entities.PolicyCategory", b =>
-                {
-                    b.Navigation("Tiers");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,155 @@
+<div class="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-black text-brand-navy tracking-tight">Policy Manager</h2>
+      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+        Dynamically Provision Insurance Products
+      </p>
+    </div>
+  </div>
+
+  @if (message.text) {
+  <div [class]="message.type === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-rose-50 border border-rose-200 text-rose-700'" class="p-4 rounded-xl text-xs font-bold transition-all">
+    {{ message.text }}
+  </div>
+  }
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- Create Category Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 xl:p-8 relative overflow-hidden">
+      <!-- Decor -->
+      <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-0 opacity-50"></div>
+      
+      <div class="relative z-10">
+        <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
+          <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-black text-slate-800 mb-1">Create Category</h3>
+        <p class="text-xs text-slate-500 font-medium mb-8">Define a new root group (e.g. OVER_AGE)</p>
+
+        <form [formGroup]="categoryForm" (ngSubmit)="submitCategory()" class="space-y-5">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Category ID (No Spaces)</label>
+            <input type="text" formControlName="categoryId" placeholder="e.g. OVER_AGE_POLICY"
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors uppercase" />
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Display Name</label>
+            <input type="text" formControlName="categoryName" placeholder="e.g. Senior Citizen Cover"
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Max Members</label>
+              <input type="number" formControlName="maxMembersAllowed"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Premium Based On</label>
+              <select formControlName="premiumBasedOn"
+                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                <option value="PrimaryApplicantOnly">Primary Applicant Only</option>
+                <option value="AllMembers">All Members</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="categoryForm.invalid || isSubmittingCategory"
+                  class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2">
+            @if(isSubmittingCategory){
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
+              </svg>
+              Creating...
+            } @else {
+              Create Policy Category
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Create Tier Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 xl:p-8 relative overflow-hidden">
+      <!-- Decor -->
+      <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -z-0 opacity-50"></div>
+      
+      <div class="relative z-10">
+        <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-6">
+          <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-black text-slate-800 mb-1">Add Policy Tier</h3>
+        <p class="text-xs text-slate-500 font-medium mb-8">Attach a new plan (e.g. Silver, Gold) to a Category</p>
+
+        <form [formGroup]="tierForm" (ngSubmit)="submitTier()" class="space-y-4">
+          
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Select Target Category</label>
+            <select formControlName="selectedCategoryId"
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+              <option value="">-- Choose a Category --</option>
+              @if (config && config.policyCategories) {
+                @for (cat of config.policyCategories; track cat.categoryId) {
+                  <option [value]="cat.categoryId">{{ cat.categoryName }} ({{cat.categoryId}})</option>
+                }
+              }
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tier ID</label>
+              <input type="text" formControlName="tierId" placeholder="e.g. OA_SILVER"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors uppercase" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tier Name</label>
+              <input type="text" formControlName="tierName" placeholder="e.g. Silver Plan"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Coverage Amount (₹)</label>
+              <input type="number" formControlName="baseCoverageAmount" placeholder="500000"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Base Premium (₹)</label>
+              <input type="number" formControlName="basePremiumAmount" placeholder="5000"
+                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Benefits (Comma Separated)</label>
+            <input type="text" formControlName="benefitsList" placeholder="Accidental Cover, Hospitalization"
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+          </div>
+
+          <button type="submit" [disabled]="tierForm.invalid || isSubmittingTier"
+                  class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2">
+            @if(isSubmittingTier){
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
+              </svg>
+              Creating...
+            } @else {
+              Create Policy Tier
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

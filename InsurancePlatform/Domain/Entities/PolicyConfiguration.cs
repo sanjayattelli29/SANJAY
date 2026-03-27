@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
 
@@ -26,6 +28,8 @@ public class PolicyConfiguration
 public class PolicyCategory
 {
     // unique id for category
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public string CategoryId { get; set; } = string.Empty;
     // name of category
     public string CategoryName { get; set; } = string.Empty;
@@ -35,6 +39,7 @@ public class PolicyCategory
     public string? PremiumBasedOn { get; set; }
     
     // form requirements for this specific category
+    [NotMapped]
     public ApplicationRequirements ApplicationRequirements { get; set; } = new();
 
     // tiers like gold or silver
@@ -61,9 +66,16 @@ public class RequiredDocumentInfo
 // this class is for policy tiers like gold silver etc
 public class PolicyTier
 {
-    // ... (rest of the tier properties stay same)
+    // unique id for tier
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public string TierId { get; set; } = string.Empty;
+
     public string TierName { get; set; } = string.Empty;
+
+    [ForeignKey("Category")]
+    public string CategoryId { get; set; } = string.Empty;
+    public PolicyCategory? Category { get; set; }
     public decimal BaseCoverageAmount { get; set; }
     public decimal BasePremiumAmount { get; set; }
     public int ValidityInYears { get; set; }
