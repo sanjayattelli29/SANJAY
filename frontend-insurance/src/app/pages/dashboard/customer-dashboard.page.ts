@@ -2214,18 +2214,17 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
         try {
             const formData = new FormData();
-            formData.append('api_key', 'uY335TET_DRXQ0_t8pRDeVJj-CySDDIx');
-            formData.append('api_secret', 'OJhLwUWImSdiMM5GwC0w_w2GZys32bdl');
-            formData.append('image_file1', this.selfieFile()!);
-            formData.append('image_file2', this.aadharFile()!);
+            formData.append('image_file1', this.selfieFile()!);  // selfie
+            formData.append('image_file2', this.aadharFile()!);  // aadhar/PAN
 
-            const response = await fetch('https://api-us.faceplusplus.com/facepp/v3/compare', {
+            // 👇 now goes to n8n instead of Face++ directly
+            const response = await fetch(n8nWebhooks.kycVerification, {
                 method: 'POST',
                 body: formData
             });
 
             const result = await response.json();
-            console.log('Face++ API Response:', result);
+            console.log('n8n KYC Response:', result);
 
             if (result.confidence !== undefined) {
                 if (result.confidence > 80) {
@@ -2233,7 +2232,6 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     this.isKycVerified.set(true);
                     if (this.user.id) localStorage.setItem('isKycVerified_' + this.user.id, 'true');
 
-                    // Call backend api
                     if (this.user.id) {
                         this.authService.completeKyc(this.user.id).subscribe({
                             next: () => console.log('Backend KYC Status updated successfully'),
@@ -2243,16 +2241,16 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
                     setTimeout(() => {
                         this.switchView('dashboard');
-                    }, 3000); // give them 3 seconds to see the success message
+                    }, 3000);
                 } else {
                     this.kycError.set('Face Not Matching. Similarity Score: ' + result.confidence);
                 }
             } else {
-                this.kycError.set('Error: confidence value not found. ' + (result.error_message || ''));
+                this.kycError.set('Error: ' + (result.message || 'Unexpected response from verification service.'));
             }
         } catch (err: any) {
             console.error(err);
-            this.kycError.set('Failed to connect to verification API.');
+            this.kycError.set('Failed to connect to verification service.');
         } finally {
             this.isKycVerifying.set(false);
         }

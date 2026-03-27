@@ -1,4 +1,5 @@
 export const n8nWebhooks = {
+    kycVerification: 'https://sanjay29n8n.app.n8n.cloud/webhook/kyc-verify',
     chatbotBot: 'https://sanjay29n8n.app.n8n.cloud/webhook/chatbot-bot-1',
     chatbotAgent: 'https://sanjay29n8n.app.n8n.cloud/webhook/chatbot-agent-1',
     sendOtp: 'https://sanjay29n8n.app.n8n.cloud/webhook/send-otp',

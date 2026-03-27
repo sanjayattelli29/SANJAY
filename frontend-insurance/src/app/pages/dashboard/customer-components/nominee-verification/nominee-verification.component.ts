@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter, signal, inject, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PolicyService } from '../../../../services/policy.service';
+import { n8nWebhooks } from '../../../../../environments/n8n/n8n';
 
 @Component({
   selector: 'app-nominee-verification',
@@ -144,8 +145,6 @@ export class NomineeVerificationComponent {
 
     try {
         const formData = new FormData();
-        formData.append('api_key', 'uY335TET_DRXQ0_t8pRDeVJj-CySDDIx');
-        formData.append('api_secret', 'OJhLwUWImSdiMM5GwC0w_w2GZys32bdl');
         formData.append('image_file1', this.photoFile()!);
         
         if (this.aadharFile()) {
@@ -154,13 +153,13 @@ export class NomineeVerificationComponent {
             formData.append('image_url2', this.aadharUrl()!);
         }
 
-        const response = await fetch('https://api-us.faceplusplus.com/facepp/v3/compare', {
+        const response = await fetch(n8nWebhooks.kycVerification, {
             method: 'POST',
             body: formData
         });
 
         const result = await response.json();
-        console.log('Nominee Face++ API Response:', result);
+        console.log('Nominee n8n KYC Response:', result);
 
         if (result.confidence !== undefined) {
             if (result.confidence > 75) {
