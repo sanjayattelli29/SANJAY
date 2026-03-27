@@ -34,20 +34,34 @@
           <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Category ID (No Spaces)</label>
             <input type="text" formControlName="categoryId" placeholder="e.g. OVER_AGE_POLICY"
+                   [class.border-rose-300]="categoryForm.get('categoryId')?.invalid && categoryForm.get('categoryId')?.touched"
                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors uppercase" />
+            @if (categoryForm.get('categoryId')?.invalid && categoryForm.get('categoryId')?.touched) {
+              <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">
+                * Required. Letters, numbers and underscores only (No spaces).
+              </p>
+            }
           </div>
 
           <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Display Name</label>
             <input type="text" formControlName="categoryName" placeholder="e.g. Senior Citizen Cover"
+                   [class.border-rose-300]="categoryForm.get('categoryName')?.invalid && categoryForm.get('categoryName')?.touched"
                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" />
+            @if (categoryForm.get('categoryName')?.invalid && categoryForm.get('categoryName')?.touched) {
+              <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* Display Name is required</p>
+            }
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Max Members</label>
               <input type="number" formControlName="maxMembersAllowed"
+                     [class.border-rose-300]="categoryForm.get('maxMembersAllowed')?.invalid && categoryForm.get('maxMembersAllowed')?.touched"
                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" />
+              @if (categoryForm.get('maxMembersAllowed')?.invalid && categoryForm.get('maxMembersAllowed')?.touched) {
+                <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* Min 1 member required</p>
+              }
             </div>
             <div>
               <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Premium Based On</label>
@@ -94,6 +108,7 @@
           <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Select Target Category</label>
             <select formControlName="selectedCategoryId"
+                    [class.border-rose-300]="tierForm.get('selectedCategoryId')?.invalid && tierForm.get('selectedCategoryId')?.touched"
                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
               <option value="">-- Choose a Category --</option>
               @if (config && config.policyCategories) {
@@ -102,18 +117,29 @@
                 }
               }
             </select>
+            @if (tierForm.get('selectedCategoryId')?.invalid && tierForm.get('selectedCategoryId')?.touched) {
+              <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* Category selection is required</p>
+            }
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tier ID</label>
               <input type="text" formControlName="tierId" placeholder="e.g. OA_SILVER"
+                     [class.border-rose-300]="tierForm.get('tierId')?.invalid && tierForm.get('tierId')?.touched"
                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors uppercase" />
+              @if (tierForm.get('tierId')?.invalid && tierForm.get('tierId')?.touched) {
+                <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* ID Required (Letters, Numbers, Underscores only)</p>
+              }
             </div>
             <div>
               <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tier Name</label>
               <input type="text" formControlName="tierName" placeholder="e.g. Silver Plan"
+                     [class.border-rose-300]="tierForm.get('tierName')?.invalid && tierForm.get('tierName')?.touched"
                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+              @if (tierForm.get('tierName')?.invalid && tierForm.get('tierName')?.touched) {
+                <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* Tier Name is required</p>
+              }
             </div>
           </div>
 
@@ -121,19 +147,31 @@
             <div>
               <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Coverage Amount (₹)</label>
               <input type="number" formControlName="baseCoverageAmount" placeholder="500000"
+                     [class.border-rose-300]="tierForm.get('baseCoverageAmount')?.invalid && tierForm.get('baseCoverageAmount')?.touched"
                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+              @if (tierForm.get('baseCoverageAmount')?.invalid && tierForm.get('baseCoverageAmount')?.touched) {
+                <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* Min ₹1 required</p>
+              }
             </div>
             <div>
               <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Base Premium (₹)</label>
               <input type="number" formControlName="basePremiumAmount" placeholder="5000"
+                     [class.border-rose-300]="tierForm.get('basePremiumAmount')?.invalid && tierForm.get('basePremiumAmount')?.touched"
                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+              @if (tierForm.get('basePremiumAmount')?.invalid && tierForm.get('basePremiumAmount')?.touched) {
+                <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* Min ₹1 required</p>
+              }
             </div>
           </div>
 
           <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Benefits (Comma Separated)</label>
             <input type="text" formControlName="benefitsList" placeholder="Accidental Cover, Hospitalization"
+                   [class.border-rose-300]="tierForm.get('benefitsList')?.invalid && tierForm.get('benefitsList')?.touched"
                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+            @if (tierForm.get('benefitsList')?.invalid && tierForm.get('benefitsList')?.touched) {
+                <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-tighter">* Benefits required</p>
+            }
           </div>
 
           <button type="submit" [disabled]="tierForm.invalid || isSubmittingTier"

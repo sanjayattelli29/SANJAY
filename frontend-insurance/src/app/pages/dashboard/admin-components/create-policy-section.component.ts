@@ -25,7 +25,7 @@ export class CreatePolicySectionComponent implements OnInit {
 
   ngOnInit() {
     this.categoryForm = this.fb.group({
-      categoryId: ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
+      categoryId: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
       categoryName: ['', Validators.required],
       maxMembersAllowed: [1, [Validators.required, Validators.min(1)]],
       premiumBasedOn: ['PrimaryApplicantOnly', Validators.required]
@@ -33,7 +33,7 @@ export class CreatePolicySectionComponent implements OnInit {
 
     this.tierForm = this.fb.group({
       selectedCategoryId: ['', Validators.required],
-      tierId: ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
+      tierId: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
       tierName: ['', Validators.required],
       baseCoverageAmount: ['', [Validators.required, Validators.min(1)]],
       basePremiumAmount: ['', [Validators.required, Validators.min(1)]],
@@ -49,7 +49,7 @@ export class CreatePolicySectionComponent implements OnInit {
     const formValue = this.categoryForm.value;
 
     const newCategory: any = {
-      categoryId: formValue.categoryId.toUpperCase(),
+      categoryId: formValue.categoryId.trim().toUpperCase(),
       categoryName: formValue.categoryName,
       maxMembersAllowed: formValue.maxMembersAllowed,
       premiumBasedOn: formValue.premiumBasedOn,
@@ -92,7 +92,7 @@ export class CreatePolicySectionComponent implements OnInit {
     const benefits = formValue.benefitsList.split(',').map((b: string) => b.trim()).filter((b: string) => b.length > 0);
 
     const newTier = {
-      tierId: formValue.tierId.toUpperCase(),
+      tierId: formValue.tierId.trim().toUpperCase(),
       tierName: formValue.tierName,
       baseCoverageAmount: Number(formValue.baseCoverageAmount),
       basePremiumAmount: Number(formValue.basePremiumAmount),
