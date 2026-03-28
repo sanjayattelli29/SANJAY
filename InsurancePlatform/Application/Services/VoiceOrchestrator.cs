@@ -18,7 +18,6 @@ namespace Application.Services
         private readonly ILogger<VoiceOrchestrator> _logger;
 
         // n8n webhook the text chat uses — this ensures consistent, accurate responses
-
         public VoiceOrchestrator(IConfiguration config, HttpClient httpClient, ILogger<VoiceOrchestrator> logger)
         {
             _config = config;

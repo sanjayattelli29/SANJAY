@@ -3,8 +3,6 @@ const cors = require('cors');
 const express = require('express');
 const multer = require('multer');
 const dotenv = require('dotenv');
-// const { extractTextSmart } = require('./vision_extractor'); // Removed as redundant
-
 const { ANALYZE_PROMPT, CLAIM_PROMPT } = require('./prompts');
 
 dotenv.config();

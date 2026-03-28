@@ -118,6 +118,8 @@ export class VoiceAgent implements OnInit, OnChanges, OnDestroy {
                 // FIX 4: Only emit if we actually captured real speech content,
                 //         not just silence/fan noise.
                 if (this.audioChunks.length > 0 && this.hasSpeechContent) {
+                    // Where final audio is created
+                    // This runs after recording stops
                     const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
                     console.log(`[VoiceAgent] ✅ Emitting audioBlob: size=${audioBlob.size}, type=${audioBlob.type}`);
                     this.audioCaptured.emit(audioBlob);

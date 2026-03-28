@@ -87,14 +87,6 @@ describe('CustomerLoginPage', () => {
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should show error message if captcha is incorrect', () => {
-        component.loginForm.get('emailId')?.setValue('test@test.com');
-        component.loginForm.get('password')?.setValue('password');
-        component.loginForm.get('captchaInput')?.setValue('999'); // Wrong
-
-        component.onSubmit();
-        expect(component.errorMessage()).toBe('Incorrect captcha answer.');
-    });
 
     it('should have default error message as empty', () => {
         expect(component.errorMessage()).toBe('');

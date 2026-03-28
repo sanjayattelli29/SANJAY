@@ -68,14 +68,14 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     profileSaveSuccess = signal<boolean>(false);
 
     profileForm = {
-        name:     this.authService.getUser().name || '',
-        email:    this.authService.getUser().email || '',
-        phone:    this.authService.getUser().phone || '',
-        city:     localStorage.getItem('profile_city_' + (this.authService.getUser().id || 'guest')) || '',
-        bio:      localStorage.getItem('profile_bio_' + (this.authService.getUser().id || 'guest')) || '',
+        name: this.authService.getUser().name || '',
+        email: this.authService.getUser().email || '',
+        phone: this.authService.getUser().phone || '',
+        city: localStorage.getItem('profile_city_' + (this.authService.getUser().id || 'guest')) || '',
+        bio: localStorage.getItem('profile_bio_' + (this.authService.getUser().id || 'guest')) || '',
         occupation: localStorage.getItem('profile_occupation_' + (this.authService.getUser().id || 'guest')) || '',
         bankAccount: localStorage.getItem('profile_bank_' + (this.authService.getUser().id || 'guest')) || '',
-        ifscCode:   localStorage.getItem('profile_ifsc_' + (this.authService.getUser().id || 'guest')) || ''
+        ifscCode: localStorage.getItem('profile_ifsc_' + (this.authService.getUser().id || 'guest')) || ''
     };
 
     // Bank validation helpers
@@ -157,7 +157,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                         this.profileLocationText.set(readable || `${lat}° N, ${lng}° E`);
                         this.profileForm.city = readable;
                     })
-                    .catch(() => {})
+                    .catch(() => { })
                     .finally(() => this.profileIsFetchingLocation.set(false));
             },
             () => {
@@ -301,7 +301,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     currentChatPolicy = signal<any | null>(null);
     isChatLoading = signal<boolean>(false);
     chatUserMessage = signal<string>('');
-    
+
     // voice agent chat extension state
     activeChatId = signal<string | null>(null);
     isVoiceMode = signal<boolean>(false);
@@ -445,7 +445,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     { color: '#10b981', label: 'Approved / Paid', count: approved },
                     { color: '#f59e0b', label: 'In Processing', count: processing },
                     { color: '#ef4444', label: 'Rejected', count: rejected }
-                  ]
+                ]
                 : [{ color: '#e2e8f0', label: 'No Claims Yet', count: 0 }];
 
             legendEl.innerHTML = legendItems.map(item => `
@@ -576,7 +576,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     return { ...c, fullDetails: details };
                 }));
                 this.calculateTotals(); // recalc totals
-                
+
                 // Check if user has any active/past death claim to show on dashboard
                 const deathClaim = this.myClaims().find((c: any) => c.incidentType === 'Death' || (c.incidentDataJson && c.incidentDataJson.includes('Death')));
                 if (deathClaim) {
@@ -732,13 +732,13 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     uploadFamilyMemberAadharToImageKit(file: File, index: number) {
         this.applicationForm.familyMembers[index].isUploadingFile = true;
         this.cdr.markForCheck(); // Safely mark for check
-        
+
         this.policyService.uploadDocument(file, 'family-aadhars').subscribe({
             next: (res) => {
                 this.applicationForm.familyMembers[index].aadharCardUrl = res.url;
                 this.applicationForm.familyMembers[index].isUploadingFile = false;
                 this.cdr.markForCheck();
-                
+
                 // Now extract the Aadhar number using Vision API
                 this.extractFamilyMemberAadharNumber(file, index);
             },
@@ -756,7 +756,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         try {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            
+
             reader.onload = async () => {
                 try {
                     const base64Content = (reader.result as string).split(',')[1];
@@ -776,9 +776,9 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
                     const json = await res.json();
                     const fullText = json.responses?.[0]?.fullTextAnnotation?.text || '';
-                    
+
                     const aadharMatch = fullText.replace(/[\s-]/g, '').match(/\d{12}/);
-                    
+
                     if (aadharMatch) {
                         this.applicationForm.familyMembers[index].aadharNumber = aadharMatch[0];
                         this.applicationForm.familyMembers[index].aadharSuccess = true;
@@ -838,10 +838,10 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         this.isExtractingAadhar.set(true);
         try {
             console.log('[VisionAPI] Extracting from local file:', file.name);
-            
+
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            
+
             reader.onload = async () => {
                 try {
                     const base64Content = (reader.result as string).split(',')[1];
@@ -861,7 +861,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
                     const json = await res.json();
                     const fullText = json.responses?.[0]?.fullTextAnnotation?.text || '';
-                    
+
                     console.log('[VisionAPI] Full Text Result:', fullText);
 
                     const cleanText = fullText.replace(/[\r\n\s]+/g, ' ');
@@ -909,7 +909,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     this.isUploadingDocs.set(false);
                     this.aadharSuccess.set(true); // Show green success message
                     console.log('Nominee Aadhar uploaded successfully:', res.url);
-                    
+
                     // Trigger Vision API extraction using the original file
                     this.extractNomineeAadharNumber(file);
                 },
@@ -1253,7 +1253,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         if (app.applicant.age < 22) return false;
         if (!app.applicant.profession) return false;
         if (app.annualIncome <= 0) return false;
-        
+
         // Nominee Validation
         if (!app.nominee.name || !this.isValidName(app.nominee.name)) return false;
         if (!app.nominee.relationship) return false;
@@ -1489,7 +1489,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 this.sendInvoiceEmail(pol);
 
                 alert('Payment Successful! Your policy is now ACTIVE. Invoice sent to your email.');
-                
+
                 // Refresh policies and navigate to the detailed view of the paid policy
                 this.policyService.getMyPolicies().subscribe((policies) => {
                     this.myPolicies.set(policies);
@@ -1506,7 +1506,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     this.showPaymentModal.set(false);
                     // ✅ Send invoice email even on pseudo-error if it means success
                     this.sendInvoiceEmail(pol);
-                    
+
                     alert('Payment processed. Your policy is now ACTIVE. Invoice sent to your email.');
 
                     // Refresh policies and navigate to the detailed view of the paid policy
@@ -1580,7 +1580,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 this.sendInvoiceEmail(pol);
 
                 alert('Payment Successful! Your policy is now ACTIVE. Invoice sent to your email.');
-                
+
                 // Refresh policies and navigate to the detailed view of the paid policy
                 this.policyService.getMyPolicies().subscribe((policies) => {
                     this.myPolicies.set(policies);
@@ -1592,10 +1592,10 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 this.isPaying.set(false);
                 const errorMsg = typeof err.error === 'string' ? err.error : (err.error?.message || err.message || '');
                 if (errorMsg.includes('status') || errorMsg.includes('AwaitingPayment') || errorMsg.includes('unexpected error') || errorMsg.includes('An unexpected error')) {
-                    
+
                     // ✅ Send invoice email even on pseudo-error if it means success
                     this.sendInvoiceEmail(pol);
-                    
+
                     alert('Payment processed. Your policy is now ACTIVE. Invoice sent to your email.');
 
                     // Refresh policies and navigate to the detailed view of the paid policy
@@ -1616,7 +1616,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     nomineeData = computed(() => {
         const policy = this.selectedPolicyForClaim();
         if (!policy) return null;
-        
+
         let raw: any = {};
         try {
             raw = typeof policy.applicationDataJson === 'string'
@@ -1671,7 +1671,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     selectedHospitalDetails = signal<any>(null);
 
     // handles event from Nominee Verification component
-    onNomineeVerified(event: {aadhar: File | null, photo: File, aadharUrl?: string, photoUrl?: string}) {
+    onNomineeVerified(event: { aadhar: File | null, photo: File, aadharUrl?: string, photoUrl?: string }) {
         this.nomineeAadharFile.set(event.aadhar);
         this.nomineePhotoFile.set(event.photo);
         this.nomineeAadharUrl.set(event.aadharUrl || '');
@@ -1902,21 +1902,21 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     private sendInvoiceEmail(pol: any) {
         const user = this.authService.getUser();
         const doc = new jsPDF();
-        
+
         // 1. Generate PDF Content
         doc.setFontSize(22);
         doc.text('ACCISURE INSURANCE INVOICE', 105, 20, { align: 'center' });
         doc.setFontSize(10);
         doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 28, { align: 'center' });
-        
+
         doc.line(20, 35, 190, 35);
-        
+
         doc.setFontSize(12);
         doc.text('Customer Details:', 20, 45);
         doc.setFontSize(10);
         doc.text(`Name: ${user.name || 'Valued Customer'}`, 20, 52);
         doc.text(`Email: ${user.email}`, 20, 58);
-        
+
         doc.setFontSize(12);
         doc.text('Policy Information:', 120, 45);
         doc.setFontSize(10);
@@ -1938,11 +1938,11 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
         // 2. Convert to Base64 and Upload
         const pdfBase64 = doc.output('datauristring');
-        
+
         this.policyService.uploadInvoice(pol.id, pdfBase64, `Invoice_${pol.id}.pdf`).subscribe({
             next: (uploadRes) => {
                 const permanentUrl = uploadRes.invoiceUrl;
-                
+
                 // 3. Send payload to n8n with working link
                 const payload = {
                     customerEmail: user.email,
@@ -2115,7 +2115,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                     if (fullText && fullText.trim().length > 0) {
                         let parsedDetails = [];
                         const lines = fullText.split('\n').filter((l: { trim: () => { (): any; new(): any; length: number; }; }) => l.trim().length > 0);
-                        
+
                         let hasName = false;
                         let hasDob = false;
                         let hasAadhar = false;
@@ -2152,7 +2152,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                             if (!hasName) missingFields.push("Name");
                             if (!hasDob) missingFields.push("Date of Birth");
                             if (!hasAadhar) missingFields.push("Aadhar Number");
-                            
+
                             this.aadharText.set(`Missing required fields: ${missingFields.join(', ')}\n\nPlease ensure the uploaded image contains these details.`);
                             this.kycError.set("Please upload correct file");
                         }
@@ -2273,11 +2273,11 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
     sendGreeting() {
         const greetingText = "Hi Sanjay! I'm AcciSure. How can I help you today?";
-        
+
         // Show greeting in the chat UI
         this.chatMessages.update(msgs => [
-             ...msgs,
-             { role: 'agent', content: greetingText }
+            ...msgs,
+            { role: 'agent', content: greetingText }
         ]);
 
         // Set processing = true so VoiceAgent waits while greeting plays
@@ -2302,19 +2302,19 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
         }
 
         window.speechSynthesis.cancel();
-        
+
         // Clean text: remove markdown artifacts, extra spaces, and weird symbols
         const cleanText = text
-            .replace(/[*_#`]/g, '') 
-            .replace(/[-]{2,}/g, ' ') 
+            .replace(/[*_#`]/g, '')
+            .replace(/[-]{2,}/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
 
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        
+
         const setVoice = () => {
             const voices = window.speechSynthesis.getVoices();
-            
+
             // Priority: Premium/Natural Voices -> Google/Microsoft Voices -> English Voices
             let selectedVoice = voices.find(v => (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('enhanced')) && v.lang.startsWith('en'))
                 || voices.find(v => (v.name.includes('Google') || v.name.includes('Microsoft')) && v.lang.startsWith('en'))
@@ -2341,7 +2341,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
 
         // Voice characteristics for a more "human" feel
         utterance.rate = 1.05; // Slightly faster sounds more confident/intelligent
-        utterance.pitch = 1.0; 
+        utterance.pitch = 1.0;
         utterance.volume = 1.0;
 
         utterance.onend = () => onEnd();
