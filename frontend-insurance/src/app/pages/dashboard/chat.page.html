@@ -76,7 +76,7 @@
                     </svg>
                 </button>
                 <div class="chat-info" *ngIf="chatInfo()">
-                    <h2 class="font-black text-sm md:text-base">Policy Chat: {{ policyId.substring(0,8) }}</h2>
+                    <h2 class="font-black text-sm md:text-base">Communicate with agent to resolve your issues</h2>
                     <p *ngIf="user.role === 'Customer'" class="font-bold text-[10px] md:text-xs">Chatting with Agent: {{
                         chatInfo().agentEmail
                         }}</p>

@@ -357,7 +357,7 @@ namespace Application.Services
             {
                 decimal commission = app.CalculatedPremium * 0.10m;
                 await _systemNotifier.SendNotificationAsync(app.AssignedAgentId, "Commission Earned 💰", 
-                    $"Customer {customerEmail} has paid for their {app.TierId} policy. You earned {commission:C} commission!", $"AGENT:Comm:{applicationId}");
+                    $"Customer {customerEmail} has paid for their {app.TierId} policy.", $"AGENT:Comm:{applicationId}");
             }
             else
             {
@@ -430,18 +430,18 @@ namespace Application.Services
 
                 CommissionPerformance = activePolicies
                     .Where(pa => pa.PaymentDate.HasValue)
-                    .GroupBy(pa => pa.PaymentDate!.Value.ToString("MMM yyyy"))
+                    .GroupBy(pa => pa.PaymentDate!.Value.ToString("dd MMM"))
                     .OrderBy(g => g.Min(pa => pa.PaymentDate))
                     .Select(g => new MonthlyDataPoint { Month = g.Key, Value = g.Sum(pa => pa.CalculatedPremium * 0.10m) })
-                    .TakeLast(6)
+                    .TakeLast(30)
                     .ToList(),
 
                 PremiumTrends = activePolicies
                     .Where(pa => pa.PaymentDate.HasValue)
-                    .GroupBy(pa => pa.PaymentDate!.Value.ToString("MMM yyyy"))
+                    .GroupBy(pa => pa.PaymentDate!.Value.ToString("dd MMM"))
                     .OrderBy(g => g.Min(pa => pa.PaymentDate))
                     .Select(g => new MonthlyDataPoint { Month = g.Key, Value = g.Sum(pa => pa.PaidAmount ?? 0) })
-                    .TakeLast(6)
+                    .TakeLast(30)
                     .ToList(),
 
                 ClaimImpact = new List<ClaimImpactData>() 

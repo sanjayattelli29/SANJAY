@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -60,6 +60,7 @@ export class AgentDashboardPage implements OnInit {
     private chatService = inject(ChatService);
     private adminService = inject(AdminService);
     private router = inject(Router);
+    private cdr = inject(ChangeDetectorRef);
     // ui state
     isLoading = signal(false);
     message = signal({ type: '', text: '' });
@@ -153,6 +154,7 @@ export class AgentDashboardPage implements OnInit {
                 this.stats.totalPremium = data.totalPremiumCollected;
                 this.stats.totalCommission = data.totalCommissionEarned;
                 this.initCharts();
+                this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load analytics', err)
         });
@@ -232,6 +234,7 @@ export class AgentDashboardPage implements OnInit {
             this.createPortfolioChart(data);
             this.createTierChart(data);
             this.createPremiumTrendChart(data);
+            this.cdr.detectChanges();
         }, 500); 
     }
 
@@ -461,6 +464,7 @@ export class AgentDashboardPage implements OnInit {
                 // Pending review count for both Assigned and PendingReview status
                 const pending = data.filter(r => r.status === 'Assigned' || r.status === 'PendingReview').length;
                 this.stats.pendingReview = pending;
+                this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load my requests', err)
         });
@@ -472,6 +476,7 @@ export class AgentDashboardPage implements OnInit {
                 this.commissionData.set(data);
                 this.stats.totalCommission = data.totalCommission;
                 this.initCharts();
+                this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load commission stats', err)
         });

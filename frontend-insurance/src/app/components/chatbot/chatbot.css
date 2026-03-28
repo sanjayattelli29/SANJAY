@@ -41,23 +41,21 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-.logo-diamonds {
-  display: flex;
-  align-items: center;
+.bot-logo-toggle {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
 }
 
-.diamond {
-  width: 14px;
-  height: 14px;
-  background: #22c55e;
-  border-radius: 3px;
-  transform: rotate(45deg);
+.chat-toggle:hover .bot-logo-toggle {
+  transform: scale(1.1);
 }
 
-.diamond:last-child {
-  margin-left: -5px;
-  background: #15803d;
-  opacity: 0.8;
+.bot-logo-header {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .pulse {
