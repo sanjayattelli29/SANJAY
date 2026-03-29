@@ -1,0 +1,160 @@
+{
+  "name": "agent ai policy summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-ai-insights",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "c8b0d684-31b9-46a8-94da-395e6a22b143",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "agent-ai-insights"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are AcciSure's expert insurance policy analyst. Analyze the customer and policy data below and respond with ONLY a raw JSON object — no markdown, no backticks.\n\nCRITICAL CONTEXT — READ BEFORE ANALYZING: This policy may be in Assigned or PendingReview status, which means it has NOT yet been approved by the agent. When a policy is pending approval, fields like Total Coverage, Remaining Coverage, Start Date, End Date, and Payment History will naturally be zero or N/A — this is completely expected system behavior and must NOT be treated as suspicious or fraudulent. Do not penalize the authenticity score or raise risk levels because of these empty fields. If Annual Income is Rs.0, the customer may be a fresher, student, or self-employed individual — cross-reference with age and profession instead of flagging it as fake. If Payment History shows undefined or No payment records, it simply means the policy has not been activated yet and no premium cycle has started. Judge the overall risk purely based on the customer lifestyle habits like smoking and alcohol and travel distance, age, profession, location infrastructure, document completeness, and nominee validity. Only raise risk to HIGH or CRITICAL if there are genuine red flags like contradictory documents, implausible lifestyle combinations, or suspicious nominee details.\n\nRequired JSON structure:\n{\n  \"authenticityScore\": <integer 0-100>,\n  \"authenticityDetails\": \"<2-3 sentences on data completeness, nominee info, document availability>\",\n  \"aiOpinion\": \"<4-5 sentences on overall risk profile, claim behaviour, policy suitability, agent recommendation>\",\n  \"locationAnalysis\": \"<3-4 sentences on state/district risk level for this policy category, urban/rural impact, regional infrastructure>\",\n  \"documentReport\": \"<2-3 sentences on documents provided, missing critical docs, overall document health>\",\n  \"claimsReport\": \"<3-4 sentences on claim frequency, amounts vs coverage, red flags or positive patterns, coverage sustainability>\",\n  \"paymentsReport\": \"<2-3 sentences on payment regularity, mode, delays if any, payment health>\",\n  \"overallRiskLevel\": \"<one of: LOW / MEDIUM / HIGH / CRITICAL>\",\n  \"agentRecommendations\": [\"<rec 1>\", \"<rec 2>\", \"<rec 3>\"]\n}\n\nRules:\n- authenticityScore: 0 = completely fake/incomplete, 100 = fully verified and consistent. A pending policy with zero coverage and N/A dates should still score 60 or above if documents and customer profile look genuine.\n- overallRiskLevel: Based ONLY on smoking, alcohol, travel km, claim history, coverage used, and payment defaults. Never penalize for zero coverage or missing dates if status is Assigned or PendingReview.\n- agentRecommendations: Exactly 3 specific, actionable recommendations for the agent.\n- Never flag zero coverage or N/A dates as suspicious if policy status is Assigned or PendingReview.\n\nCUSTOMER:\nName: {{ $json.body.customer.fullName }}\nAge: {{ $json.body.customer.age }}\nProfession: {{ $json.body.customer.profession }}\nAnnual Income: Rs.{{ $json.body.customer.annualIncome }}\nSmoking: {{ $json.body.customer.smokingHabit }}\nAlcohol: {{ $json.body.customer.alcoholHabit }}\nVehicle: {{ $json.body.customer.vehicleType }}\nMonthly Travel: {{ $json.body.customer.travelKmPerMonth }} km\n\nPOLICY:\nNumber: {{ $json.body.policy.policyNumber }}\nCategory: {{ $json.body.policy.policyCategory }}\nTier: {{ $json.body.policy.tierId }}\nStatus: {{ $json.body.policy.status }}\nTotal Coverage: Rs.{{ $json.body.policy.totalCoverageAmount }}\nRemaining Coverage: Rs.{{ $json.body.policy.remainingCoverageAmount }}\nPremium: Rs.{{ $json.body.policy.calculatedPremium }}\nPayment Mode: {{ $json.body.policy.paymentMode }}\nStart: {{ $json.body.policy.startDate }} | End: {{ $json.body.policy.endDate }}\n\nNOMINEE:\nName: {{ $json.body.nominee.name }}\nRelationship: {{ $json.body.nominee.relationship }}\nBank Account: {{ $json.body.nominee.bankAccount }}\nIFSC: {{ $json.body.nominee.ifsc }}\n\nLOCATION:\n{{ $json.body.location.address }}, {{ $json.body.location.area }}, {{ $json.body.location.district }}, {{ $json.body.location.state }} - {{ $json.body.location.pincode }}\nCoordinates: {{ $json.body.location.latitude }}, {{ $json.body.location.longitude }}\n\nCLAIMS HISTORY:\n{{ $json.body.claimsSummary }}\n\nPAYMENT HISTORY:\n{{ $json.body.paymentsSummary }}\n\nDOCUMENTS ATTACHED:\n{{ $json.body.documentsSummary }}\nDOCUMENT CONTENTS:\n{{ $json.body.rawDocumentText }}\n\nRespond with ONLY the raw JSON object and nothing else.",
+        "options": {}
+      },
+      "id": "3e823234-d2d6-41c3-8917-64594402d301",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = items[0].json.output || '';\n\nconst cleaned = raw\n  .replace(/^```json\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/```\\s*$/i, '')\n  .trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    parsed = JSON.parse(match[0]);\n  } else {\n    throw new Error('AI output is not valid JSON: ' + cleaned.substring(0, 200));\n  }\n}\n\nreturn [{ json: parsed }];"
+      },
+      "id": "d20d6793-f8ce-4774-974e-8f89240e38f5",
+      "name": "Parse AI JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "98621367-339d-4d8c-bcb3-17c3a8a78af0",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        304,
+        256
+      ],
+      "id": "55395bcc-44a4-4022-8123-f85a355380bd",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "zvm4c7Z3IStLP00t",
+          "name": "Mistral Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse AI JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI JSON": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ea19a347-4b6a-4d1d-9f67-2e6fd5f178d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d30b44a5cc750a1c2802fd3816c4cfae1f49222f1f21f580bda168d8442502f"
+  },
+  "id": "dDda6eyQUiMudZaq",
+  "tags": []
+}

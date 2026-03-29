@@ -1,0 +1,182 @@
+{
+  "name": "KYC Face Verification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "kyc-verify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f9e00efc-9c7c-40f5-8bc2-20355bee94ce",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        160
+      ],
+      "webhookId": "2f99fe90-db42-4cd1-a6ee-4c88482ca358"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-us.faceplusplus.com/facepp/v3/compare",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "uY335TET_DRXQ0_t8pRDeVJj-CySDDIx"
+            },
+            {
+              "name": "api_secret",
+              "value": "OJhLwUWImSdiMM5GwC0w_w2GZys32bdl"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "image_file1",
+              "inputDataFieldName": "image_file1"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "image_file2",
+              "inputDataFieldName": "image_file2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "df888f03-040e-4ce6-b22b-bdd6e9989b56",
+      "name": "Call Face++ API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -240,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "confidence-check",
+              "leftValue": "={{ $json.confidence }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gt",
+                "name": "filter.operator.gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4c3de59f-fbf0-4d97-b787-714cfb343c09",
+      "name": "Confidence > 80?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, confidence: $('Call Face++ API').item.json.confidence, message: 'Face verified successfully' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "9679cef7-bcc5-446c-b00d-00eadd088679",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, confidence: $('Call Face++ API').item.json.confidence, message: $('Call Face++ API').item.json.error_message || 'Face match below threshold' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "7adeaaae-6242-41aa-8134-fbe65055287e",
+      "name": "Respond Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        272
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call Face++ API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Face++ API": {
+      "main": [
+        [
+          {
+            "node": "Confidence > 80?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confidence > 80?": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dc0b6f84-a592-4054-87e9-723a35992e1f",
+  "meta": {
+    "instanceId": "7d30b44a5cc750a1c2802fd3816c4cfae1f49222f1f21f580bda168d8442502f"
+  },
+  "id": "VaKmqy87ggIhIUsy",
+  "tags": []
+}

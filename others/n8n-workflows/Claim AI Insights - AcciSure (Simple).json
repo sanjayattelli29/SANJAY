@@ -1,0 +1,136 @@
+{
+  "name": "Claim AI Insights - AcciSure (Simple)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "claim-ai-insights",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "b8c72cc1-1242-40e4-8a23-7b78ffb1f6de",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "claim-ai-insights"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an insurance claims analyst. Analyze the documents below and respond with ONLY a raw JSON object — no markdown, no backticks.\n\nRequired JSON structure:\n{\n  \"summaryPoints\": [\"point1\", \"point2\", \"point3\", \"point4\", \"point5\"],\n  \"riskScore\": <integer 0-100>,\n  \"suggestedAmountMin\": <number>,\n  \"suggestedAmountMax\": <number>\n}\n\nRules:\n- summaryPoints: Exactly 5 points about the documents — authenticity, consistency with incident, evidence quality, red flags, completeness.\n- riskScore: 0 = no fraud risk, 100 = very high fraud risk.\n- suggestedAmountMin / suggestedAmountMax: Range based on requested amount of {{ $json.body.requestedAmount }} and evidence quality. Never exceed remainingCoverage of {{ $json.body.remainingCoverage }}.\n\nCLAIM:\nID: {{ $json.body.claimId }}\nIncident: {{ $json.body.incidentType }}\nRequested: Rs.{{ $json.body.requestedAmount }}\nRemaining Coverage: Rs.{{ $json.body.remainingCoverage }}\n\nDOCUMENT TEXT:\n{{ $json.body.rawDocumentText }}\n\nRespond with ONLY the JSON.",
+        "options": {}
+      },
+      "id": "83133c0c-e6f6-4b66-ba6d-ff9b9d294358",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "7605132d-279a-4b66-b373-2ee3e66b1036",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        576,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        192,
+        304
+      ],
+      "id": "ee0d75a1-d1c5-4b38-909b-712f2a1c5848",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "zvm4c7Z3IStLP00t",
+          "name": "Mistral Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "70cc752c-ccde-494e-b992-ecf23bc9ab8d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d30b44a5cc750a1c2802fd3816c4cfae1f49222f1f21f580bda168d8442502f"
+  },
+  "id": "raVCdZfiTw3pmwEU",
+  "tags": []
+}

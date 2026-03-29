@@ -1,0 +1,150 @@
+{
+  "name": "invoice sending",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n \"status\": \"email_sent\"\n}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "3df09b89-94a4-47b3-9f1a-76df34ea833b",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        304,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-invoice",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "a032c3e8-c799-412e-98a8-fb8a19764ecc",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        176
+      ],
+      "webhookId": "c3060f8a-f2bb-43c6-98e5-41de8010edae"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "subject": "Payment Received Policy is Active",
+        "includeHtml": true,
+        "htmlMessage": "=<p>Dear <b>{{ $json.body.customerName }}</b>,</p>\n\n<p>\nCongratulations! Your payment of <b>₹{{ $json.body.amount }}</b> for the \n<b>{{ $json.body.policyName }}</b> policy has been successfully received on \n<b>{{ $json.body.paymentDate }}</b>.\n</p>\n\n<p>Your policy is now <b style=\"color:green;\">ACTIVE</b>.</p>\n\n<p>You can view and download your official invoice below:</p>\n\n<p>\n<a href=\"{{ $json.body.invoiceLink }}\" \nstyle=\"background:#f97316;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;\">\nView / Download Invoice\n</a>\n</p>\n\n<p>If the button does not work, use the direct link below:</p>\n\n<p>\n<a href=\"{{ $json.body.invoiceLink }}\">\n{{ $json.body.invoiceLink }}\n</a>\n</p>\n\n<p>Thank you for choosing our services.</p>\n\n<p>\nBest Regards,<br>\nInsurance Support Team\n</p>",
+        "message": "=",
+        "toList": [
+          "={{ $json.body.customerEmail }}"
+        ],
+        "additionalFields": {}
+      },
+      "id": "7356e243-38d7-4fa7-b8d9-38b5c626142a",
+      "name": "send invoice with link",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        0,
+        256
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "H9nrOf3A3V2EksEl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+12185277289",
+        "to": "=+91{{ $json.body.phoneNumber }}",
+        "message": "=Hi {{ $json.body.customerName }}, ₹{{ $json.body.amount }} payment for {{ $json.body.policyName }} on {{ $json.body.paymentDate }} is successful.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "715ccba9-1cff-4185-a20e-36a9672f5293",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "tMbhNugKfTpeqp8G",
+          "name": "Twilio account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "send invoice with link",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send invoice with link": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7ff4b2da-9b77-462a-aa34-a8347b3d7fad",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d30b44a5cc750a1c2802fd3816c4cfae1f49222f1f21f580bda168d8442502f"
+  },
+  "id": "gLFCRSDNsy0dUkMJ",
+  "tags": []
+}

@@ -1,0 +1,125 @@
+{
+  "name": "VAPI Onboarding Call After Registration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vapi-onboarding",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a2aefbde-8c14-41f1-b063-935d072521f0",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        16
+      ],
+      "webhookId": "4cdb146e-4f02-4f72-bb4f-e2e94d899db0"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.vapi.ai/call",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 96a5130d-0087-476a-9b12-11488928244f"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "assistantId",
+              "value": "9f175014-194b-44f6-b5fd-11372c94dfa2"
+            },
+            {
+              "name": "phoneNumberId",
+              "value": "9051c56d-40ed-496e-8d5a-f0d3c891ff72"
+            },
+            {
+              "name": "customer",
+              "value": "={{ { \"number\": $json.body.mobile } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "71c524e6-1b16-4eb4-8482-ed315c7708b1",
+      "name": "Call VAPI API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        256,
+        16
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "lpJpNQQusnJY0Q25",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        16
+      ],
+      "id": "623d9fd2-c090-4f10-acbe-f71e2bdca85b",
+      "name": "Wait",
+      "webhookId": "16248906-f606-44b5-bc7f-9f6b66328ba9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Call VAPI API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f22f37d5-205c-42af-b70b-4c1446106be7",
+  "meta": {
+    "instanceId": "7d30b44a5cc750a1c2802fd3816c4cfae1f49222f1f21f580bda168d8442502f"
+  },
+  "id": "X4rGETXbyDt3gGCv",
+  "tags": []
+}

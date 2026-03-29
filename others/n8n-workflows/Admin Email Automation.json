@@ -1,0 +1,75 @@
+{
+  "name": "Admin Email Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "admin-send-email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        -48
+      ],
+      "id": "81425999-731c-4672-b793-a602cdadf929",
+      "name": "Webhook",
+      "webhookId": "e0670fad-786f-4593-be02-6df534bfeb62"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.toEmail }}",
+        "subject": "={{ $json.body.subject }}",
+        "message": "={{ $json.body.htmlBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        128,
+        -32
+      ],
+      "id": "e0c2b2c3-71ed-4b78-945b-6827169d81e2",
+      "name": "Send a message",
+      "webhookId": "9351ef72-7257-4cbb-8c4c-ce94571271c8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "H9nrOf3A3V2EksEl",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "da9b8e8c-2e58-4c1a-8df0-182e29bed0d9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d30b44a5cc750a1c2802fd3816c4cfae1f49222f1f21f580bda168d8442502f"
+  },
+  "id": "Hn1h68uoAtmPStYw",
+  "tags": []
+}

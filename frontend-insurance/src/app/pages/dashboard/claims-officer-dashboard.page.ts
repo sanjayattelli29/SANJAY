@@ -518,32 +518,32 @@ export class ClaimsOfficerDashboardPage implements OnInit {
             const nominee   = details.nominee || {};
 
             const customerPayload = {
-                fullName:              applicant.fullName ?? claim.policy?.customerEmail ?? '',
-                email:                 claim.policy?.customerEmail ?? '',
-                age:                   applicant.age ?? '',
-                profession:            applicant.profession ?? '',
-                annualIncome:          applicant.annualIncome ?? '',
-                smokingHabit:          details.lifestyle?.smokingHabit ?? '',
-                alcoholHabit:          details.lifestyle?.alcoholHabit ?? '',
-                vehicleType:           details.lifestyle?.vehicleType ?? '',
-                travelDistancePerMonth: details.lifestyle?.travelDistancePerMonth ?? '',
+                fullName:              applicant.fullName || claim.user?.fullName || claim.policy?.user?.fullName || '',
+                email:                 claim.user?.email || claim.policy?.user?.email || claim.policy?.customerEmail || '',
+                age:                   applicant.age || claim.policy?.age || '',
+                profession:            applicant.profession || claim.policy?.profession || '',
+                annualIncome:          applicant.annualIncome || claim.policy?.annualIncome || '',
+                smokingHabit:          details.lifestyle?.smokingHabit || claim.policy?.smokingHabit || '',
+                alcoholHabit:          details.lifestyle?.alcoholHabit || claim.policy?.alcoholHabit || '',
+                vehicleType:           details.lifestyle?.vehicleType || claim.policy?.vehicleType || '',
+                travelDistancePerMonth: details.lifestyle?.travelDistancePerMonth || claim.policy?.travelKmPerMonth || '',
             };
 
             const policyPayload = {
-                policyNumber:           claim.policy?.policyNumber ?? '',
-                policyCategory:         claim.policy?.policyCategory ?? '',
-                tierId:                 claim.policy?.tierId ?? '',
-                totalCoverageAmount:    claim.policy?.totalCoverageAmount ?? 0,
-                remainingCoverageAmount: claim.policy?.remainingCoverageAmount ?? 0,
-                calculatedPremium:      claim.policy?.calculatedPremium ?? 0,
-                startDate:              claim.policy?.startDate ?? '',
-                endDate:                claim.policy?.endDate ?? '',
+                policyNumber:           claim.policy?.policyNumber || claim.policy?.id || '',
+                policyCategory:         claim.policy?.policyCategory || '',
+                tierId:                 claim.policy?.tierId || '',
+                totalCoverageAmount:    claim.policy?.totalCoverageAmount || 0,
+                remainingCoverageAmount: claim.policy?.remainingCoverageAmount || 0,
+                calculatedPremium:      claim.policy?.calculatedPremium || 0,
+                startDate:              claim.policy?.startDate || '',
+                endDate:                claim.policy?.endDate || claim.policy?.expiryDate || '',
             };
 
             const nomineePayload = {
-                fullName:      nominee.name ?? nominee.fullName ?? '',
-                relationship:  nominee.relationship ?? '',
-                contactNumber: nominee.phone ?? nominee.contactNumber ?? '',
+                fullName:      nominee.name || nominee.fullName || '',
+                relationship:  nominee.relationship || '',
+                contactNumber: nominee.phone || nominee.contactNumber || nominee.phoneNumber || '',
             };
 
             // Step 4: Append JSON to FormData

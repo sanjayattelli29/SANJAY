@@ -2,6 +2,7 @@
 
 @import "tailwindcss";
 @import "./theme.css";
+@import "driver.js/dist/driver.css";
 
 
 @layer base {

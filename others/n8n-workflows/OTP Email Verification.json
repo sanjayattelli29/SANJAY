@@ -1,0 +1,134 @@
+{
+  "name": "OTP Email Verification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-otp",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "bccda2e4-48ca-49e9-8751-b9872d319c61",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "c3060f8a-f2bb-43c6-98e5-41de8010edae"
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = items[0].json.body;\nconst otp = Math.floor(100000 + Math.random() * 900000).toString();\n\nreturn [{\n  json: {\n    email: body.email,\n    name: body.name,\n    otp: otp,\n    expiry: new Date(Date.now() + 5 * 60 * 1000).toISOString()\n  }\n}];"
+      },
+      "id": "0ab0b59e-860b-4fa5-a282-af16bca13db3",
+      "name": "Generate OTP",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        256,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "subject": "Your Secure OTP Code for Accisure registration",
+        "message": "=Hello {{ $json.name }},\n\nYour One-Time Password (OTP) is:\n\n{{ $json.otp }}\n\nThis code will expire in 5 minutes.\n\nIf you did not request this, please ignore this email.\n\nThanks,\nAcciSure Team",
+        "toList": [
+          "={{ $json.email }}"
+        ],
+        "additionalFields": {}
+      },
+      "id": "237b1767-91bf-4ecf-9308-7705ff1bb951",
+      "name": "Send OTP Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [
+        512,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "H9nrOf3A3V2EksEl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'success', email: $('Generate OTP').first().json.email, otp: $('Generate OTP').first().json.otp, expiry: $('Generate OTP').first().json.expiry }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "0e0ba3d8-e13a-4fa2-904d-ba3afa157087",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        752,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate OTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate OTP": {
+      "main": [
+        [
+          {
+            "node": "Send OTP Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send OTP Email": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "66b9c605-fdc1-46b9-82b5-1f724cb5042c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d30b44a5cc750a1c2802fd3816c4cfae1f49222f1f21f580bda168d8442502f"
+  },
+  "id": "W85uGCgVc1tqTO3S",
+  "tags": []
+}
