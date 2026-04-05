@@ -1,0 +1,379 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatbot-bot-rag",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -304,
+        -128
+      ],
+      "id": "cbd6c55d-e7c6-42ce-a06f-4e9b2173e821",
+      "name": "Webhook",
+      "webhookId": "4dc9b512-17f6-48fb-ade7-4b5f21791352"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "policy-context-1",
+              "name": "text",
+              "value": "AcciSure is a digital insurance company providing accident insurance for individuals, families, and senior citizens with transparent pricing and fast claim processing. Individual Accident Policy allows a maximum of one member. It includes three tiers. Silver plan provides coverage of 5 lakhs INR with a premium of 3 thousand INR per year and includes benefits such as accidental death, permanent disability, and hospitalization. Gold plan provides coverage of 10 lakhs INR with a premium of 5 thousand INR per year and includes accidental death, permanent disability, partial disability, hospitalization, and ambulance services. Premium plan provides coverage of 20 lakhs INR with a premium of 8 thousand INR per year and includes accidental death, permanent disability, partial disability, ICU cover, and worldwide emergency support. Family Group Accident Policy allows up to four members and the premium is based on the primary applicant. Silver plan provides coverage of 10 lakhs INR with a premium of 7 thousand INR per year and includes family accidental cover, hospitalization, and children education support. Gold plan provides coverage of 20 lakhs INR with a premium of 12 thousand INR per year and includes family accidental cover, ICU cover, children education support, and ambulance services. Premium plan provides coverage of 40 lakhs INR with a premium of 18 thousand INR per year and includes family accidental cover, worldwide emergency support, full disability cover, and ICU plus surgery cover. Senior Citizen Cover allows up to four members and focuses on personal accidental protection. It includes two plans. Silver plan provides basic hospitalization with coverage up to 10 lakhs INR. Gold plan provides full hospitalization with coverage up to 25 lakhs INR. Documents required for all policies include identity proof such as Aadhaar, passport, driving license, or voter ID, age proof, medical report from the last six months, and salary proof if applicable. Applicant information required includes full name, date of birth, gender, profession, annual income, smoking habit, alcohol habit, travel distance per month, existing health conditions, and previous claims history. Family member information for group policies includes member name, relationship, date of birth, and existing health conditions. Nominee information includes name, relationship, phone number, email, bank account number, and IFSC code.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -128
+      ],
+      "id": "1ae859f7-36f0-4f60-8925-a0efab232023",
+      "name": "Static Policy Context"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vector_store_key",
+          "mode": "list",
+          "cachedResultName": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        -128
+      ],
+      "id": "ed3b4741-dd97-4975-932f-95e56221d47d",
+      "name": "Insert Data to Store"
+    },
+    {
+      "parameters": {
+        "options": {
+          "metadata": {
+            "metadataValues": []
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        400
+      ],
+      "id": "5acffced-502a-4aa8-81f4-bab220137ea8",
+      "name": "Text Document Loader"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook').item.json.body.question }}",
+        "options": {
+          "systemMessage": "You are a helpful Insurance Assistant for AcciSure. Follow these rules strictly:\n1. Keep every answer to 2-3 lines maximum. Never exceed 5 lines.\n2. Be clear and concise. No long explanations.\n3. Never use markdown, bullet points, asterisks (*), hashtags (#), dashes (-), or any special characters.\n4. Use plain sentences only.\n5. ALWAYS call the knowledge_base tool for EVERY user message without exception, even greetings or company questions. Never answer from memory.\n6. If the topic needs more detail, summarize the key point and offer to explain further.\n7. If the knowledge base has no relevant result, say: I only have information about AcciSure insurance policies. Can you ask something related to that?"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -128
+      ],
+      "id": "3c4c9460-0cc3-4a39-9ad3-c151f90f8d49",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"answer\": $json.output } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        704,
+        -128
+      ],
+      "id": "77498240-eee9-4c75-a898-50f7b65de720",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1-3zJPBgkUzq2aHI2ZxnpxPkkeAkL69aOSElrYbJ9IoE",
+          "mode": "list",
+          "cachedResultName": "question&ans",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-3zJPBgkUzq2aHI2ZxnpxPkkeAkL69aOSElrYbJ9IoE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-3zJPBgkUzq2aHI2ZxnpxPkkeAkL69aOSElrYbJ9IoE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ans": "={{ $json.output }}",
+            "question": "={{ $('Webhook').item.json.body.question }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ans",
+              "displayName": "ans",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        -128
+      ],
+      "id": "c38b1380-e5d9-4b28-aaf2-68d57def8d81",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "raItSt8fimZGFCIP",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "5352707272",
+        "text": "={{ $('Webhook').item.json.body.question }}:{{ $('AI Agent1').item.json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        -128
+      ],
+      "id": "5d493102-79c9-4205-a688-71d10383de70",
+      "name": "Send a text message",
+      "webhookId": "f7f08642-04ac-4b0b-aa1d-7ce705cdaba1",
+      "credentials": {
+        "telegramApi": {
+          "id": "rNr824QWqDBy9gn6",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "knowledge_base",
+        "toolDescription": "Use this knowledge base to answer insurance policy questions from the user",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        112
+      ],
+      "id": "cf726dfc-b724-4186-b795-bf8b1abe105b",
+      "name": "Query Data Tool"
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        352,
+        112
+      ],
+      "id": "3ccb4ba3-e105-4af2-9e9c-36a80dd833cd",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "BPR6Zi00qVPptgsY",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        352
+      ],
+      "id": "7a9bb469-8f0a-46f2-b4ad-871cb4ab978e",
+      "name": "Embeddings Mistral Cloud",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "BPR6Zi00qVPptgsY",
+          "name": "Mistral Cloud account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Static Policy Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Static Policy Context": {
+      "main": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Data to Store": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Document Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Data Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Mistral Cloud": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Query Data Tool",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2683c288a9942f57cd3acbad190f4c42a7527969e57a971389e2e27fc690f8e2"
+  }
+}

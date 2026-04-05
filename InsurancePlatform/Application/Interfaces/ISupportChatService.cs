@@ -2,17 +2,24 @@ using Domain.Entities;
 
 namespace Application.Interfaces;
 
-// this interface handles the chat functions for agent and customer
+/// <summary>
+/// This interface handles the "Customer Support" chat features.
+/// It allows users to talk to Agents and keeps a record of all conversations.
+/// </summary>
 public interface ISupportChatService
 {
-    // get a list of all chats for a user
+    // Get a list of all chat conversations for a specific user
     Task<IEnumerable<Chat>> GetUserChatListAsync(string userId, string role);
-    // find a chat or make a new one if not exists
+    
+    // Find an existing chat or create a new one between a Customer and an Agent
     Task<Chat> GetOrCreateChatAsync(string policyId, string customerId, string agentId);
-    // save a new message to the database
+    
+    // Save a new message sent by either the Customer or the Agent
     Task<ChatMessage> SaveMessageAsync(string policyId, string senderId, string senderRole, string message);
-    // get all messages for a specific chat
+    
+    // Get all the previous messages (the whole conversation) for a policy chat
     Task<Chat?> GetChatHistoryAsync(string policyId);
-    // mark that someone has seen the messages
+    
+    // Mark all messages in a chat as 'Seen' by the reader
     Task MarkMessagesAsReadAsync(string policyId, string readerRole);
 }

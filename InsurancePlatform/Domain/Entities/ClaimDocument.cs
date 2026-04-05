@@ -2,25 +2,34 @@ using System;
 
 namespace Domain.Entities;
 
-// this class is for documents uploaded for an insurance claim
+
+/// <summary>
+/// This class represents a "Medical Bill" or "Evidence" uploaded for an Insurance Claim.
+/// It links the actual file stored in the cloud (ImageKit) to the user's claim record.
+/// </summary>
 public class ClaimDocument
 {
-    // unique id for the document record
+    // A unique ID identifying this specific document.
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    // which claim this document is for
+
+    // The ID of the Insurance Claim this document belongs to.
     public string ClaimId { get; set; } = string.Empty;
     
-    // the id from imagekit service
+    // The secret ID given by the cloud storage provider (ImageKit).
     public string FileId { get; set; } = string.Empty; 
-    // name of the file
+
+    // The name of the file (e.g., "hospital_receipt.jpg").
     public string FileName { get; set; } = string.Empty;
-    // web url to see the file
+
+    // The direct web link to view the document.
     public string FileUrl { get; set; } = string.Empty;
-    // size of file in bytes
+
+    // How large the file is in bytes.
     public long FileSize { get; set; }
-    // when it was uploaded
+
+    // The date and time when the document was uploaded.
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
-    // link to the insurance claim object
+    // This links the document back to the full Claim details.
     public InsuranceClaim? Claim { get; set; }
 }

@@ -13,6 +13,8 @@ Chart.register(...registerables);
 export class DashboardSectionComponent implements AfterViewInit, OnChanges {
 
   @Input() adminStats: any;
+  @Input() policyRequests: any[] = [];
+  @Input() unifiedPayments: any[] = [];
   @Output() openCommands = new EventEmitter<void>();
 
   @ViewChild('policyChart') policyChart!: ElementRef;
@@ -27,9 +29,55 @@ export class DashboardSectionComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['adminStats'] && !changes['adminStats'].firstChange) {
+    if ((changes['adminStats'] || changes['policyRequests'] || changes['unifiedPayments']) && !changes['adminStats']?.firstChange) {
       this.initCharts();
     }
+  }
+
+  private getDates(days: number): string[] {
+    const dates = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dates.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    }
+    return dates;
+  }
+
+  private aggregateByDay(data: any[], dateField: string, days: number): number[] {
+    const counts = new Array(days).fill(0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    data.forEach(item => {
+      const date = new Date(item[dateField]);
+      date.setHours(0, 0, 0, 0);
+      const diffTime = Math.abs(today.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < days) {
+        counts[days - 1 - diffDays]++;
+      }
+    });
+    return counts;
+  }
+
+  private aggregateRevenueByDay(data: any[], dateField: string, days: number): number[] {
+    const totals = new Array(days).fill(0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    data.forEach(item => {
+      const date = new Date(item[dateField]);
+      date.setHours(0, 0, 0, 0);
+      const diffTime = Math.abs(today.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < days) {
+        totals[days - 1 - diffDays] += (item.premiumAmount || item.paidAmount || 0);
+      }
+    });
+    return totals;
   }
 
   initCharts() {
@@ -40,9 +88,17 @@ export class DashboardSectionComponent implements AfterViewInit, OnChanges {
     this.charts.forEach(c => c.destroy());
     this.charts = [];
 
-    // 1. Policy Growth (Line)
-    const policyLabels = stats.policyGrowth?.length ? stats.policyGrowth.map((p: any) => p.label) : ['No Data'];
-    const policyData = stats.policyGrowth?.length ? stats.policyGrowth.map((p: any) => p.value) : [10]; // fallback non-zero for visual
+    // 1. Policy Growth (Line) - Daily aggregation for last 14 days
+    let policyLabels = this.getDates(14);
+    let policyData = this.aggregateByDay(this.policyRequests, 'submissionDate', 14);
+
+    // If no daily data yet, fallback to backend monthly stats
+    if (policyData.every(v => v === 0) && stats.policyGrowth?.length) {
+      policyLabels = stats.policyGrowth.map((p: any) => p.label);
+      policyData = stats.policyGrowth.map((p: any) => p.value);
+    } else if (policyData.every(v => v === 0)) {
+       policyData = [0,0,0,0,0,0,0,0,0,0,0,0,0,2]; // visual placeholder for demo
+    }
 
     this.charts.push(new Chart(this.policyChart.nativeElement, {
       type: 'line',
@@ -92,9 +148,15 @@ export class DashboardSectionComponent implements AfterViewInit, OnChanges {
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     }));
 
-    // 4. Monthly Revenue (Line)
-    const revenueLabels = stats.revenueTrends?.length ? stats.revenueTrends.map((r: any) => r.label) : ['No Data'];
-    const revenueData = stats.revenueTrends?.length ? stats.revenueTrends.map((r: any) => r.value) : [0];
+    // 4. Monthly Revenue (Line) - Daily aggregation for last 14 days
+    let revenueLabels = this.getDates(14);
+    let revenueData = this.aggregateRevenueByDay(this.unifiedPayments, 'paymentDate', 14);
+
+    // Fallback if no daily data
+    if (revenueData.every(v => v === 0) && stats.revenueTrends?.length) {
+      revenueLabels = stats.revenueTrends.map((r: any) => r.label);
+      revenueData = stats.revenueTrends.map((r: any) => r.value);
+    }
 
     this.charts.push(new Chart(this.revenueChart.nativeElement, {
       type: 'line',

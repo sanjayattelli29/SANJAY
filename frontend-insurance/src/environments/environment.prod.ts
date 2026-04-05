@@ -15,3 +15,4 @@ export const environment = {
     vapiAssistantId: 'c6fc9d80-9d40-4b3e-850f-5311c410cc82',
     pythonAiUrl: 'https://accisure-vertex-ai-gvdtfme4fzdsgpcr.centralindia-01.azurewebsites.net' // Update this with Azure link later
 };
+

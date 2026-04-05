@@ -164,8 +164,10 @@ export class AdminDashboardPage implements OnInit {
 
         // init charts when viewing dashboard section
         if (section === 'dashboard') {
-            // Dashboard now primarily relies on adminStats() for charts
-            // This avoids fetching thousands of user and claim records on boot
+            // Dashboard now uses raw lists for daily/weekly charts
+            if (this.policyRequests().length === 0) this.loadPolicyRequests();
+            if (this.unifiedPayments().length === 0) this.loadUnifiedPayments();
+            
             setTimeout(() => this.initCharts(), 500); 
         } else {
             this.destroyCharts();

@@ -12,8 +12,14 @@ using Application.Interfaces;
 
 namespace Application.Services
 {
+    /// <summary>
+    /// This is the "Grand Manager" for all things related to Insurance Policies.
+    /// It handles the entire lifecycle: from calculating the price (Premium) 
+    /// to processing payments and generating performance reports for agents.
+    /// </summary>
     public class PolicyManager : IPolicyManager
     {
+        // Tools for database access, user management, alerts, and file storage.
         private readonly IPolicyRepository _policyRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ISystemNotifier _systemNotifier;
@@ -32,10 +38,16 @@ namespace Application.Services
             _fileStorage = fileStorage;
         }
 
+        /// <summary>
+        /// This method loads the "Rules and Prices" for all insurance policies.
+        /// It first looks at a JSON file and then checks the Database to see if there are newer rules.
+        /// </summary>
         public async Task<PolicyConfiguration> GetConfigurationAsync()
         {
+            // 1. Get newer categories from the database if they exist.
             var dbCategories = (await _policyRepository.GetCategoriesWithTiersAsync()).ToList();
 
+            // 2. Locate and read the 'policy-config.json' file which contains the base rules.
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "policy-config.json");
             if (!File.Exists(path)) path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "policy-config.json");
             if (!File.Exists(path)) path = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Data", "policy-config.json");
@@ -43,12 +55,14 @@ namespace Application.Services
             var json = await File.ReadAllTextAsync(path);
             var fullConfig = JsonSerializer.Deserialize<PolicyConfiguration>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
+            // 3. Merge the database rules with the file rules.
             if (dbCategories.Any())
             {
                 fullConfig!.PolicyCategories = dbCategories;
             }
             else if (fullConfig != null && fullConfig.PolicyCategories.Any())
             {
+                // If the database is empty, save the file rules into the database for the first time.
                 foreach (var cat in fullConfig.PolicyCategories)
                 {
                     await _policyRepository.AddCategoryAsync(cat);
@@ -59,8 +73,13 @@ namespace Application.Services
             return fullConfig!;
         }
 
+        /// <summary>
+        /// This is a complex math function that decides the Price (Premium) of a policy.
+        /// It increases the price if the person is older, smokes, drinks, or travels a lot.
+        /// </summary>
         public async Task<decimal> CalculatePremiumAsync(PolicyApplicationRequest request)
         {
+            // 1. Get the base rules and find the specific plan the user wants.
             var config = await GetConfigurationAsync();
             var category = config.PolicyCategories.FirstOrDefault(c => c.CategoryId == request.PolicyCategory);
             if (category == null) throw new Exception("Invalid category");
@@ -68,21 +87,25 @@ namespace Application.Services
             var tier = category.Tiers.FirstOrDefault(t => t.TierId == request.TierId);
             if (tier == null) throw new Exception("Invalid tier");
 
-            // Robustly get applicant from either field
             var applicant = request.Applicant ?? request.PrimaryApplicant;
-            if (applicant == null) throw new Exception("Applicant details missing in request (both Applicant and PrimaryApplicant are null)");
+            if (applicant == null) throw new Exception("Applicant details missing in request");
 
+            // 2. Start with a "Multiplier" of 1.0 (100% of base price).
             double multiplier = 1.0;
 
+            // 3. Adjust price based on AGE.
             var ageM = config.RiskFactors.AgeMultipliers.FirstOrDefault(m => applicant.Age >= m.MinAge && applicant.Age <= m.MaxAge);
             multiplier *= ageM?.Multiplier ?? 1.2;
 
+            // 4. Adjust price based on JOB (Profession).
             var profM = config.RiskFactors.ProfessionMultipliers.FirstOrDefault(m => string.Equals(m.Profession, applicant.Profession, StringComparison.OrdinalIgnoreCase));
             multiplier *= profM?.Multiplier ?? 1.0;
 
+            // 5. Adjust price based on INCOME.
             var incomeM = config.RiskFactors.IncomeMultiplier.FirstOrDefault(m => request.AnnualIncome >= m.MinIncome && request.AnnualIncome <= m.MaxIncome);
             multiplier *= incomeM?.Multiplier ?? 1.0;
 
+            // 6. Adjust price based on ALCOHOL and SMOKING habits.
             var alcoholKey = applicant.AlcoholHabit.ToLower().Replace(" ", "");
             multiplier *= alcoholKey switch
             {
@@ -101,20 +124,28 @@ namespace Application.Services
                 _ => 1.0
             };
 
+            // 7. Adjust price based on TRAVEL frequency.
             var travelM = config.RiskFactors.TravelFrequencyMultiplier
                 .OrderBy(m => m.MaxKmPerMonth)
                 .FirstOrDefault(m => applicant.TravelKmPerMonth <= m.MaxKmPerMonth) 
                 ?? config.RiskFactors.TravelFrequencyMultiplier.OrderByDescending(m => m.MaxKmPerMonth).First();
             multiplier *= travelM.Multiplier;
             
+            // 8. Adjust price based on VEHICLE type.
             var vehicleM = config.RiskFactors.VehicleTypeMultiplier.FirstOrDefault(m => string.Equals(m.VehicleType, applicant.VehicleType, StringComparison.OrdinalIgnoreCase));
             multiplier *= vehicleM?.Multiplier ?? 1.0;
 
+            // 9. Multiply the Base Price by our final Multiplier.
             return tier.BasePremiumAmount * (decimal)multiplier;
         }
 
+        /// <summary>
+        /// This method allows a user to "Apply" for a policy.
+        /// It checks for existing policies, calculates the price, and saves the application with Nominee/Family details.
+        /// </summary>
         public async Task<AuthResponseDto> ApplyForPolicyAsync(string userId, PolicyApplicationRequest request)
         {
+            // 1. Don't let users buy the same insurance twice.
             var alreadyHasActivePolicy = await _policyRepository.HasActivePolicyAsync(userId, request.PolicyCategory);
             if (alreadyHasActivePolicy)
             {
@@ -127,9 +158,11 @@ namespace Application.Services
 
             if (tier == null) throw new Exception("Invalid policy tier.");
 
+            // 2. Calculate the finalize price.
             var premium = await CalculatePremiumAsync(request);
             var applicant = request.PolicyCategory == "INDIVIDUAL" ? request.Applicant! : request.PrimaryApplicant!;
 
+            // 3. Create the main application record.
             var application = new PolicyApplication
             {
                 UserId = userId,
@@ -160,6 +193,7 @@ namespace Application.Services
             await _policyRepository.AddAsync(application);
             await _policyRepository.SaveChangesAsync(); 
 
+            // 4. Save the Nominee (the person who gets the money after an accident).
             if (request.Nominee != null)
             {
                 var nominee = new NomineeDetails
@@ -177,6 +211,7 @@ namespace Application.Services
                 await _policyRepository.AddNomineeAsync(nominee);
             }
 
+            // 5. Save Family Members if it's a "Family" plan.
             if (request.PolicyCategory == "FAMILY" && request.FamilyMembers != null)
             {
                 foreach (var fm in request.FamilyMembers)
@@ -197,6 +232,7 @@ namespace Application.Services
 
             await _policyRepository.SaveChangesAsync();
 
+            // 6. Notify the customer and all admins about the new application.
             await _systemNotifier.SendNotificationAsync(userId, "Application Submitted", 
                 $"Your {request.TierId} policy application has been submitted successfully.", $"Policy:{application.Id}");
 
@@ -213,16 +249,22 @@ namespace Application.Services
             return new AuthResponseDto { Status = "Success", Message = application.Id };
         }
 
+        // Get all policies for a specific user.
         public async Task<IEnumerable<PolicyApplication>> GetUserPoliciesAsync(string userId)
         {
             return await _policyRepository.GetUserPoliciesAsync(userId);
         }
 
+        // Get every single application ever submitted.
         public async Task<IEnumerable<PolicyApplication>> GetAllApplicationsAsync()
         {
             return await _policyRepository.GetAllApplicationsAsync();
         }
 
+        /// <summary>
+        /// This method finds all Agents and checks how many applications each one is managing.
+        /// Helps the Admin pick the agent who isn't too busy.
+        /// </summary>
         public async Task<IEnumerable<AgentWorkloadDto>> GetAgentsWithWorkloadAsync()
         {
             var agents = await _userManager.GetUsersInRoleAsync(UserRoles.Agent);
@@ -241,6 +283,10 @@ namespace Application.Services
             return workloads;
         }
 
+        /// <summary>
+        /// This method assigns an Agent to an application.
+        /// Both the customer and the agent get an alert.
+        /// </summary>
         public async Task<bool> AssignAgentAsync(string applicationId, string agentId)
         {
             var app = await _policyRepository.GetByIdAsync(applicationId);
@@ -267,11 +313,16 @@ namespace Application.Services
             return true;
         }
 
+        // Get all applications assigned to a specific agent.
         public async Task<IEnumerable<PolicyApplication>> GetAgentApplicationsAsync(string agentId)
         {
             return await _policyRepository.GetAgentApplicationsAsync(agentId);
         }
 
+        /// <summary>
+        /// This method allows an Agent to Approve or Reject an application.
+        /// If approved, it moves the status to 'Awaiting Payment' and tells the customer to pay.
+        /// </summary>
         public async Task<bool> ReviewApplicationAsync(string applicationId, string status, string agentId)
         {
             var app = await _policyRepository.GetByIdAsync(applicationId);
@@ -291,6 +342,7 @@ namespace Application.Services
             await _policyRepository.UpdateAsync(app);
             await _policyRepository.SaveChangesAsync();
 
+            // Notify the customer about the decision.
             string title = status == "Approved" ? "Payment Required 💳" : "Application Rejected ❌";
             string displayId = applicationId.Substring(0, 3).ToUpper();
             string message = status == "Approved" ? 
@@ -302,11 +354,16 @@ namespace Application.Services
             return true;
         }
 
+        /// <summary>
+        /// This method processes the customer's payment.
+        /// Once paid, the policy becomes 'Active', and we calculate the Expiry and Coverage amounts.
+        /// </summary>
         public async Task<bool> ProcessPaymentAsync(string applicationId, decimal amount, string transactionId)
         {
             var app = await _policyRepository.GetByIdAsync(applicationId);
             if (app == null || app.Status != "AwaitingPayment") return false;
 
+            // 1. Mark as Active and record the money.
             app.Status = "Active";
             app.PaidAmount = amount;
             app.PaymentDate = DateTime.UtcNow;
@@ -317,6 +374,7 @@ namespace Application.Services
             var category = config.PolicyCategories.FirstOrDefault(c => c.CategoryId == app.PolicyCategory);
             var tier = category?.Tiers.FirstOrDefault(t => t.TierId == app.TierId);
             
+            // 2. Decide when the policy expires.
             int validityYears = tier?.ValidityInYears ?? 1; 
             app.ExpiryDate = app.StartDate.Value.AddYears(validityYears);
             
@@ -332,6 +390,7 @@ namespace Application.Services
 
             if (string.IsNullOrEmpty(app.PaymentMode)) app.PaymentMode = "yearly";
 
+            // 3. Decide when the next invoice should be generated.
             app.NextPaymentDate = app.PaymentMode.ToLower() switch
             {
                 "monthly" => app.StartDate.Value.AddMonths(1),
@@ -340,6 +399,7 @@ namespace Application.Services
                 _ => app.ExpiryDate
             };
 
+            // 4. Set the coverage "Wallet" to full amount.
             app.TotalCoverageAmount = tier?.BaseCoverageAmount ?? 0;
             app.RemainingCoverageAmount = app.TotalCoverageAmount;
             app.TotalApprovedClaimsAmount = 0;
@@ -347,12 +407,14 @@ namespace Application.Services
             await _policyRepository.UpdateAsync(app);
             await _policyRepository.SaveChangesAsync();
 
+            // 5. Notify the customer.
             await _systemNotifier.SendNotificationAsync(app.UserId, "Policy Activated", 
                 $"Your {app.TierId} policy is now ACTIVE. Coverage starts from today.", $"CUST:Policy:{applicationId}");
 
             var customerUser = await _userManager.FindByIdAsync(app.UserId);
             string customerEmail = customerUser?.Email ?? app.UserId;
 
+            // 6. Give the agent their 10% commission.
             if (!string.IsNullOrEmpty(app.AssignedAgentId))
             {
                 decimal commission = app.CalculatedPremium * 0.10m;
@@ -372,6 +434,7 @@ namespace Application.Services
             return true;
         }
 
+        // Get statistics on how much money an agent has made.
         public async Task<AgentCommissionDto> GetAgentCommissionStatsAsync(string agentId)
         {
             var activePolicies = (await _policyRepository.GetAgentApplicationsAsync(agentId))
@@ -387,15 +450,19 @@ namespace Application.Services
             };
         }
 
+        // Get a list of all customers assigned to an agent.
         public async Task<IEnumerable<PolicyApplication>> GetAgentCustomersAsync(string agentId)
         {
             return await _policyRepository.GetAgentApplicationsAsync(agentId);
         }
 
+        /// <summary>
+        /// This method generates a detailed "Performance Report" for an agent.
+        /// It calculates success rates, total customers, and preparation for charts.
+        /// </summary>
         public async Task<AgentAnalyticsDto> GetAgentAnalyticsAsync(string agentId)
         {
             var allAssigned = (await _policyRepository.GetApplicationsForAnalyticsAsync(agentId)).ToList();
-
             var activePolicies = allAssigned.Where(pa => pa.Status == "Active").ToList();
             
             var analytics = new AgentAnalyticsDto
@@ -428,6 +495,7 @@ namespace Application.Services
                     .Select(g => new StatusCount { Status = g.Key, Count = g.Count() })
                     .ToList(),
 
+                // Daily commission trends for charts.
                 CommissionPerformance = activePolicies
                     .Where(pa => pa.PaymentDate.HasValue)
                     .GroupBy(pa => pa.PaymentDate!.Value.ToString("dd MMM"))
@@ -436,6 +504,7 @@ namespace Application.Services
                     .TakeLast(30)
                     .ToList(),
 
+                // Daily premium trends for charts.
                 PremiumTrends = activePolicies
                     .Where(pa => pa.PaymentDate.HasValue)
                     .GroupBy(pa => pa.PaymentDate!.Value.ToString("dd MMM"))
@@ -450,6 +519,7 @@ namespace Application.Services
             return analytics;
         }
 
+        // Get a simplified list of all payments for a central admin view.
         public async Task<IEnumerable<UnifiedPaymentDto>> GetUnifiedPaymentsAsync()
         {
             var reports = (await _policyRepository.GetAllApplicationsAsync())
@@ -475,6 +545,10 @@ namespace Application.Services
             return reports;
         }
 
+        /// <summary>
+        /// This method uploads identity and income documents (KYC) for a policy.
+        /// Once uploaded, the application moves to 'Pending Review'.
+        /// </summary>
         public async Task<AuthResponseDto> SubmitPolicyDocumentsAsync(SubmitPolicyDocumentsRequest request)
         {
             var application = await _policyRepository.GetByIdAsync(request.PolicyApplicationId);
@@ -504,6 +578,7 @@ namespace Application.Services
             return new AuthResponseDto { Status = "Success", Message = "Documents uploaded and application is now under review." };
         }
     
+        // Save the web link to a payment invoice (Receipt).
         public async Task<bool> UpdateInvoiceUrlAsync(string applicationId, string invoiceUrl)
         {
             var app = await _policyRepository.GetByIdAsync(applicationId);
@@ -515,6 +590,7 @@ namespace Application.Services
             return true;
         }
 
+        // Save the web link to an AI-generated risk analysis report.
         public async Task<bool> UpdateAnalysisUrlAsync(string applicationId, string analysisUrl)
         {
             var app = await _policyRepository.GetByIdAsync(applicationId);
@@ -526,12 +602,14 @@ namespace Application.Services
             return true;
         }
 
+        // General tool to upload any file to storage.
         public async Task<string> UploadGeneralFileAsync(Stream fileStream, string fileName, string folder)
         {
             var result = await _fileStorage.UploadFileAsync(fileStream, fileName, folder);
             return result.FileUrl;
         }
 
+        // Add a brand new insurance type to the system (e.g. 'Pet Insurance').
         public async Task<bool> CreatePolicyCategoryAsync(PolicyCategory category)
         {
             if (await _policyRepository.CategoryExistsAsync(category.CategoryId))
@@ -544,6 +622,7 @@ namespace Application.Services
             return true;
         }
 
+        // Add a brand new pricing level to an existing insurance type.
         public async Task<bool> AddPolicyTierAsync(string categoryId, PolicyTier tier)
         {
             var category = await _policyRepository.GetCategoryByIdAsync(categoryId);

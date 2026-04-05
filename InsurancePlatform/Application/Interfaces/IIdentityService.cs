@@ -2,39 +2,46 @@ using Application.DTOs;
 
 namespace Application.Interfaces
 {
-    // this interface lists all the things about user account management
+    /// <summary>
+    /// This interface handles everything related to Users and Security.
+    /// It covers things like Signing Up, Logging In, and managing user roles.
+    /// </summary>
     public interface IIdentityService
     {
-        // register a new customer in system
+        // Allow a new customer to create an account
         Task<AuthResponseDto> RegisterCustomerAsync(RegisterCustomerDto registerDto);
 
-        // check user password and login
+        // Check if a user's email and password are correct and let them in
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
 
-        // create a new agent login (only for admin)
+        // Allow an Admin to create a new Agent profile
         Task<AuthResponseDto> CreateAgentAsync(CreateAgentDto agentDto);
 
-        // create a new claim officer (only for admin)
+        // Allow an Admin to create a new Claim Officer profile
         Task<AuthResponseDto> CreateClaimOfficerAsync(CreateClaimOfficerDto claimOfficerDto);
 
-        // get all users who have a specific role
+        // Get a list of all users who have a specific job (like all 'Agents')
         Task<IEnumerable<UserListingDto>> GetUsersByRoleAsync(string role);
 
-        // get every single user in system
+        // Get a list of every single person registered in the system
         Task<IEnumerable<UserListingDto>> GetAllUsersAsync();
 
-        // delete a user from system
+        // Completely remove a user from the system
         Task<AuthResponseDto> DeleteUserAsync(string userId);
 
+        // Mark a user as having successfully completed their ID verification (KYC)
         Task<AuthResponseDto> CompleteKycAsync(string userId);
 
-        // update the user's profile image url after uploading to ImageKit
+        // Change a user's profile picture link
         Task<AuthResponseDto> UpdateProfileImageAsync(string userId, string imageUrl);
 
-        // reset password bypassing standard workflow (as verified by client OTP)
+        // Change a user's password (used when they forget it)
         Task<AuthResponseDto> ResetPasswordAsync(string email, string newPassword);
     }
 
+    /// <summary>
+    /// This class is used to show a summary of a user's information in a list.
+    /// </summary>
     public class UserListingDto
     {
         public string Id { get; set; } = string.Empty;

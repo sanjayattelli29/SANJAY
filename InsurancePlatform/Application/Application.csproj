@@ -1,21 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Core settings for the Application layer -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- This project depends on the Domain layer (Entities and Enums) -->
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
+  <!-- External Tools (NuGet Packages) used by our services -->
   <ItemGroup>
+    <!-- Deepgram: Used for turning voice audio into written text -->
     <PackageReference Include="Deepgram" Version="4.0.0" />
+    
+    <!-- Microsoft Extensions: Basic tools for settings and configuration -->
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+    
+    <!-- Validations: Used to set rules like [Required] or [MaxLength] on data -->
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    
+    <!-- Http/Identity: Used for managing user logins and web requests -->
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.0" />
+    
+    <!-- JWT: Used for creating secure login "Tokens" -->
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
   </ItemGroup>
 

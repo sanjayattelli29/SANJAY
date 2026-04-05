@@ -11,7 +11,7 @@ public class PolicyApplication
     // the user who wants the policy
     public string UserId { get; set; } = string.Empty;
     // type of policy like individual or family
-    public string PolicyCategory { get; set; } = string.Empty; 
+    public string PolicyCategory { get; set; } = string.Empty;
     // which tier like gold or silver
     public string TierId { get; set; } = string.Empty;
     // cost of the policy calculated by system
@@ -19,7 +19,7 @@ public class PolicyApplication
     // when it was submitted
     public DateTime SubmissionDate { get; set; } = DateTime.UtcNow;
     // status like pending or approved
-    public string Status { get; set; } = "Pending"; 
+    public string Status { get; set; } = "Pending";
 
     // structured underwriting data
     public int Age { get; set; }

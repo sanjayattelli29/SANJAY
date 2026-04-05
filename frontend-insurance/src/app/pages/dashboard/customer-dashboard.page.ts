@@ -670,8 +670,8 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
             data: {
                 labels,
                 datasets: [
-                    { label: 'Total Coverage (â‚¹)', data: coverageData, backgroundColor: 'rgba(15,31,20,0.85)', borderRadius: 8, borderSkipped: false },
-                    { label: 'Amount Claimed (â‚¹)', data: claimedData, backgroundColor: 'rgba(249,115,22,0.85)', borderRadius: 8, borderSkipped: false }
+                    { label: 'Total Coverage (₹)', data: coverageData, backgroundColor: 'rgba(15,31,20,0.85)', borderRadius: 8, borderSkipped: false },
+                    { label: 'Amount Claimed (₹)', data: claimedData, backgroundColor: 'rgba(249,115,22,0.85)', borderRadius: 8, borderSkipped: false }
                 ]
             },
             options: {
@@ -679,7 +679,7 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
                 plugins: { legend: { position: 'top', labels: { font: { family: 'Inter, sans-serif', weight: 'bold', size: 11 }, color: '#64748b' } } },
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { family: 'Inter', weight: 'bold', size: 10 }, color: '#94a3b8' } },
-                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Inter', size: 10 }, color: '#94a3b8', callback: (v: any) => 'â‚¹' + (v / 100000).toFixed(0) + 'L' } }
+                    y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Inter', size: 10 }, color: '#94a3b8', callback: (v: any) => '₹' + (v / 100000).toFixed(0) + 'L' } }
                 }
             }
         });

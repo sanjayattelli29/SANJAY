@@ -233,7 +233,7 @@
                     </div>
                 </div>
                 } @if (activeSection() === 'dashboard') {
-                <app-dashboard-section [adminStats]="adminStats()" (openCommands)="setSection('analysis-commands')">
+                <app-dashboard-section [adminStats]="adminStats()" [policyRequests]="policyRequests()" [unifiedPayments]="unifiedPayments()" (openCommands)="setSection('analysis-commands')">
                 </app-dashboard-section>
                 } @if (activeSection() === 'agents') {
                 <app-agents-section [agentForm]="agentForm" [agents]="agents()" [isLoading]="isLoading()"

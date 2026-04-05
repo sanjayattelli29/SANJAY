@@ -1,15 +1,21 @@
-﻿namespace Domain.Enums
+namespace Domain.Enums
 {
-    // this class has all the roles we use in the website
+    /// <summary>
+    /// This class defines the different "Roles" or "Jobs" a user can have in the system.
+    /// Each role lets the user see different pages and buttons.
+    /// </summary>
     public static class UserRoles
     {
-        // the boss who can do everything
+        // "Admin" is the boss. They can manage all users and settings.
         public const string Admin = "Admin";
-        // the normal person who buys insurance
+
+        // "Customer" is the person who buys insurance and files claims.
         public const string Customer = "Customer";
-        // the person who sells and checks policies
+
+        // "Agent" is the person who checks policy applications and helps customers.
         public const string Agent = "Agent";
-        // the person who checks and pays claims
+
+        // "ClaimOfficer" is the person who reviews bills and approves claim payments.
         public const string ClaimOfficer = "ClaimOfficer";
     }
 }

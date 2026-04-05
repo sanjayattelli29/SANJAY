@@ -1,16 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTOs
 {
-    // this class is for users when they try to login
+    /// <summary>
+    /// This class is used when a user (Customer, Agent, or Admin) tries to log into the website.
+    /// It simple holds their email and password.
+    /// </summary>
     public class LoginDto
     {
-        // user's registered email
+        // The email address the user used when they signed up
         [Required]
         [EmailAddress]
         public string EmailId { get; set; } = string.Empty;
 
-        // user's password
+        // The secret password for the user's account
         [Required]
         public string Password { get; set; } = string.Empty;
     }

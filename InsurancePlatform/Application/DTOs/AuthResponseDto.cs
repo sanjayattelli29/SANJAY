@@ -1,29 +1,42 @@
 namespace Application.DTOs
 {
-    // this class is for the reply after user tries to login or register
+    /// <summary>
+    /// This class is the "Receipt" or "Welcome Package" given to a user after they log in or register.
+    /// It contains their security token (like a digital ID card) and their basic profile info.
+    /// </summary>
     public class AuthResponseDto
     {
-        // "Success" or "Error"
+        // Tells us if the login was a "Success" or an "Error"
         public string? Status { get; set; }
-        // message like "Login successful"
+        
+        // A friendly message like "Welcome back, Sanjay!" or an error message
         public string? Message { get; set; }
-        // security token for the user
+        
+        // The digital key (JWT Token) that allows the user to access protected parts of the app
         public string? Token { get; set; }
-        // when the token expires
+        
+        // The date and time when this digital key will stop working
         public DateTime? Expiration { get; set; }
-        // user role like Admin or Customer
+        
+        // The user's role (e.g., 'Admin', 'Agent', 'ClaimOfficer', or 'Customer')
         public string? Role { get; set; }
-        // user email id
+        
+        // The email address the user logged in with
         public string? Email { get; set; }
-        // unique id of the user
+        
+        // The unique database ID for this user
         public string? Id { get; set; }
-        // full name of the user
+        
+        // The user's full name
         public string? FullName { get; set; }
-        // mobile number of the user
+        
+        // The user's contact phone number
         public string? PhoneNumber { get; set; }
-        // kyc status
+        
+        // True if the user has completed their KYC (Know Your Customer) verification
         public bool IsKycVerified { get; set; }
-        // profile image CDN url from ImageKit
+        
+        // The web link to the user's profile picture
         public string? ProfileImageUrl { get; set; }
     }
 }

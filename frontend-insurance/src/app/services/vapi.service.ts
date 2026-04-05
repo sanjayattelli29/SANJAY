@@ -17,7 +17,7 @@ export class VapiService {
   constructor() {
     this.setupEventListeners();
   }
-
+ //Listening for Events
   private setupEventListeners() {
     this.vapi.on('call-start', () => {
       console.log('[Vapi] Call started');
@@ -54,6 +54,7 @@ export class VapiService {
     
     this.callStatus.set('connecting');
     try {
+      //The "Start Call" (The Handshake)
       await this.vapi.start(environment.vapiAssistantId);
     } catch (error) {
       console.error('[Vapi] Failed to start call:', error);

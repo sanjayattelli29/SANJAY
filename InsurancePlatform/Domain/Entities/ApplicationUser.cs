@@ -3,31 +3,35 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities
 {
-    // This is the main user class and we use this for all users in the system
+    /// <summary>
+    /// This is our main User class. It handles login details and personal info.
+    /// It can be a Customer, an Agent, or a Claims Officer.
+    /// </summary>
     public class ApplicationUser : IdentityUser
     {
-        // This is for the full name of the user
+        // The full name of the user as they want it to appear.
         [Required]
         [MaxLength(100)]
         public string FullName { get; set; } = string.Empty;
 
-        // This is aadhar card number for customer verification
+        // The user's 12-digit Aadhaar number for identity verification.
         [MaxLength(12)]
         public string? AadhaarNumber { get; set; }
 
-        // This is bank account for agents and officers to get payments
+        // The bank account where an Agent or Officer gets paid their commissions/salary.
         [MaxLength(16)]
         public string? BankAccountNumber { get; set; }
 
-        // This is when the user was created
+        // The date and time when this user first joined the platform.
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // This stores the plain-text password created by admin for onboarding
+        // A temporary password set by the admin when creating the account.
         public string? InitialPassword { get; set; }
 
+        // "True" if the user has successfully finished their KYC (Know Your Customer) check.
         public bool IsKycVerified { get; set; } = false;
 
-        // This stores the ImageKit CDN URL of the user's profile photo
+        // A link to the user's profile picture stored in the cloud.
         public string? ProfileImageUrl { get; set; }
     }
 }

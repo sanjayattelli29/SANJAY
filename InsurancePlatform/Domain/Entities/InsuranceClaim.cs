@@ -11,7 +11,7 @@ public class InsuranceClaim
     public string PolicyApplicationId { get; set; } = string.Empty;
     // the user who is filing the claim
     public string UserId { get; set; } = string.Empty;
-    
+
     // how much money the user wants
     public decimal RequestedAmount { get; set; }
     // how much money the officer approved
@@ -22,7 +22,7 @@ public class InsuranceClaim
     public DateTime IncidentDate { get; set; }
     // when they submitted the claim
     public DateTime SubmissionDate { get; set; } = DateTime.UtcNow;
-    
+
     // why they are claiming like accident or sickness
     public string IncidentType { get; set; } = string.Empty;
     // where it happened
@@ -51,10 +51,10 @@ public class InsuranceClaim
     public string? AffectedMemberName { get; set; }
     // relation like wife or son
     public string? AffectedMemberRelation { get; set; }
-    
+
     // status like pending or approved
-    public string Status { get; set; } = "Pending"; 
-    
+    public string Status { get; set; } = "Pending";
+
     // notes from the officer
     public string? Remarks { get; set; }
     // who is checking this claim

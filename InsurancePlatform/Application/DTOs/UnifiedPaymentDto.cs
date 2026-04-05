@@ -2,36 +2,51 @@ using System;
 
 namespace Application.DTOs;
 
-// this class is used for tracking all transactions and payments
+/// <summary>
+/// This class is the "Common Record" for all payments and policy statuses.
+/// It helps the system track who paid, how much, and who helped them (Agent/Officer).
+/// </summary>
 public class UnifiedPaymentDto
 {
-    // unique id of policy application
+    // The unique ID of the insurance application
     public string ApplicationId { get; set; } = string.Empty;
-    // email of the customer who paid
+    
+    // The email address of the customer who bought the policy
     public string CustomerEmail { get; set; } = string.Empty;
-    // email of agent if involved
+    
+    // The email of the Agent who sold this policy (if any)
     public string? AgentEmail { get; set; }
-    // email of officer if involved
+    
+    // The email of the Claim Officer who handled this policy's claims (if any)
     public string? ClaimsOfficerEmail { get; set; }
-    // category like health or life
+    
+    // The category of insurance (e.g., 'Health', 'Life')
     public string PolicyCategory { get; set; } = string.Empty;
-    // tier like gold or silver
+    
+    // The plan tier (e.g., 'Gold', 'Silver')
     public string TierId { get; set; } = string.Empty;
-    // total amount the policy covers
+    
+    // The total maximum money this policy can pay out
     public decimal TotalCoverage { get; set; }
-    // current money left in policy
+    
+    // The remaining coverage money available for future claims
     public decimal CurrentCoverage { get; set; }
-    // cost of policy premium
+    
+    // The cost of the insurance policy (the price of the plan)
     public decimal PremiumAmount { get; set; }
-    // how much they actually paid
+    
+    // How much money the user has actually paid so far
     public decimal? PaidAmount { get; set; }
     
-    // when they last made a payment
+    // The date when the user last made a payment
     public DateTime? LastPaymentDate { get; set; }
-    // reference id from bank
+    
+    // The unique transaction ID from the bank or payment gateway
     public string? TransactionId { get; set; }
-    // how they paid like monthly
+    
+    // How the user paid (e.g., 'Monthly', 'Yearly', 'OneTime')
     public string? PaymentMode { get; set; }
-    // status of payment like success
+    
+    // Current status of the payment (e.g., 'Success', 'Pending', 'Failed')
     public string Status { get; set; } = string.Empty;
 }

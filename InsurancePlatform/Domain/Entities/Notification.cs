@@ -4,36 +4,40 @@ using System.ComponentModel.DataAnnotations.Schema;
 // this class stores notification alerts for users
 namespace Domain.Entities
 {
+    /// <summary>
+    /// This class represents a "Notification" or "Alert" sent to a user.
+    /// It shows up in their inbox and tells them things like "Your claim was approved".
+    /// </summary>
     public class Notification
     {
-        // unique id for each notification
+        // A unique code for each notification alert.
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        // who this notification is for
+        // The ID of the person who should see this message.
         [Required]
         public string UserId { get; set; } = string.Empty;
 
-        // link to the user object
+        // Links to the full User account details.
         [ForeignKey("UserId")]
         public virtual ApplicationUser? User { get; set; }
 
-        // short heading of the notification
+        // A short title for the alert (e.g., "Policy Expiring").
         [Required]
         [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
 
-        // detailed message text
+        // The full text message of the notification.
         [Required]
         public string Message { get; set; } = string.Empty;
 
-        // when this notification was created
+        // The exact date and time the alert was sent.
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // whether user has seen this notification
+        // "True" if the user has clicked on or read the message.
         public bool IsRead { get; set; } = false;
 
-        // category of notification like policy or claim
+        // The category of alert, like "Claim", "Policy", or "General".
         [MaxLength(50)]
         public string NotificationType { get; set; } = "General";
     }

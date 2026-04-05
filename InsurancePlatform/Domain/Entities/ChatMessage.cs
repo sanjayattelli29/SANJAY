@@ -3,23 +3,33 @@ using System;
 namespace Domain.Entities;
 
 // this class stores a single message in a chat
+
+/// <summary>
+/// This class represents a single "Text Message" sent inside a Chat room.
+/// </summary>
 public class ChatMessage
 {
-    // unique id for this message
+    // A unique ID for this specific message.
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    // which chat this message belongs to
+
+    // The ID of the Chat room this message belongs to.
     public string ChatId { get; set; } = string.Empty;
-    // who sent the message
+
+    // The unique ID of the person who typed the message.
     public string SenderId { get; set; } = string.Empty;
-    // role of sender like customer or agent
+
+    // The job of the sender (e.g., "Customer" or "Agent").
     public string SenderRole { get; set; } = string.Empty; 
-    // the actual text message
+
+    // The actual text content of the message.
     public string Message { get; set; } = string.Empty;
-    // when the message was sent
+
+    // The date and time when the message was "Sent".
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    // if the other person has seen this message
+
+    // "True" if the other person in the chat has opened/seen this message.
     public bool IsRead { get; set; } = false;
 
-    // link to the full chat object
+    // Links back to the full Chat session details.
     public Chat? Chat { get; set; }
 }
