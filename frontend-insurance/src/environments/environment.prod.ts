@@ -6,7 +6,7 @@ export const environment = {
     chatHubUrl: 'https://accisurebackend-ejg3c7e3efg6hre8.centralindia-01.azurewebsites.net/api/chathub',
     notificationHubUrl: 'https://accisurebackend-ejg3c7e3efg6hre8.centralindia-01.azurewebsites.net/api/notificationhub',
     voiceAgentApiUrl: 'https://accisurebackend-ejg3c7e3efg6hre8.centralindia-01.azurewebsites.net/api/VoiceAgent/Process',
-    googleVisionApiKey: 'AIzaSyAuDTrlRBfVE3rGyBhFp2LyzhPQsivB9N8',
+    googleVisionApiKey: 'AIzaSyAadAFAOJkRA4IxjUJhRqMSgUEaiNco3hE',
     deepgram_api: '6cb56fe501b72b03393de0e297a55deb41ff8bce',
     elevenlabs_api: 'sk_010607a2b8e038f74f52b761d6dde9b9fcdeb7eafc1880a6',
     VITE_GROQ_API_KEY: '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',

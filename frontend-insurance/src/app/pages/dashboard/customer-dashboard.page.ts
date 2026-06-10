@@ -500,8 +500,10 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     startAiVoiceCall() {
         // open the ai call popup
         this.isAiCallPopupOpen.set(true);
-        // start the voice call
-        this.vapiService.startCall();
+        // get currently logged in user id for personalization
+        const userId = this.user.id || 'guest';
+        // start the voice call with user context
+        this.vapiService.startCall(userId);
     }
 
     // MODAL DIALOGS SECTION
