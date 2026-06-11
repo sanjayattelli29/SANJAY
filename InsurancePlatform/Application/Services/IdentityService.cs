@@ -20,18 +20,15 @@ namespace Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ITokenService _tokenService;
-        private readonly IVapiService _vapiService;
 
         public IdentityService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            ITokenService tokenService,
-            IVapiService vapiService)
+            ITokenService tokenService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokenService = tokenService;
-            _vapiService = vapiService;
         }
 
         /// This method creates a new Customer account.
@@ -63,20 +60,6 @@ namespace Application.Services
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Customer));
 
             await _userManager.AddToRoleAsync(user, UserRoles.Customer);
-
-            // 5. Start a background task to call the user's phone in 90 seconds.
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(90));
-                    await _vapiService.TriggerWelcomeCallAsync(user.PhoneNumber!, user.FullName!);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Vapi Call Trigger failed: {ex.Message}");
-                }
-            });
 
             return new AuthResponseDto { Status = "Success", Message = "Customer created successfully!" };
         }

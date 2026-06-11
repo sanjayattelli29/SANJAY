@@ -185,11 +185,6 @@ export class CustomerRegisterPage implements OnInit {
             // backend creates user in db via identity system
             this.authService.register(this.registrationForm.value).subscribe({
                 next: () => {
-                    // trigger vapi onboarding call via n8n
-                    const mobile = '+91' + this.registrationForm.get('mobileNumber')?.value;
-                    const name = this.registrationForm.get('name')?.value;
-                    this.http.post(n8nWebhooks.vapiOnboardingCall, { mobile, name }).subscribe();
-
                     // redirect to login after successful registration
                     this.router.navigate(['/customer/login']);
                 },

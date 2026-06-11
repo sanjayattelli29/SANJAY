@@ -39,9 +39,7 @@ import { CustomerPart1Component } from './customer-components/part1/customer-par
 // second part of customer dashboard component
 import { CustomerPart2Component } from './customer-components/part2/customer-part2';
 // component for ai voice call popup
-import { AICallPopupComponent } from './customer-components/ai-call-popup.component';
 // service for vapi voice calling functionality
-import { VapiService } from '../../services/vapi.service';
 // pipe for marking data as safe for angular
 import { SafePipe } from '../../pipes/safe.pipe';
 // library to generate pdf documents
@@ -59,7 +57,7 @@ import { n8nWebhooks } from '../../../environments/n8n/n8n';
 @Component({
     selector: 'app-customer-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, VoiceAgent, CustomerPart1Component, CustomerPart2Component, AICallPopupComponent],
+    imports: [CommonModule, FormsModule, RouterModule, NotificationPanelComponent, VoiceAgent, CustomerPart1Component, CustomerPart2Component],
     templateUrl: './customer-dashboard.page.html',
     styleUrls: ['./customer-dashboard.page.css']
 })
@@ -73,8 +71,6 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     private claimService = inject(ClaimService);
     // chat service for messaging
     private chatService = inject(ChatService);
-    // vapi service for voice calls
-    protected vapiService = inject(VapiService);
     // router for navigation
     private router = inject(Router);
     // http client for api requests
@@ -485,8 +481,6 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     isVoiceMode = signal<boolean>(false);
     // flag showing if voice is being processed
     isVoiceProcessing = signal<boolean>(false);
-    // flag showing if ai voice call popup is open
-    isAiCallPopupOpen = signal<boolean>(false);
     // reference to audio element that is currently playing
     private currentAudio: HTMLAudioElement | null = null;
 
@@ -495,16 +489,6 @@ export class CustomerDashboardPage implements OnInit, AfterViewInit {
     showOnboardingModal = signal<boolean>(false);
     // driver instance for the tour
     tourDriver: any = null;
-
-    // function to start ai voice call with vapi service
-    startAiVoiceCall() {
-        // open the ai call popup
-        this.isAiCallPopupOpen.set(true);
-        // get currently logged in user id for personalization
-        const userId = this.user.id || 'guest';
-        // start the voice call with user context
-        this.vapiService.startCall(userId);
-    }
 
     // MODAL DIALOGS SECTION
     // flag showing if policy detail modal is open

@@ -11,8 +11,6 @@ export const environment = {
     elevenlabs_api: 'sk_010607a2b8e038f74f52b761d6dde9b9fcdeb7eafc1880a6',
     VITE_GROQ_API_KEY: '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',
     new_elevenlabs_api: 'sk_03096496bb9d22d051b23d02debc7e51c89280b9588fbd7f',
-    vapiPublicKey: '5094349c-e7e7-4805-bbaa-63733c7b34a0',
-    vapiAssistantId: 'c6fc9d80-9d40-4b3e-850f-5311c410cc82',
     pythonAiUrl: 'https://accisure-vertex-ai-gvdtfme4fzdsgpcr.centralindia-01.azurewebsites.net' // Update this with Azure link later
 };
 

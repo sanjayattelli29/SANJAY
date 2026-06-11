@@ -21,7 +21,6 @@ public class AuthServiceTests
     private readonly Mock<RoleManager<IdentityRole>> _mockRoleManager;
     private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly Mock<ITokenService> _mockTokenService;
-    private readonly Mock<IVapiService> _mockVapiService;
     private readonly IdentityService _authService;
 
     public AuthServiceTests()
@@ -36,7 +35,6 @@ public class AuthServiceTests
 
         _mockConfiguration = new Mock<IConfiguration>();
         _mockTokenService = new Mock<ITokenService>();
-        _mockVapiService = new Mock<IVapiService>();
         
         // Mocking IConfiguration values
         _mockConfiguration.Setup(c => c["JWT:SecretKey"]).Returns("very_long_secret_key_for_testing_purposes_only");
@@ -44,7 +42,7 @@ public class AuthServiceTests
         _mockConfiguration.Setup(c => c["JWT:Audience"]).Returns("TestAudience");
         _mockConfiguration.Setup(c => c["JWT:ExpiryMinutes"]).Returns("60");
 
-        _authService = new IdentityService(_mockUserManager.Object, _mockRoleManager.Object, _mockTokenService.Object, _mockVapiService.Object);
+        _authService = new IdentityService(_mockUserManager.Object, _mockRoleManager.Object, _mockTokenService.Object);
     }
 
     [Fact]

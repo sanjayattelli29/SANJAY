@@ -99,7 +99,6 @@ namespace API
             builder.Services.AddScoped<INotificationBroadcaster, SignalRNotificationBroadcaster>();
             builder.Services.AddScoped<ISystemNotifier, SystemNotifier>();
             builder.Services.AddScoped<IVoiceOrchestrator, VoiceOrchestrator>();
-            builder.Services.AddScoped<IVapiService, VapiClient>();
 
             // SIGNALR
             builder.Services.AddSignalR()
